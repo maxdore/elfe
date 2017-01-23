@@ -1,12 +1,14 @@
-
+import System.Process
+import System.IO  
+import Control.Applicative                                   
 import Data.List
 
-data Term = Const String [Term]
+data Term = Consta String [Term]
            | Var String
   deriving (Eq)
 instance Show Term where
   show (Var s) = s
-  show (Const s terms) = s ++ "(" ++ (intercalate "," $ map show terms) ++ ")" 
+  show (Consta s terms) = s ++ "(" ++ (intercalate "," $ map show terms) ++ ")" 
 
 
 data Formula = Impl Formula Formula  | Iff Formula Formula
@@ -70,20 +72,42 @@ p = [
     ]
 
 
-task2TPTP :: Statement -> Context -> String
-task2TPTP (Statement id goal ProofByContext) context = "BEGIN TPTP TASK\n" ++ show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show goal ++ ")).\nEND TPTP TASK\n"
+task2TPTP :: Statement -> Context -> IO String
+task2TPTP (Statement id goal ProofByContext) context = runProver (show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show goal ++ ")).\n")
 
-verifyStatement :: Statement -> Context -> String
-verifyStatement (Statement id goal Assumed) context = "Statement " ++ id ++ " " ++ show goal ++ " is assumed"
-verifyStatement (Statement id goal ProofByContext) context = "Statement " ++ id ++ " is proved with task:\n" ++ task2TPTP (Statement id goal ProofByContext) context
+runProver :: String -> IO String
+runProver input = do
+  return "TEST PROVER OUTPUT" 
+  --(inn, out, err, idd) <- runInteractiveProcess "../prover/E/PROVER/eprover" [] Nothing Nothing
+  --mapM_ (flip hSetBinaryMode False) [inn, out]             
+  --hSetBuffering inn LineBuffering                          
+  --hSetBuffering out NoBuffering                            
+  --hPutStrLn inn "help"                                    
+  --parsedIntro <- parseUntilPrompt out                      
+  --res <- mapM_ (putStrLn . \x -> "PARSED:: " ++  x) parsedIntro
+  --return "TEST PROVER OUTPUT" 
+
+parseUntilPrompt :: Handle -> IO [String]                 
+parseUntilPrompt out = do                                    
+  latest <- hGetLine out                                     
+  if latest == "# No proof found!"                                            
+    then return ["NO"]                                           
+  else if latest == "# Proof found!"                                            
+    then return ["YES"]                                           
+  else (:) <$> return latest <*> parseUntilPrompt out
+
+
+verifyStatement :: Statement -> Context -> IO String
+verifyStatement (Statement id goal Assumed) context = return ("Statement " ++ id ++ " " ++ show goal ++ " is assumed")
+verifyStatement (Statement id goal ProofByContext) context = return ("Statement " ++ id ++ " to prover:\n") >> task2TPTP (Statement id goal ProofByContext) context
 verifyStatement (Statement id goal (ProofByDerivation derivation)) context = verifyDerivation derivation (Context [] context)
 
-verifyDerivation :: [Statement] -> Context -> String
-verifyDerivation [] context = "Derivation correct\n"
-verifyDerivation (st:sts) (Context hs p) = (verifyStatement st (Context hs p)) ++ "\n" ++ verifyDerivation sts (Context (hs ++ [st]) p)
+verifyDerivation :: [Statement] -> Context -> IO String
+verifyDerivation [] context = return "Derivation correct\n"
+verifyDerivation (st:sts) (Context hs p) = verifyStatement st (Context hs p) >> verifyDerivation sts (Context (hs ++ [st]) p)
 
-main :: IO()
+--main :: IO()
 main = do
-  putStr $ verifyDerivation p (Context [] Empty)
-
+  res <- verifyDerivation p (Context [] Empty)
+  putStrLn res
 
