@@ -1,7 +1,14 @@
-import System.Process
-import System.IO  
 import Control.Applicative                                   
+import Control.Exception
+import Control.Monad                                   
 import Data.List
+import System.Process
+import System.Exit
+import System.IO
+import System.IO.Error
+
+import Debug.Trace
+
 
 data Term = Consta String [Term]
            | Var String
@@ -64,47 +71,52 @@ p = [
         (ProofByDerivation [
           (Statement "lemmaAntecedent" ((Atom "transitive" [Var "R"]) `And` (Atom "symmetric" [Var "R"]) `And` (Atom "bound" [Var "R"])) Assumed), 
           (Statement "applyBound" (Atom "relapp" [Var "R", Var "X", Var "Y"]) ProofByContext),
-          (Statement "applySymmetry" (Atom "relapp" [Var "R", Var "Y", Var "X"]) ProofByContext),
+          (Statement "applySymmetry" (Atom "relappasd" [Var "R", Var "Y", Var "X"]) ProofByContext),
           (Statement "applyTransitivity" (Atom "relapp" [Var "R", Var "X", Var "X"]) ProofByContext),
           (Statement "lemmaConsequent" (Atom "reflexive" [Var "R"]) ProofByContext)
         ])
     )
     ]
 
-
 task2TPTP :: Statement -> Context -> IO String
 task2TPTP (Statement id goal ProofByContext) context = runProver (show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show goal ++ ")).\n")
 
 runProver :: String -> IO String
-runProver input = do
-  return "TEST PROVER OUTPUT" 
-  --(inn, out, err, idd) <- runInteractiveProcess "../prover/E/PROVER/eprover" [] Nothing Nothing
-  --mapM_ (flip hSetBinaryMode False) [inn, out]             
-  --hSetBuffering inn LineBuffering                          
-  --hSetBuffering out NoBuffering                            
-  --hPutStrLn inn "help"                                    
-  --parsedIntro <- parseUntilPrompt out                      
-  --res <- mapM_ (putStrLn . \x -> "PARSED:: " ++  x) parsedIntro
-  --return "TEST PROVER OUTPUT" 
+runProver task = do
+  let run = runInteractiveProcess "../prover/E/PROVER/eprover" ["--definitional-cnf=24", "-s", "--print-statistics", "-R", "--print-version", "--proof-object", "--auto-schedule"] Nothing Nothing
+      --when (askIB IBPdmp False ins) $ putStrLn tsk
+  do 
+    (wh,rh,eh,ph) <- run
+    hPutStrLn wh task ; hClose wh
+    ofl <- hGetContents rh ; efl <- hGetContents eh
+    let lns = filter (not . null) $ lines $ ofl ++ efl
+        out = map (("[lbl] ") ++) lns
+    return ofl
+    --when (length lns == 0) $ die "empty response"
+    --when (askIB IBPprv False ins) $ mapM_ putStrLn out
 
-parseUntilPrompt :: Handle -> IO [String]                 
-parseUntilPrompt out = do                                    
-  latest <- hGetLine out                                     
-  if latest == "# No proof found!"                                            
-    then return ["NO"]                                           
-  else if latest == "# Proof found!"                                            
-    then return ["YES"]                                           
-  else (:) <$> return latest <*> parseUntilPrompt out
+    let pos = any (\ l -> any (`isPrefixOf` l) ["# Proof found!"]) lns
+        neg = any (\ l -> any (`isPrefixOf` l) ["# No proof found!"]) lns
+        unk = any (\ l -> any (`isPrefixOf` l) ["uns"]) lns
+
+    --unless (pos || neg || unk) $ die "bad response"
+
+    hClose eh ; waitForProcess ph
+
+    --return ("BEGIN\n" ++ task ++ "\nOUTPUT\n" ++ ofl ++ "\nEND\n")
+    if pos
+      then return "PROOF FOUND\n" --(trace task) 
+      else return "NO PROOF FOUND\n"
 
 
 verifyStatement :: Statement -> Context -> IO String
-verifyStatement (Statement id goal Assumed) context = return ("Statement " ++ id ++ " " ++ show goal ++ " is assumed")
-verifyStatement (Statement id goal ProofByContext) context = return ("Statement " ++ id ++ " to prover:\n") >> task2TPTP (Statement id goal ProofByContext) context
+verifyStatement (Statement id goal Assumed) context = return (id ++ " [" ++ show goal ++ "]: assumed\n")
+verifyStatement (Statement id goal ProofByContext) context = liftM2 (++) (return (id ++ " [" ++ show goal ++ "] to prover:\n")) (task2TPTP (Statement id goal ProofByContext) context)
 verifyStatement (Statement id goal (ProofByDerivation derivation)) context = verifyDerivation derivation (Context [] context)
 
 verifyDerivation :: [Statement] -> Context -> IO String
 verifyDerivation [] context = return "Derivation correct\n"
-verifyDerivation (st:sts) (Context hs p) = verifyStatement st (Context hs p) >> verifyDerivation sts (Context (hs ++ [st]) p)
+verifyDerivation (st:sts) (Context hs p) = liftM2 (++) (verifyStatement st (Context hs p)) (verifyDerivation sts (Context (hs ++ [st]) p))
 
 --main :: IO()
 main = do
