@@ -1,3 +1,5 @@
+module Prover where
+
 import Control.Applicative                                   
 import Control.Exception
 import Control.Monad                                   
@@ -44,11 +46,11 @@ data Statement = Statement { id :: String
 instance Show Statement where
   show (Statement id goal proof) = id ++ ": " ++ show goal ++ " -- " ++ show proof ++ "\n"
 
-data Proof = Assumed | ProofByContext | ProofByDerivation [Statement] 
+data Proof = Assumed | ProofByContext | ProofBySequence [Statement] 
 instance Show Proof where
   show Assumed = "Assumed"
   show ProofByContext = "ProofByContext"
-  show (ProofByDerivation hs) = "Proofed by derivation:\n" ++ (concat $ map (\h -> "   " ++ show h) hs)
+  show (ProofBySequence hs) = "Proofed by seq:\n" ++ (concat $ map (\h -> "   " ++ show h) hs)
 
 
 data Context = Context [Statement] Context | Empty
@@ -57,26 +59,27 @@ instance Show Context where
   show (Context [] p) = show p
   show (Context ((Statement id axiom proof):hs) p) = "fof(" ++ id ++ ", axiom, (" ++ show axiom ++ ")).\n" ++ show (Context hs p)
 
-
 p = [
     (Statement "rIsRelation" (Atom "relation" [Var "R"]) Assumed),
     (Statement "xIsElement" (Atom "element" [Var "X"]) Assumed),
     (Statement "yIsElement" (Atom "element" [Var "Y"]) Assumed),
     (Statement "zIsElement" (Atom "element" [Var "Z"]) Assumed),
     (Statement "defSymmetric" (Forall "R" (Atom "symmetric" [Var "R"] `Iff` Forall "X" (Forall "Y" (Atom "relapp" [Var "R", Var "X", Var "Y"] `Impl` Atom "relapp" [Var "R", Var "Y", Var "X"])))) Assumed),
-    (Statement "defBound" (Forall "R" (Atom "bound" [Var "R"] `Iff` Forall "X" (Exists "Y" (Atom "relapp" [Var "R", Var "X", Var "Y"])))) Assumed),
-    (Statement "defTransitive" (Forall "R" (Atom "transitive" [Var "R"] `Iff` Forall "X" (Forall "Y" (Forall "Z" ((Atom "relapp" [Var "R", Var "X", Var "Y"] `And` Atom "relapp" [Var "R", Var "Y", Var "z"]) `Impl` Atom "relapp" [Var "R", Var "X", Var "z"]))))) Assumed),
+    (Statement "defBound" (Forall "R" (Atom "bound" [Var "R"] `Iff` Forall "X" (Atom "element" [Var "X"] `Impl` Exists "Y" (Atom "relapp" [Var "R", Var "X", Var "Y"])))) Assumed),
+    (Statement "defTransitive" (Forall "R" (Atom "transitive" [Var "R"] `Iff` Forall "X" (Forall "Y" (Forall "Z" ((Atom "relapp" [Var "R", Var "X", Var "Y"] `And` Atom "relapp" [Var "R", Var "Y", Var "Z"]) `Impl` Atom "relapp" [Var "R", Var "X", Var "Z"]))))) Assumed),
     (Statement "defReflexive" (Forall "R" (Atom "reflexive" [Var "R"] `Iff` Forall "X" (Atom "relapp" [Var "R", Var "X", Var "X"]))) Assumed),
     (Statement "lemma" (((Atom "transitive" [Var "R"]) `And` (Atom "symmetric" [Var "R"]) `And` (Atom "bound" [Var "R"])) `Impl` (Atom "reflexive" [Var "R"])) 
-        (ProofByDerivation [
+        (ProofBySequence [
           (Statement "lemmaAntecedent" ((Atom "transitive" [Var "R"]) `And` (Atom "symmetric" [Var "R"]) `And` (Atom "bound" [Var "R"])) Assumed), 
           (Statement "applyBound" (Atom "relapp" [Var "R", Var "X", Var "Y"]) ProofByContext),
-          (Statement "applySymmetry" (Atom "relappasd" [Var "R", Var "Y", Var "X"]) ProofByContext),
+          (Statement "applySymmetry" (Atom "relapp" [Var "R", Var "Y", Var "X"]) ProofByContext),
           (Statement "applyTransitivity" (Atom "relapp" [Var "R", Var "X", Var "X"]) ProofByContext),
           (Statement "lemmaConsequent" (Atom "reflexive" [Var "R"]) ProofByContext)
         ])
     )
     ]
+
+
 
 task2TPTP :: Statement -> Context -> IO String
 task2TPTP (Statement id goal ProofByContext) context = runProver (show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show goal ++ ")).\n")
@@ -95,9 +98,9 @@ runProver task = do
     --when (length lns == 0) $ die "empty response"
     --when (askIB IBPprv False ins) $ mapM_ putStrLn out
 
-    let pos = any (\ l -> any (`isPrefixOf` l) ["# Proof found!"]) lns
-        neg = any (\ l -> any (`isPrefixOf` l) ["# No proof found!"]) lns
-        unk = any (\ l -> any (`isPrefixOf` l) ["uns"]) lns
+    let pos = any (\l -> any (`isPrefixOf` l) ["# Proof found!"]) lns
+        neg = any (\l -> any (`isPrefixOf` l) ["# No proof found!"]) lns
+        unk = any (\l -> any (`isPrefixOf` l) ["uns"]) lns
 
     --unless (pos || neg || unk) $ die "bad response"
 
@@ -112,14 +115,14 @@ runProver task = do
 verifyStatement :: Statement -> Context -> IO String
 verifyStatement (Statement id goal Assumed) context = return (id ++ " [" ++ show goal ++ "]: assumed\n")
 verifyStatement (Statement id goal ProofByContext) context = liftM2 (++) (return (id ++ " [" ++ show goal ++ "] to prover:\n")) (task2TPTP (Statement id goal ProofByContext) context)
-verifyStatement (Statement id goal (ProofByDerivation derivation)) context = verifyDerivation derivation (Context [] context)
+verifyStatement (Statement id goal (ProofBySequence seq)) context = liftM2 (++) (return (id ++ " [" ++ show goal ++ "] proofed by sequence:\n")) (verifySequence seq (Context [] context))
 
-verifyDerivation :: [Statement] -> Context -> IO String
-verifyDerivation [] context = return "Derivation correct\n"
-verifyDerivation (st:sts) (Context hs p) = liftM2 (++) (verifyStatement st (Context hs p)) (verifyDerivation sts (Context (hs ++ [st]) p))
+verifySequence :: [Statement] -> Context -> IO String
+verifySequence [] context = return "Sequence correct\n"
+verifySequence (st:sts) (Context hs p) = liftM2 (++) (verifyStatement st (Context hs p)) (verifySequence sts (Context (hs ++ [st]) p))
 
 --main :: IO()
 main = do
-  res <- verifyDerivation p (Context [] Empty)
+  res <- verifySequence p (Context [] Empty)
   putStrLn res
 
