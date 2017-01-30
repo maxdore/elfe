@@ -72,7 +72,7 @@ p = [
         (ProofBySequence [
           (Statement "lemmaAntecedent" ((Atom "transitive" [Var "R"]) `And` (Atom "symmetric" [Var "R"]) `And` (Atom "bound" [Var "R"])) Assumed), 
           (Statement "applyBound" (Atom "relapp" [Var "R", Var "X", Var "Y"]) ProveByContext),
-          (Statement "applySymmetry" (Atom "relappasd" [Var "R", Var "Y", Var "X"]) ProveByContext),
+          (Statement "applySymmetry" (Atom "relapp" [Var "R", Var "Y", Var "X"]) ProveByContext),
           (Statement "applyTransitivity" (Atom "relapp" [Var "R", Var "X", Var "X"]) ProveByContext),
           (Statement "lemmaConsequent" (Atom "reflexive" [Var "R"]) ProveByContext)
         ])
@@ -108,7 +108,7 @@ data ProofStatus = Correct | Incorrect | Unknown
   deriving (Eq, Show)
 
 checkStatement :: Statement -> Context -> IO ProofStatus
-checkStatement (Statement id goal ProveByContext) context = trace ("Prove  " ++ id ++ ": " ++ show goal) runProver (show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show goal ++ ")).\n")
+checkStatement (Statement id goal ProveByContext) context = runProver (show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show goal ++ ")).\n") --trace (show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show goal ++ ")).\n") 
 
 
 runProver :: String -> IO ProofStatus
@@ -137,7 +137,7 @@ runProver task = do
 
 verifyStatement :: Statement -> Context -> IO ProofStatus
 verifyStatement (Statement id goal Assumed) context = trace ("Assume " ++ id ++ ": " ++ show goal) return Correct 
-verifyStatement (Statement id goal ProveByContext) context = checkStatement (Statement id goal ProveByContext) context 
+verifyStatement (Statement id goal ProveByContext) context = trace ("Prove  " ++ id ++ ": " ++ show goal) checkStatement (Statement id goal ProveByContext) context 
 verifyStatement (Statement id goal (ProofBySequence seq)) context = trace ("Check  " ++ id ++ ": " ++ show goal) verifySequence seq (Context [] context) (return Correct) 
 
 verifySequence :: [Statement] -> Context -> IO ProofStatus -> IO ProofStatus
@@ -149,7 +149,7 @@ verifySequence (st:sts) (Context hs p) status = do
 
 --main :: IO()
 main = do
-  res <- verifySequence p2 (Context [] Empty) (return Correct)
+  res <- verifySequence p (Context [] Empty) (return Correct)
   --putStrLn $ show p2
   putStrLn $ show res
 
