@@ -44,27 +44,27 @@ data ParseContext = ParseContext {
 }
 
 
-atom :: Parser Formula
-atom =
+atom :: ParseContext -> Parser Formula
+atom pc =
   do name <- many alphaNum
      return (Atom name [])
 
-iff :: Parser (Formula -> Formula -> Formula)
-iff =
+iff :: ParseContext -> Parser (Formula -> Formula -> Formula)
+iff pc =
   do spaces
      reservedOp "iff"
      spaces
      return Iff
 
-implies :: Parser (Formula -> Formula -> Formula)
-implies =
+implies :: ParseContext -> Parser (Formula -> Formula -> Formula)
+implies pc =
   do spaces
      reservedOp "implies"
      spaces
      return Impl
 
-and' :: Parser (Formula -> Formula -> Formula)
-and' =
+and' :: ParseContext -> Parser (Formula -> Formula -> Formula)
+and' pc =
   do spaces
      reservedOp "and"
      spaces
@@ -73,46 +73,47 @@ and' =
 
 -- We have different precedences
 
-level0 :: Parser Formula
-level0 = atom `chainl1` try and'
+level0 :: ParseContext -> Parser Formula
+level0 = atom pc `chainl1` try (and' pc)
 
-level1 :: Parser Formula
-level1 = level0 `chainl1` try implies
+level1 :: ParseContext -> Parser Formula
+level1 pc = level0 pc `chainl1` try (implies pc)
 
-subSentence :: Parser Formula
-subSentence = level1 `chainl1` (try iff)
+subSentence :: ParseContext -> Parser Formula
+subSentence pc = level1 pc `chainl1` (try (iff pc))
 
-sentence =
-  do sent <- subSentence
+subSentence :: ParseContext -> Parser Formula
+sentence pc =
+  do sent <- subSentence pc
      reserved "."
      return sent 
 
-definitionSection :: Parser Statement
-definitionSection =
+definitionSection :: ParseContext -> Parser Statement
+definitionSection pc =
   do reserved "Definition:"
-     sent  <- sentence
+     sent  <- sentence pc
      return $ (Statement "ID" sent Assumed)
 
 
-lemmaSection :: Parser Statement
-lemmaSection =
+lemmaSection :: ParseContext -> Parser Statement
+lemmaSection pc =
   do reserved "Lemma:"
-     sent  <- sentence
+     sent  <- sentence pc
      return $ (Statement "ID" sent Assumed)
 
 
 
 
-sections :: Parser [Statement]
-sections = many $ definitionSection
-                <|> lemmaSection
+sections :: ParseContext -> Parser [Statement]
+sections pc = many $   definitionSection pc
+                   <|> lemmaSection pc
 
 
 
 
 parseString :: String -> [Statement]
 parseString str =
-  case parse sections "" str of
+  case parse (sections (ParseContext [])) "" str of
     Left e  -> error $ show e
     Right r -> (r)
 
