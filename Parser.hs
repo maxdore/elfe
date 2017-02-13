@@ -6,6 +6,7 @@ import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Expr
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as Token
+import Debug.Trace
 
 import Language
 
@@ -14,16 +15,18 @@ languageDef =
            , Token.commentEnd      = "*/"
            , Token.commentLine     = "//"
            , Token.identStart      = letter
-           , Token.identLetter     = alphaNum
-           , Token.reservedNames   = [ "Definition"
-                                     , "Proposition"
-                                     , "Lemma"
-                                     , "Proof"
-                                     , "qed"
-                                     , "Let"
-                                     , "be"
-                                     , "iff"
-                                     ]
+           , Token.identLetter     = alphaNum <|> oneOf "_'"
+           --, Token.reservedNames   = [ "Definition"
+           --                          , "Proposition"
+           --                          , "Lemma"
+           --                          , "Proof"
+           --                          , "qed"
+           --                          , "Let"
+           --                          , "be"
+           --                          ]
+           --, Token.reservedOpNames = [ " iff"
+           --                          , "iff"
+           --                          ]
            }
 
 lexer = Token.makeTokenParser languageDef
@@ -32,99 +35,86 @@ identifier = Token.identifier lexer
 reserved   = Token.reserved   lexer 
 parens     = Token.parens     lexer 
 whiteSpace = Token.whiteSpace lexer 
+semiSep    = Token.semiSep    lexer
+reservedOp = Token.reservedOp lexer
 
 
-data EParser a = EParser { parser :: Parser a
-                         , predicates :: [String] 
-                         }
+data ParseContext = ParseContext { 
+    predicates :: [String] 
+}
 
-elfeParser :: Parser [ESection]
-elfeParser = whiteSpace >> eText
 
-eText :: Parser [ESection]
-eText = parserLoop
+atom :: Parser Formula
+atom =
+  do name <- many alphaNum
+     return (Atom name [])
 
-parserLoop :: Parser [ESection]
-parserLoop = many $   definitionSection
-                         <|> lemmaSection
+iff :: Parser (Formula -> Formula -> Formula)
+iff =
+  do spaces
+     reservedOp "iff"
+     spaces
+     return Iff
 
-definitionSection :: Parser ESection
-definitionSection =
-  do reserved "Definition."
-     sent  <- sentence
-     return $ EDefinition sent
+implies :: Parser (Formula -> Formula -> Formula)
+implies =
+  do spaces
+     reservedOp "implies"
+     spaces
+     return Impl
 
-lemmaSection :: Parser ESection
-lemmaSection =
-  do reserved "Lemma."
-     sent  <- sentence
-     reserved "Proof."
-     proof <- many sentence
-     reserved "qed."
-     return $ ELemma sent proof
- 
+and' :: Parser (Formula -> Formula -> Formula)
+and' =
+  do spaces
+     reservedOp "and"
+     spaces
+     return And
 
--- Sentence parsing
 
-sentence :: Parser ESent
+-- We have different precedences
+
+level0 :: Parser Formula
+level0 = atom `chainl1` try and'
+
+level1 :: Parser Formula
+level1 = level0 `chainl1` try implies
+
+subSentence :: Parser Formula
+subSentence = level1 `chainl1` (try iff)
+
 sentence =
   do sent <- subSentence
      reserved "."
      return sent 
 
-subSentence :: Parser ESent
-subSentence =   letSentence
-            <|> iffSentence
-            <|> implSentence
-            <|> forallSentence
-            <|> isSentence
+definitionSection :: Parser Statement
+definitionSection =
+  do reserved "Definition:"
+     sent  <- sentence
+     return $ (Statement "ID" sent Assumed)
 
-letSentence :: Parser ESent
-letSentence =
-  do reserved "Let"
-     var  <- many alphaNum
-     reserved " be"
-     predicate <- many alphaNum
-     return $ EAssignProp (EVar var) (EProp predicate)
 
-iffSentence :: Parser ESent
-iffSentence =
-  do reserved "Iff:"
-     first <- subSentence
-     reserved " <=>"
-     second <- subSentence
-     return $ EIff first second
+lemmaSection :: Parser Statement
+lemmaSection =
+  do reserved "Lemma:"
+     sent  <- sentence
+     return $ (Statement "ID" sent Assumed)
 
-implSentence :: Parser ESent
-implSentence =
-  do reserved "Impl:"
-     first <- subSentence
-     reserved " =>"
-     second <- subSentence
-     return $ EImpl first second
 
-forallSentence :: Parser ESent
-forallSentence =
-  do reserved "for all"
-     var <- many alphaNum
-     reserved " :"
-     sent <- subSentence
-     return $ EForall (EVar var) sent
 
-isSentence :: Parser ESent
-isSentence =
-  do var  <- many alphaNum
-     reserved " is"
-     predicate <- many alphaNum
-     return $ EAssignProp (EVar var) (EProp predicate)
 
--- Main logic
+sections :: Parser [Statement]
+sections = many $ definitionSection
+                <|> lemmaSection
 
-parseString :: String -> EText
+
+
+
+parseString :: String -> [Statement]
 parseString str =
-  case parse elfeParser "" str of
+  case parse sections "" str of
     Left e  -> error $ show e
-    Right r -> (EText r)
+    Right r -> (r)
 
 main :: IO()
 main = do

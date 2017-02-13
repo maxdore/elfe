@@ -2,69 +2,43 @@ module Language where
 
 import Data.List
 
--- Data structures to represent FOL
-
-data Term = Const String [Term]
+data Term = Cons String [Term]
            | Var String
-  deriving (Eq, Show)
-
-data Formula = Impl Formula Formula
-              | Atom String [Term]    | Not Formula
-              | Top                   | Bottom
-              | Or Formula Formula    | And Formula Formula
-              | Exists String Formula | Forall String Formula
-  deriving (Eq, Show)
+  deriving (Eq)
+instance Show Term where
+  show (Var s) = s
+  show (Cons s terms) = s ++ "(" ++ (intercalate "," $ map show terms) ++ ")" 
 
 
-data ERole = Axiom | Conjecture
-  deriving (Eq, Show)
-
-data EFormula = EFormula { name :: String
-                         , role :: ERole
-                         , formula :: Formula
-                         }
-  deriving (Eq, Show)
-
--- The main data structures for an Elfe-text
-
-data EText = EText [ESection]
-  deriving (Eq, Show)
-
-data ESection = EDefinition ESent 
-              | EProposition ESent
-              | ELemma ESent [ESent]
-  deriving (Eq, Show)
-
-data ESent = EAssignProp EVar EProp
-           | EIff ESent ESent
-           | EImpl ESent ESent
-           | EForall EVar ESent
-           | ESent String
-  deriving (Eq, Show)
-
-data EVar = EVar String
-  deriving (Eq, Show)
-
-data EProp = EProp String
-  deriving (Eq, Show)
+data Formula = Impl Formula Formula  | Iff Formula Formula
+             | Atom String [Term]    | Not Formula
+             | Top                   | Bot
+             | Or Formula Formula    | And Formula Formula
+             | Exists String Formula | Forall String Formula
+  deriving (Eq)
+instance Show Formula where
+  show (Impl l r)    = "(" ++ (show l) ++ ") => (" ++ (show r) ++ ")"
+  show (Iff l r)     = "(" ++ (show l) ++ ") <=> (" ++ (show r) ++ ")"
+  show (Atom n args) = n ++ "(" ++ (intercalate "," $ map show args) ++ ")"
+  show (Not f)       = "~(" ++ (show f) ++ ")"
+  show (Top)         = "$true"
+  show (Bot)         = "$false"
+  show (Or l r)      = "(" ++ (show l) ++ ") | (" ++ (show r) ++ ")"
+  show (And l r)     = "(" ++ (show l) ++ ") & (" ++ (show r) ++ ")"
+  show (Exists v f)  = "? [" ++ v ++ "] : " ++ (show f)
+  show (Forall v f)  = "! [" ++ v ++ "] : " ++ (show f)
 
 
--- Converts a text to formulas
+data Statement = Statement { id :: String
+                           , goal :: Formula
+                           , proof :: Proof
+                           }
+instance Show Statement where
+  show (Statement id goal proof) = id ++ ": " ++ show goal ++ " -- " ++ show proof ++ "\n"
 
-sent2ef :: ESent -> EFormula
-sent2ef (EAssignProp var prop) = EFormula "name" Axiom (Atom (show var) [Var (show prop)])
-
--- Converts a formula to TPTP-Syntax
-
-ef2TPTP :: EFormula -> String
-ef2TPTP (EFormula n r f) = "fof(" ++ n ++ ", " ++ (show r) ++ ", " ++ (f2TPTP f) ++ ")"
-
-f2TPTP :: Formula -> String
-f2TPTP (Impl l r)    = "(" ++ (f2TPTP l) ++ ") => (" ++ (f2TPTP r) ++ ")"
-f2TPTP (Atom n args) = n ++ "(" ++ "(intercalate  args)" ++ ")"
-f2TPTP (Not f)       = "~(" ++ (f2TPTP f) ++ ")"
-f2TPTP (Top)         = "$true"
-f2TPTP (Bottom)      = "$false"
-f2TPTP (Or l r)      = "(" ++ (f2TPTP l) ++ ") | (" ++ (f2TPTP r) ++ ")"
-f2TPTP (And l r)     = "(" ++ (f2TPTP l) ++ ") & (" ++ (f2TPTP r) ++ ")"
-
+data Proof = Assumed | ByContext | BySequence [Statement] | BySplit [Statement]
+instance Show Proof where
+  show Assumed = "Assumed"
+  show ByContext = "ByContext"
+  show (BySequence hs) = "Prove by seq:\n" ++ (concat $ map (\h -> "   " ++ show h) hs)
+  show (BySplit cs) = "Prove by cases:\n" ++ (concat $ map (\c -> "   " ++ show c) cs)
