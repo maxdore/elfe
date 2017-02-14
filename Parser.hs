@@ -2,10 +2,12 @@ module Parser where
 
 import System.IO
 import Control.Monad
+import Text.Parsec.Prim (ParsecT)
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Expr
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as Token
+import Data.Functor.Identity (Identity)
 import Debug.Trace
 
 import Language
@@ -16,108 +18,162 @@ languageDef =
            , Token.commentLine     = "//"
            , Token.identStart      = letter
            , Token.identLetter     = alphaNum <|> oneOf "_'"
-           --, Token.reservedNames   = [ "Definition"
-           --                          , "Proposition"
-           --                          , "Lemma"
-           --                          , "Proof"
-           --                          , "qed"
-           --                          , "Let"
-           --                          , "be"
-           --                          ]
-           --, Token.reservedOpNames = [ " iff"
-           --                          , "iff"
-           --                          ]
+           , Token.caseSensitive   = True
            }
 
 lexer = Token.makeTokenParser languageDef
 
 identifier = Token.identifier lexer 
 reserved   = Token.reserved   lexer 
-parens     = Token.parens     lexer 
+--parens     = Token.parens     lexer 
 whiteSpace = Token.whiteSpace lexer 
 semiSep    = Token.semiSep    lexer
 reservedOp = Token.reservedOp lexer
 
 
-data ParseContext = ParseContext { 
+data ParserState = ParserState {
     predicates :: [String] 
 }
+initParseState = ParserState []
+
+--main :: IO()
+--main = do
+--  problem <- getContents
+--  print $ parseString problem 
 
 
-atom :: ParseContext -> Parser Formula
-atom pc =
-  do name <- many alphaNum
-     return (Atom name [])
+parseString :: IO String -> [Statement]
+parseString s = do
+  str <- s
+  case runParser sections initParseState "" str of
+    Left e  -> error $ show e
+    Right r -> (r)
 
-iff :: ParseContext -> Parser (Formula -> Formula -> Formula)
-iff pc =
+
+-- SECTIONS
+
+--sections :: ParsecT ParserState u Identity [Statement]
+sections = many1 $   definitionSection
+                 <|> lemmaSection
+                 -- <|> notionSection
+
+--definitionSection :: Parser Statement
+definitionSection =
+  do reserved "Definition:"
+     st  <- statement Assumed
+     return (Statement "ID" (getFormula st) Assumed)
+
+lemmaSection =
+  do reserved "Lemma:"
+     conj  <- statement Assumed
+     reserved "Proof."
+     derivation <- proofByTactic $ getFormula conj
+     reserved "qed."
+     return $ (Statement "ID" (getFormula conj) (BySequence derivation))
+
+--notionSection :: Parser Statement
+--notionSection =
+--  do reserved "Notion:"
+--     notion  <- many alphaNum
+--     return (Statement notion (Atom "asd" []) Assumed)
+
+
+-- PROOFS
+
+proofByTactic :: Formula -> ParsecT [Char] u Identity [Statement]
+proofByTactic (Impl l r) = do
+  derivation <- many $ statement ByContext
+  return ([(Statement "ID" l Assumed)] ++ derivation ++ [(Statement "ID" r ByContext)])
+
+
+-- SENTENCES 
+
+statement :: Proof -> ParsecT [Char] u Identity Statement
+statement pr =
+  do f <- subSentence
+     reserved "."
+     return $ (Statement "ID" f pr) 
+
+-- We have different precedences
+subSentence = level1 `chainl1` (try iff)
+level1 = (forall <|> exists <|> try then' <|> level2) `chainl1` (try implies)
+level2 = (try is <|> try take' <|> try atom) `chainl1` (try andE)
+
+-- FORMULA
+
+--iff :: Parser (Formula -> Formula -> Formula)
+iff =
   do spaces
      reservedOp "iff"
      spaces
      return Iff
 
-implies :: ParseContext -> Parser (Formula -> Formula -> Formula)
-implies pc =
+--forall :: Parser Formula
+forall =
+  do reserved "for all"
+     spaces
+     var <- many alphaNum
+     spaces
+     reserved ":"
+     sent <- subSentence
+     return (Forall var sent)
+
+--exists :: Parser Formula
+exists =
+  do reserved "exists"
+     spaces
+     var <- many alphaNum
+     spaces
+     reserved ":"
+     sent <- subSentence
+     return (Exists var sent)
+
+--exists :: Parser Formula
+then' =
+  do reserved "Then"
+     spaces
+     sent <- subSentence
+     return (sent)
+
+--implies :: Parser (Formula -> Formula -> Formula)
+implies =
   do spaces
      reservedOp "implies"
      spaces
      return Impl
 
-and' :: ParseContext -> Parser (Formula -> Formula -> Formula)
-and' pc =
+--and' :: Parser (Formula -> Formula -> Formula)
+andE =
   do spaces
      reservedOp "and"
      spaces
      return And
 
+--is :: Parser Formula
+is = 
+  do name <- many alphaNum
+     spaces
+     reserved "is"
+     predicate <- many alphaNum
+     return (Atom predicate [Var name])
 
--- We have different precedences
+take' = 
+  do reserved "Take"
+     var <- many alphaNum
+     spaces
+     reserved "such that"
+     atom <- atom
+     return (Exists var atom)
 
-level0 :: ParseContext -> Parser Formula
-level0 = atom pc `chainl1` try (and' pc)
+--atom :: Parser Formula
+atom =
+  do predicate <- many alphaNum 
+     reservedOp "("
+     terms <- sepBy (term) (char ',')
+     reserved ")"
+     return (Atom predicate terms)
 
-level1 :: ParseContext -> Parser Formula
-level1 pc = level0 pc `chainl1` try (implies pc)
-
-subSentence :: ParseContext -> Parser Formula
-subSentence pc = level1 pc `chainl1` (try (iff pc))
-
-subSentence :: ParseContext -> Parser Formula
-sentence pc =
-  do sent <- subSentence pc
-     reserved "."
-     return sent 
-
-definitionSection :: ParseContext -> Parser Statement
-definitionSection pc =
-  do reserved "Definition:"
-     sent  <- sentence pc
-     return $ (Statement "ID" sent Assumed)
-
-
-lemmaSection :: ParseContext -> Parser Statement
-lemmaSection pc =
-  do reserved "Lemma:"
-     sent  <- sentence pc
-     return $ (Statement "ID" sent Assumed)
-
-
-
-
-sections :: ParseContext -> Parser [Statement]
-sections pc = many $   definitionSection pc
-                   <|> lemmaSection pc
-
-
-
-
-parseString :: String -> [Statement]
-parseString str =
-  case parse (sections (ParseContext [])) "" str of
-    Left e  -> error $ show e
-    Right r -> (r)
-
-main :: IO()
-main = do
-  problem <- getContents
-  print $ parseString problem 
+--term :: Parser Term
+term = 
+  do term <- many1 alphaNum
+     return (Var term)

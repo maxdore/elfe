@@ -187,8 +187,8 @@ verifySequence (st:sts) (Context hs p) status = do
   else verifySequence sts (Context (hs ++ [st]) p) (return Incorrect)
 
 --main :: IO()
-main = do
-  res <- verifySequence p (Context [] Empty) (return Correct)
+--main = do
+  --res <- verifySequence p (Context [] Empty) (return Correct)
   --putStrLn $ show p2
-  putStrLn $ show res
+  --putStrLn $ show res
 

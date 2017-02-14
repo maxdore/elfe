@@ -36,6 +36,8 @@ data Statement = Statement { id :: String
 instance Show Statement where
   show (Statement id goal proof) = id ++ ": " ++ show goal ++ " -- " ++ show proof ++ "\n"
 
+getFormula (Statement id goal proof) = goal
+
 data Proof = Assumed | ByContext | BySequence [Statement] | BySplit [Statement]
 instance Show Proof where
   show Assumed = "Assumed"

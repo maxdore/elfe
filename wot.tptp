@@ -1,4 +1,0 @@
-fof(setsEqualProof, axiom, ((equals(A,B)) <=> (((elem(X,A)) => (elem(X,B))) & ((elem(X,B)) => (elem(X,A)))))).
-fof(takeXInLeft, axiom, (elem(varX,A))).
-fof(xInRight, conjecture, ((((elem(X,B)) => (elem(X,union(diff(A,B),intsec(A,B))))) & ((~(ealem(X,B))) => (elem(X,union(diff(A,B),intsec(A,B)))))) => (elem(X,union(diff(A,B),intsec(A,B)))))).
-
