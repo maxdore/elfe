@@ -1,0 +1,6 @@
+fof(id8, axiom, ((reflexive(VR)) <=> (! [Vx] : relapp(VR,Vx,Vx)))).
+fof(id6, axiom, ((transitive(VR)) <=> (! [Vx] : ! [Vy] : ! [Vz] : ((relapp(VR,Vx,Vy)) & (relapp(VR,Vy,Vz))) => (relapp(VR,Vx,Vz))))).
+fof(id4, axiom, ((bound(VR)) <=> (! [Vx] : ? [Vy] : relapp(VR,Vx,Vy)))).
+fof(id2, axiom, ((symmetric(VR)) <=> (! [Vx] : ! [Vy] : (relapp(VR,Vx,Vy)) => (relapp(VR,Vy,Vx))))).
+fof(id11, axiom, (((transitive(VR)) & (symmetric(VR))) & (bound(VR)))).
+fof(id12, conjecture, (? [Vy] : relapp(VR,Vx,Vy))).

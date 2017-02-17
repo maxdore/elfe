@@ -1,12 +1,13 @@
 module Language where
 
 import Data.List
+import Debug.Trace
 
 data Term = Cons String [Term]
            | Var String
   deriving (Eq)
 instance Show Term where
-  show (Var s) = s
+  show (Var s) = "V" ++ s
   show (Cons s terms) = s ++ "(" ++ (intercalate "," $ map show terms) ++ ")" 
 
 
@@ -25,22 +26,26 @@ instance Show Formula where
   show (Bot)         = "$false"
   show (Or l r)      = "(" ++ (show l) ++ ") | (" ++ (show r) ++ ")"
   show (And l r)     = "(" ++ (show l) ++ ") & (" ++ (show r) ++ ")"
-  show (Exists v f)  = "? [" ++ v ++ "] : " ++ (show f)
-  show (Forall v f)  = "! [" ++ v ++ "] : " ++ (show f)
+  show (Exists v f)  = "? [" ++ "V" ++ v ++ "] : " ++ (show f)
+  show (Forall v f)  = "! [" ++ "V" ++ v ++ "] : " ++ (show f)
 
 
 data Statement = Statement { id :: String
-                           , goal :: Formula
+                           , formula :: Formula
                            , proof :: Proof
                            }
 instance Show Statement where
-  show (Statement id goal proof) = id ++ ": " ++ show goal ++ " -- " ++ show proof ++ "\n"
+  show (Statement id formula proof) = id ++ ": " ++ show formula ++ " -- " ++ show proof ++ "\n"
 
-getFormula (Statement id goal proof) = goal
+getFormula (Statement id f p) = f
 
-data Proof = Assumed | ByContext | BySequence [Statement] | BySplit [Statement]
+getId :: Statement -> String
+getId (Statement id f p) = drop 2 id
+
+data Proof = Assumed | ByContext | BySubcontext [String] | BySequence [Statement] | BySplit [Statement]
 instance Show Proof where
   show Assumed = "Assumed"
   show ByContext = "ByContext"
+  show (BySubcontext is) = "BySubcontext: " ++  (intercalate "" is)
   show (BySequence hs) = "Prove by seq:\n" ++ (concat $ map (\h -> "   " ++ show h) hs)
   show (BySplit cs) = "Prove by cases:\n" ++ (concat $ map (\c -> "   " ++ show c) cs)

@@ -19,6 +19,16 @@ instance Show Context where
   show (Context [] p) = show p
   show (Context ((Statement id axiom proof):hs) p) = show (Context hs p) ++ "fof(" ++ id ++ ", axiom, (" ++ show axiom ++ ")).\n"
 
+
+restrContext :: Context -> [String] -> [Statement]
+restrContext (Context [] Empty)  ids = []
+restrContext (Context [] p)      ids = restrContext p ids
+restrContext (Context (s:sts) p) ids | getId s `elem` ids = s : (restrContext (Context sts p) ids)
+                                     | otherwise          = (restrContext (Context sts p) ids)
+
+subContext :: Context -> [String] -> Context
+subContext (Context cur p) ids = Context (cur ++ (restrContext p ids)) Empty
+
 p = [
     (Statement "rIsRelation" (Atom "relation" [Var "R"]) Assumed),
     (Statement "xIsElement" (Atom "element" [Var "X"]) Assumed),
@@ -117,7 +127,7 @@ pInduction = [
             (BySequence [
               (Statement "inductionHypothesis" (Atom "lesseq" [Cons "fac" [Var "n"], Var "n"]) Assumed),
               -- ...
-              (Statement "inductionGoal" (Atom "lesseq" [Cons "fac" [Cons "plus" [Var "n", Var "1"]], Cons "plus" [Var "n", Var "1"]]) ByContext)
+              (Statement "inductionformula" (Atom "lesseq" [Cons "fac" [Cons "plus" [Var "n", Var "1"]], Cons "plus" [Var "n", Var "1"]]) ByContext)
             ]) )
       ])
     )
@@ -126,8 +136,8 @@ pInduction = [
 data ProofStatus = Correct | Incorrect | Unknown
   deriving (Eq, Show)
 
-checkStatement :: Statement -> Context -> IO ProofStatus
-checkStatement (Statement id goal ByContext) context = runProver (show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show goal ++ ")).\n") --trace (show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show goal ++ ")).\n") 
+checkStat :: Statement -> Context -> IO ProofStatus
+checkStat (Statement id formula p) context = runProver (show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show formula ++ ")).\n") --return Correct
 
 runProver :: String -> IO ProofStatus
 runProver task = do
@@ -135,10 +145,9 @@ runProver task = do
   do 
     (wh,rh,eh,ph) <- run
     hPutStrLn wh task ; hClose wh
-    ofl <- hGetContents rh ; efl <- hGetContents eh
-    let lns = filter (not . null) $ lines $ ofl ++ efl
-        out = map (("[lbl] ") ++) lns
-    return ofl
+    ofl <- hGetContents rh
+    --efl <- hGetContents eh
+    let lns = filter (not . null) $ lines $ ofl -- ++ efl
 
     let pos = any (\l -> any (`isPrefixOf` l) ["# SZS status Theorem"]) lns
         neg = any (\l -> any (`isPrefixOf` l) ["# SZS status CounterSatisfiable"]) lns
@@ -152,43 +161,43 @@ runProver task = do
       then trace "DISPROVED" return Incorrect
     else trace "UNKNOWN" return Unknown
 
-statements2Conjunctions :: [Statement] -> String
-statements2Conjunctions [] = ""
-statements2Conjunctions [(Statement id goal proof)] = "(" ++ show goal ++ ")"
-statements2Conjunctions ((Statement id goal proof):xs) = "(" ++ show goal ++ ") & " ++ (statements2Conjunctions xs)
+stat2Conj :: [Statement] -> String
+stat2Conj [] = ""
+stat2Conj [(Statement id formula proof)] = "(" ++ show formula ++ ")"
+stat2Conj ((Statement id formula proof):xs) = "(" ++ show formula ++ ") & " ++ (stat2Conj xs)
 
 verifyCases :: [Statement] -> Context -> IO ProofStatus -> IO ProofStatus
 verifyCases [] context status = status 
 verifyCases (c:cs) context status = do
-  r <- verifyStatement c context
+  r <- verStat c context
   if r == Correct then verifyCases cs context status 
   else verifyCases cs context (return Incorrect)
 
-verifyCaseDistinction :: Statement -> [Statement] -> Context-> IO ProofStatus
-verifyCaseDistinction (Statement id goal _) cases context = do
-  distR <- trace ("Prove distinction correct:\n" ++ statements2Conjunctions cases) runProver (show context ++ "fof(" ++ id ++ ", conjecture, ((" ++ statements2Conjunctions cases ++ ") => (" ++ show goal ++ "))).\n") 
+verCaseDist :: Statement -> [Statement] -> Context -> IO ProofStatus
+verCaseDist (Statement id formula _) cases context = do
+  distR <- trace ("Prove distinction correct:\n" ++ stat2Conj cases) runProver (show context ++ "fof(" ++ id ++ ", conjecture, ((" ++ stat2Conj cases ++ ") => (" ++ show formula ++ "))).\n") 
   caseR <- verifyCases cases context (return Correct)
   if distR == Correct && caseR == Correct
     then return Correct
     else return Incorrect
 
 
-verifyStatement :: Statement -> Context -> IO ProofStatus
-verifyStatement (Statement id goal Assumed) context = trace ("Assume " ++ id ++ ": " ++ show goal) return Correct 
-verifyStatement (Statement id goal ByContext) context = trace ("Prove  " ++ id ++ ": " ++ show goal) checkStatement (Statement id goal ByContext) context 
-verifyStatement (Statement id goal (BySequence sequ)) context = trace ("Check  " ++ id ++ ": " ++ show goal) verifySequence sequ (Context [] context) (return Correct) 
-verifyStatement (Statement id goal (BySplit cases)) context = trace ("Cases  " ++ id ++ ": " ++ show goal) verifyCaseDistinction (Statement id goal Assumed) cases context
+verStat :: Statement -> Context -> IO ProofStatus
+verStat (Statement id f Assumed) context = trace ("Assume " ++ id ++ ": " ++ show f) return Correct 
+verStat (Statement id f ByContext) context = trace ("Prove  " ++ id ++ ": " ++ show f) checkStat (Statement id f ByContext) context 
+verStat (Statement id f (BySubcontext ids)) context = trace ("Prove  " ++ id ++ ": " ++ show f) checkStat (Statement id f ByContext) $ subContext context ids
+verStat (Statement id f (BySequence sequ)) context = trace ("Check  " ++ id ++ ": " ++ show f) verSeq sequ (Context [] context) (return Correct) 
+verStat (Statement id f (BySplit cases)) context = trace ("Cases  " ++ id ++ ": " ++ show f) verCaseDist (Statement id f Assumed) cases context
 
-verifySequence :: [Statement] -> Context -> IO ProofStatus -> IO ProofStatus
-verifySequence [] _ status = status
-verifySequence (st:sts) (Context hs p) status = do
-  r <- verifyStatement st (Context hs p)
-  if r == Correct then verifySequence sts (Context (hs ++ [st]) p) status 
-  else verifySequence sts (Context (hs ++ [st]) p) (return Incorrect)
+verSeq :: [Statement] -> Context -> IO ProofStatus -> IO ProofStatus
+verSeq [] _ status = status
+verSeq (st:sts) (Context hs p) status = do
+  r <- verStat st (Context hs p)
+  if r == Correct then verSeq sts (Context (hs ++ [st]) p) status 
+  else verSeq sts (Context (hs ++ [st]) p) (return Incorrect)
 
 --main :: IO()
 --main = do
-  --res <- verifySequence p (Context [] Empty) (return Correct)
-  --putStrLn $ show p2
+  --res <- verSeq p (Context [] Empty) (return Correct)
   --putStrLn $ show res
 

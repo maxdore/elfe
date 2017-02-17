@@ -1,10 +1,16 @@
+import System.Environment (getArgs)
+
 import Language
 import Parser
 import Prover
 
-
 main = do
-  p <- getContents
-  s <- parseString p
-  res <- verifySequence s (Context [] Empty) (return Correct)
-  putStrLn $ show res
+  args <- getArgs;
+  case args of
+    [] -> error "Give the problem file"
+    [arg] -> do str <- readFile $ arg
+                problem <- parseString str
+                putStrLn $ show problem
+                res <- verSeq problem (Context [] Empty) (return Correct)
+                putStrLn $ show res
+    _ -> error "too many arguments - what are you trying to tell me?"

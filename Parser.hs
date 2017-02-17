@@ -31,10 +31,12 @@ semiSep    = Token.semiSep    lexer
 reservedOp = Token.reservedOp lexer
 
 
-data ParserState = ParserState {
-    predicates :: [String] 
-}
-initParseState = ParserState []
+data ParserState = ParserState { counter :: Int
+                               , namedIds :: [String]
+                               }
+initParseState = ParserState 0 []
+incCounter (ParserState c ns) = ParserState (c+1) ns
+addNamedId n (ParserState c ns) = ParserState c (ns ++ [n])
 
 --main :: IO()
 --main = do
@@ -42,13 +44,34 @@ initParseState = ParserState []
 --  print $ parseString problem 
 
 
-parseString :: IO String -> [Statement]
-parseString s = do
-  str <- s
-  case runParser sections initParseState "" str of
-    Left e  -> error $ show e
-    Right r -> (r)
+parseString :: String -> IO [Statement]
+parseString str = do 
+    case runParser sections initParseState "" str of
+      Left e  -> return $ error $ show e
+      Right r -> return r
 
+
+-- ID MANAGMENT
+
+newId :: ParsecT s ParserState Identity String
+newId = do 
+  cur <- counter <$> getState
+  updateState incCounter
+  return $ "id" ++ show cur
+
+
+givenOrNewId = undefId <|> defId
+
+undefId = 
+  do reserved ":"
+     id <- newId
+     return id
+
+defId = 
+  do id <- many1 alphaNum
+     updateState (addNamedId id)
+     reserved ":"
+     return $ "id" ++ id
 
 -- SECTIONS
 
@@ -59,45 +82,64 @@ sections = many1 $   definitionSection
 
 --definitionSection :: Parser Statement
 definitionSection =
-  do reserved "Definition:"
+  do reserved "Definition"
+     id <- givenOrNewId
      st  <- statement Assumed
-     return (Statement "ID" (getFormula st) Assumed)
+     return (Statement id (getFormula st) Assumed)
 
 lemmaSection =
   do reserved "Lemma:"
      conj  <- statement Assumed
-     reserved "Proof."
-     derivation <- proofByTactic $ getFormula conj
+     id <- newId
+     derivation <- ((proofDirect $ getFormula conj) <|> (proofContradiction $ getFormula conj))
+     return $ (Statement id (getFormula conj) (BySequence derivation))
+
+
+-- PROOFS TACTICS
+
+proofDirect (Impl l r) = 
+  do reserved "Proof."
+     lId <- newId
+     derivation <- many $ statement ByContext
+     rId <- newId
      reserved "qed."
-     return $ (Statement "ID" (getFormula conj) (BySequence derivation))
+     return ([(Statement lId l Assumed)] ++ derivation ++ [(Statement rId r ByContext)])
 
---notionSection :: Parser Statement
---notionSection =
---  do reserved "Notion:"
---     notion  <- many alphaNum
---     return (Statement notion (Atom "asd" []) Assumed)
+proofContradiction conj = 
+  do reserved "Proof by contradiction."
+     assId <- newId
+     derivation <- many $ statement ByContext
+     botId <- newId
+     reserved "Contradiction."
+     reserved "qed."
+     return ([(Statement assId (Not conj) Assumed)] ++ derivation ++ [(Statement botId Bot ByContext)])
 
 
--- PROOFS
-
-proofByTactic :: Formula -> ParsecT [Char] u Identity [Statement]
-proofByTactic (Impl l r) = do
-  derivation <- many $ statement ByContext
-  return ([(Statement "ID" l Assumed)] ++ derivation ++ [(Statement "ID" r ByContext)])
 
 
 -- SENTENCES 
 
-statement :: Proof -> ParsecT [Char] u Identity Statement
+--statement :: Proof -> ParsecT String u Identity Statement
 statement pr =
   do f <- subSentence
+     by <- optionMaybe subContext
      reserved "."
-     return $ (Statement "ID" f pr) 
+     id <- newId
+     case by of
+       Nothing -> return $ Statement id f pr 
+       Just ids -> return $ Statement id f $ BySubcontext ids
+
+
+subContext = 
+  do reserved "by"
+     id <- many alphaNum
+     return [id]
+
 
 -- We have different precedences
 subSentence = level1 `chainl1` (try iff)
 level1 = (forall <|> exists <|> try then' <|> level2) `chainl1` (try implies)
-level2 = (try is <|> try take' <|> try atom) `chainl1` (try andE)
+level2 = (try is <|> try take' <|> try atom <|> try not') `chainl1` (try andE)
 
 -- FORMULA
 
@@ -148,6 +190,12 @@ andE =
      reservedOp "and"
      spaces
      return And
+
+--not' :: Parser Formula
+not' = 
+  do reserved "not"
+     f <- subSentence
+     return (Not f)
 
 --is :: Parser Formula
 is = 
