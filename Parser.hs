@@ -76,18 +76,25 @@ defId =
 -- SECTIONS
 
 --sections :: ParsecT ParserState u Identity [Statement]
-sections = many1 $   definitionSection
-                 <|> lemmaSection
+sections = many1 $   definition
+                 <|> proposition
+                 <|> lemma
                  -- <|> notionSection
 
 --definitionSection :: Parser Statement
-definitionSection =
+definition =
   do reserved "Definition"
      id <- givenOrNewId
      st  <- statement Assumed
      return (Statement id (getFormula st) Assumed)
 
-lemmaSection =
+proposition = 
+  do reserved "Proposition"
+     id <- givenOrNewId
+     st <- statement ByContext
+     return (Statement id (getFormula st) ByContext)
+
+lemma =
   do reserved "Lemma:"
      conj  <- statement Assumed
      id <- newId
@@ -156,7 +163,7 @@ forall =
      spaces
      var <- many alphaNum
      spaces
-     reserved ":"
+     reserved "."
      sent <- subSentence
      return (Forall var sent)
 
@@ -166,7 +173,7 @@ exists =
      spaces
      var <- many alphaNum
      spaces
-     reserved ":"
+     reserved "."
      sent <- subSentence
      return (Exists var sent)
 

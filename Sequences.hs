@@ -1,20 +1,24 @@
+module Sequences where 
+
+import Language
 
 p = [
-    (Statement "rIsRelation" (Atom "relation" [Var "R"]) Assumed),
-    (Statement "xIsElement" (Atom "element" [Var "X"]) Assumed),
-    (Statement "yIsElement" (Atom "element" [Var "Y"]) Assumed),
-    (Statement "zIsElement" (Atom "element" [Var "Z"]) Assumed),
+    --(Statement "rIsRelation" (Atom "relation" [Var "R"]) Assumed),
+    --(Statement "xIsElement" (Atom "element" [Var "X"]) Assumed),
+    --(Statement "yIsElement" (Atom "element" [Var "Y"]) Assumed),
+    --(Statement "zIsElement" (Atom "element" [Var "Z"]) Assumed),
     (Statement "defSymmetric" (Forall "R" (Atom "symmetric" [Var "R"] `Iff` Forall "X" (Forall "Y" (Atom "relapp" [Var "R", Var "X", Var "Y"] `Impl` Atom "relapp" [Var "R", Var "Y", Var "X"])))) Assumed),
-    (Statement "defBound" (Forall "R" (Atom "bound" [Var "R"] `Iff` Forall "X" (Atom "element" [Var "X"] `Impl` Exists "Y" (Atom "relapp" [Var "R", Var "X", Var "Y"])))) Assumed),
+    (Statement "defBound" (Forall "R" (Atom "bound" [Var "R"] `Iff` Forall "X" (Exists "Y" (Atom "relapp" [Var "R", Var "X", Var "Y"])))) Assumed),
     (Statement "defTransitive" (Forall "R" (Atom "transitive" [Var "R"] `Iff` Forall "X" (Forall "Y" (Forall "Z" ((Atom "relapp" [Var "R", Var "X", Var "Y"] `And` Atom "relapp" [Var "R", Var "Y", Var "Z"]) `Impl` Atom "relapp" [Var "R", Var "X", Var "Z"]))))) Assumed),
     (Statement "defReflexive" (Forall "R" (Atom "reflexive" [Var "R"] `Iff` Forall "X" (Atom "relapp" [Var "R", Var "X", Var "X"]))) Assumed),
-    (Statement "lemma" (((Atom "transitive" [Var "R"]) `And` (Atom "symmetric" [Var "R"]) `And` (Atom "bound" [Var "R"])) `Impl` (Atom "reflexive" [Var "R"])) 
+    (Statement "lemma" (((Atom "transitive" [Var "r"]) `And` (Atom "symmetric" [Var "r"]) `And` (Atom "bound" [Var "r"])) `Impl` (Atom "reflexive" [Var "r"])) 
         (BySequence [
-          (Statement "lemmaAntecedent" ((Atom "transitive" [Var "R"]) `And` (Atom "symmetric" [Var "R"]) `And` (Atom "bound" [Var "R"])) Assumed), 
-          (Statement "applyBound" (Atom "relapp" [Var "R", Var "X", Var "Y"]) ByContext),
-          (Statement "applySymmetry" (Atom "relapp" [Var "R", Var "Y", Var "X"]) ByContext),
-          (Statement "applyTransitivity" (Atom "relapp" [Var "R", Var "X", Var "X"]) ByContext),
-          (Statement "lemmaConsequent" (Atom "reflexive" [Var "R"]) ByContext)
+          (Statement "lemmaAntecedent" ((Atom "transitive" [Var "r"]) `And` (Atom "symmetric" [Var "r"]) `And` (Atom "bound" [Var "r"])) Assumed), 
+          (Statement "assumeNotEmpty" (Exists "X" (Exists "Y" (Atom "relapp" [Var "r", Var "X", Var "Y"]))) Assumed),
+          (Statement "applyBound" (Atom "relapp" [Var "r", Var "x", Var "y"]) ByContext),
+          (Statement "applySymmetry" (Atom "relapp" [Var "r", Var "y", Var "x"]) ByContext),
+          (Statement "applyTransitivity" (Atom "relapp" [Var "r", Var "x", Var "x"]) ByContext),
+          (Statement "lemmaConsequent" (Atom "reflexive" [Var "r"]) ByContext)
         ])
     )
     ]

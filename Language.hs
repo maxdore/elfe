@@ -7,7 +7,7 @@ data Term = Cons String [Term]
            | Var String
   deriving (Eq)
 instance Show Term where
-  show (Var s) = "V" ++ s
+  show (Var s) = "" ++ s
   show (Cons s terms) = s ++ "(" ++ (intercalate "," $ map show terms) ++ ")" 
 
 
@@ -26,8 +26,8 @@ instance Show Formula where
   show (Bot)         = "$false"
   show (Or l r)      = "(" ++ (show l) ++ ") | (" ++ (show r) ++ ")"
   show (And l r)     = "(" ++ (show l) ++ ") & (" ++ (show r) ++ ")"
-  show (Exists v f)  = "? [" ++ "V" ++ v ++ "] : " ++ (show f)
-  show (Forall v f)  = "! [" ++ "V" ++ v ++ "] : " ++ (show f)
+  show (Exists v f)  = "? [" ++ "" ++ v ++ "] : (" ++ (show f) ++ ")"
+  show (Forall v f)  = "! [" ++ "" ++ v ++ "] : (" ++ (show f) ++ ")"
 
 
 data Statement = Statement { id :: String

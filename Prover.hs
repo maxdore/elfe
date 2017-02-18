@@ -52,11 +52,11 @@ verSeq (st:sts) (Context hs p) status = do
   else verSeq sts (Context (hs ++ [st]) p) (return Incorrect)
 
 checkStat :: Statement -> Context -> IO ProofStatus
-checkStat (Statement id formula p) context = runProver (show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show formula ++ ")).\n") --return Correct
+checkStat (Statement id formula p) context = prove (show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show formula ++ ")).\n") --return Correct
 
 verCaseDist :: Statement -> [Statement] -> Context -> IO ProofStatus
 verCaseDist (Statement id formula _) cases context = do
-  distR <- trace ("Prove distinction correct:\n" ++ stat2Conj cases) runProver (show context ++ "fof(" ++ id ++ ", conjecture, ((" ++ stat2Conj cases ++ ") => (" ++ show formula ++ "))).\n") 
+  distR <- trace ("Prove distinction correct:\n" ++ stat2Conj cases) prove (show context ++ "fof(" ++ id ++ ", conjecture, ((" ++ stat2Conj cases ++ ") => (" ++ show formula ++ "))).\n") 
   caseR <- verifyCases cases context (return Correct)
   if distR == Correct && caseR == Correct
     then return Correct
@@ -70,11 +70,24 @@ verifyCases (c:cs) context status = do
   else verifyCases cs context (return Incorrect)
 
 
--- PROVER CALL
+-- BACKGROUND PROVER
 
-runProver :: String -> IO ProofStatus
-runProver task = do
-  let run = runInteractiveProcess "../prover/E/PROVER/eprover" ["--definitional-cnf=24", "-s", "--print-statistics", "-R", "--print-version", "--proof-object", "--auto-schedule"] Nothing Nothing
+data Prover = Prover { command :: String
+                     , args :: [String]
+                     , provedMessage :: [String]
+                     , disprovedMessage :: [String]
+                     , unknownMessage :: [String]
+                     }
+
+eprover = Prover "../prover/E/PROVER/eprover" ["--definitional-cnf=24", "-s", "--print-statistics", "-R", "--print-version", "--proof-object", "--auto-schedule"] ["# SZS status Theorem"] ["# SZS status CounterSatisfiable"] ["uns"]
+z3 = Prover "../prover/Z3/build/z3_wrapper.sh" [] ["% SZS status Theorem"] ["% SZS status CounterSatisfiable"] ["% SZS status GaveUp"]
+
+prove :: String -> IO ProofStatus
+prove s = runATP s z3
+
+runATP :: String -> Prover -> IO ProofStatus
+runATP task (Prover command args provedMessage disprovedMessage unknownMessage) = do
+  let run = runInteractiveProcess command args Nothing Nothing
   do 
     (wh,rh,eh,ph) <- run
     hPutStrLn wh task ; hClose wh
@@ -82,9 +95,9 @@ runProver task = do
     --efl <- hGetContents eh
     let lns = filter (not . null) $ lines $ ofl -- ++ efl
 
-    let pos = any (\l -> any (`isPrefixOf` l) ["# SZS status Theorem"]) lns
-        neg = any (\l -> any (`isPrefixOf` l) ["# SZS status CounterSatisfiable"]) lns
-        unk = any (\l -> any (`isPrefixOf` l) ["uns"]) lns
+    let pos = any (\l -> any (`isPrefixOf` l) provedMessage) lns
+        neg = any (\l -> any (`isPrefixOf` l) disprovedMessage) lns
+        unk = any (\l -> any (`isPrefixOf` l) unknownMessage) lns
 
     hClose eh ; waitForProcess ph
 
@@ -92,4 +105,4 @@ runProver task = do
       then trace "PROVED" return Correct
     else if neg
       then trace "DISPROVED" return Incorrect
-    else trace "UNKNOWN" return Unknown
+    else trace ("UNKNOWN\n" ++ ofl) return Unknown
