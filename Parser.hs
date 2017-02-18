@@ -13,9 +13,9 @@ import Debug.Trace
 import Language
 
 languageDef =
-  emptyDef { Token.commentStart    = "/*"
-           , Token.commentEnd      = "*/"
-           , Token.commentLine     = "//"
+  emptyDef { Token.commentStart    = "\"\"\""
+           , Token.commentEnd      = "\"\"\""
+           , Token.commentLine     = "#"
            , Token.identStart      = letter
            , Token.identLetter     = alphaNum <|> oneOf "_'"
            , Token.caseSensitive   = True
@@ -57,7 +57,7 @@ newId :: ParsecT s ParserState Identity String
 newId = do 
   cur <- counter <$> getState
   updateState incCounter
-  return $ "id" ++ show cur
+  return $ idPrefix ++ show cur
 
 
 givenOrNewId = undefId <|> defId
@@ -71,7 +71,7 @@ defId =
   do id <- many1 alphaNum
      updateState (addNamedId id)
      reserved ":"
-     return $ "id" ++ id
+     return $ idPrefix ++ id
 
 -- SECTIONS
 
@@ -217,11 +217,20 @@ take' =
 atom =
   do predicate <- many alphaNum 
      reservedOp "("
-     terms <- sepBy (term) (char ',')
+     terms <- term `sepBy` (char ',')
      reserved ")"
      return (Atom predicate terms)
 
 --term :: Parser Term
-term = 
-  do term <- many1 alphaNum
-     return (Var term)
+term = (try cons) <|> var 
+
+cons =
+  do predicate <- many alphaNum 
+     reservedOp "("
+     terms <- term `sepBy` (char ',')
+     reserved ")"
+     return (Cons predicate terms)
+
+var =
+  do var <- many1 alphaNum
+     return (Var var)

@@ -37,10 +37,18 @@ data Statement = Statement { id :: String
 instance Show Statement where
   show (Statement id formula proof) = id ++ ": " ++ show formula ++ " -- " ++ show proof ++ "\n"
 
+
+stat2Conj :: [Statement] -> String
+stat2Conj [] = ""
+stat2Conj [(Statement id formula proof)] = "(" ++ show formula ++ ")"
+stat2Conj ((Statement id formula proof):xs) = "(" ++ show formula ++ ") & " ++ (stat2Conj xs)
+
+
 getFormula (Statement id f p) = f
 
+idPrefix = "s"
 getId :: Statement -> String
-getId (Statement id f p) = drop 2 id
+getId (Statement id f p) = drop (length idPrefix) id
 
 data Proof = Assumed | ByContext | BySubcontext [String] | BySequence [Statement] | BySplit [Statement]
 instance Show Proof where

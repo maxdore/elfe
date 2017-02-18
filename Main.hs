@@ -13,4 +13,4 @@ main = do
                 putStrLn $ show problem
                 res <- verSeq problem (Context [] Empty) (return Correct)
                 putStrLn $ show res
-    _ -> error "too many arguments - what are you trying to tell me?"
+    _ -> error "too many arguments - just give the file"
