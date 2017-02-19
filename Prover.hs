@@ -104,5 +104,5 @@ runATP task (Prover command args provedMessage disprovedMessage unknownMessage) 
     if pos
       then trace "PROVED" return Correct
     else if neg
-      then trace "DISPROVED" return Incorrect
+      then trace task return Incorrect
     else trace ("UNKNOWN\n" ++ ofl) return Unknown

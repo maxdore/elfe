@@ -1,5 +1,5 @@
-fof(screflexive, axiom, ((creflexive(r)) <=> (! [X] : (~(relapp(r,X,X)))))).
-fof(scsymmetric, axiom, ((csymmetric(r)) <=> (! [X] : (! [Y] : ((relapp(r,X,Y)) => (~(relapp(r,Y,X)))))))).
-fof(s4, axiom, (~((csymmetric(r)) => (creflexive(r))))).
-fof(s5, conjecture, (iuhuhasd)).
+fof(defBound, axiom, (bound(r) <=> (! [X] : (element(X) => (? [Y] : ((element(Y)) & (relapp(r,X,Y)))))))).
+fof(lemmaAntecedent, axiom, (((transitive(r)) & (symmetric(r))) & (bound(r)))).
+fof(assumeNotEmpty, axiom, (element(x))).
+fof(applyBound, conjecture, (? [Y] : ((element(Y)) & (relapp(r,x,Y))))).
 
