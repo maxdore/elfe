@@ -101,32 +101,21 @@ lemma =
      conj  <- fof
      reserved "."
      id <- newId
-     derivation <- ((direct conj) <|> (contradiction conj))
+     derivation <- ((proofDirect conj) <|> (proofContradiction conj))
      return $ (Statement id conj (BySequence derivation))
 
 
 -- PROOFS TACTICS
 
-direct conj = 
+proofDirect (Impl l r) = 
   do reserved "Proof."
-     sts <- unfoldConj conj
+     lId <- newId
+     derivation <- many $ statement
+     rId <- newId
      reserved "qed."
-     return sts
+     return ([(Statement lId l Assumed)] ++ derivation ++ [(Statement rId r ByContext)])
 
-unfoldConj (Impl premise r) = 
-  do pId <- newId
-     cId <- newId
-     conclusion <- unfoldConj r
-     return $ (Statement pId premise Assumed) : conclusion
-
-unfoldConj (Forall v f) = 
-  do premise <- let'
-     derivation <- many statement
-     conclusion <- -- TODO f WITH FIXED VAR
-     return (Statement pId premise)
-
-
-contradiction conj = 
+proofContradiction conj = 
   do reserved "Proof by contradiction."
      assId <- newId
      derivation <- many statement
@@ -141,17 +130,8 @@ contradiction conj =
 --statement :: ParsecT String u Identity Statement
 statement = then' <|> take' <|> assume
 
--- UNPROVEN STATEMENT MARKERS
 
-let' =
-  do reserved "Let"
-     spaces
-     f <- fof -- TODO ONLY ALLOW FORALL SELECTION
-     reserved "."
-     id <- newId
-     return $ Statement id f Assumed
-
--- PROVEN STATEMENT MARKERS
+-- STATEMENT MARKERS
 
 --exists :: Parser Formula
 then' =
@@ -187,14 +167,21 @@ subContext =
      id <- many alphaNum -- TODO intersperced id's
      return [id]
 
+assume =
+  do reserved "Assume"
+     spaces
+     f <- fof
+     reserved "."
+     id <- newId
+     return $ Statement id f Assumed
 
--- FORMULAS
 
 -- We have different precedences
 fof = level1 `chainl1` (try iff)
 level1 = (forall <|> exists <|> level2) `chainl1` (try implies)
-level2 = (try is <|> try atom <|> try not') `chainl1` (try and')
+level2 = (try is <|> try atom <|> try not') `chainl1` (try andE)
 
+-- FORMULA
 
 --iff :: Parser (Formula -> Formula -> Formula)
 iff =
@@ -231,7 +218,7 @@ implies =
      return Impl
 
 --and' :: Parser (Formula -> Formula -> Formula)
-and' =
+andE =
   do spaces
      reservedOp "and"
      spaces
