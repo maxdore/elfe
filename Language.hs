@@ -11,6 +11,7 @@ instance Show Term where
   show (Cons s terms) = s ++ "(" ++ (intercalate "," $ map show terms) ++ ")" 
 
 
+
 data Formula = Impl Formula Formula  | Iff Formula Formula
              | Atom String [Term]    | Not Formula
              | Top                   | Bot
@@ -26,8 +27,27 @@ instance Show Formula where
   show (Bot)         = "$false"
   show (Or l r)      = "(" ++ (show l) ++ ") | (" ++ (show r) ++ ")"
   show (And l r)     = "(" ++ (show l) ++ ") & (" ++ (show r) ++ ")"
-  show (Exists v f)  = "? [" ++ "" ++ v ++ "] : (" ++ (show f) ++ ")"
-  show (Forall v f)  = "! [" ++ "" ++ v ++ "] : (" ++ (show f) ++ ")"
+  show (Exists v f)  = "? [" ++ varPrefix ++ v ++ "] : (" ++ (show $ safeVar f v) ++ ")"
+  show (Forall v f)  = "! [" ++ varPrefix ++ v ++ "] : (" ++ (show $ safeVar f v) ++ ")"
+
+varPrefix = "V"
+
+safeVar :: Formula -> String -> Formula
+safeVar (Atom s terms) v = Atom s $ safeVar' terms v
+safeVar (Impl l r)     v = Impl (safeVar l v) (safeVar r v)
+safeVar (Iff l r)      v = Iff (safeVar l v) (safeVar r v)
+safeVar (Not f)        v = Not $ safeVar f v 
+safeVar (Or l r)       v = Or (safeVar l v) (safeVar r v)
+safeVar (And l r)      v = And (safeVar l v) (safeVar r v)
+safeVar (Exists s f)   v = Exists s $ safeVar f v
+safeVar (Forall s f)   v = Forall s $ safeVar f v
+safeVar f              v = f
+
+safeVar' :: [Term] -> String -> [Term]
+safeVar' [] _ = []
+safeVar' ((Var s):ts) v | s == v    = Var (varPrefix ++ v) : (safeVar' ts v) 
+                        | otherwise = Var s : (safeVar' ts v) 
+safeVar' ((Cons s t):ts) v = (Cons s (safeVar' t v)) : (safeVar' ts v) 
 
 
 data Statement = Statement { id :: String

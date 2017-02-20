@@ -1,5 +1,6 @@
-fof(defBound, axiom, (bound(r) <=> (! [X] : (element(X) => (? [Y] : ((element(Y)) & (relapp(r,X,Y)))))))).
-fof(lemmaAntecedent, axiom, (((transitive(r)) & (symmetric(r))) & (bound(r)))).
-fof(assumeNotEmpty, axiom, (element(x))).
-fof(applyBound, conjecture, (? [Y] : ((element(Y)) & (relapp(r,x,Y))))).
+fof(s0, axiom, ((reflexive(r)) <=> (! [VX] : ((element(VX)) => (relapp(r,VX,VX)))))).
+fof(sboundness, axiom, ((bound(r)) <=> (! [VX] : ((element(VX)) => (? [VY] : ((element(y)) & (relapp(r,VX,VY)))))))).
+fof(s3, axiom, (element(x))).
+fof(s2, axiom, (((transitive(r)) & (symmetric(r))) & (bound(r)))).
+fof(s5, conjecture, (? [Vy] : ((element(Vy)) & (relapp(r,x,Vy))))).
 

@@ -7,7 +7,7 @@ p = [
     --(Statement "xIsElement" (Atom "element" [Var "X"]) Assumed),
     --(Statement "yIsElement" (Atom "element" [Var "Y"]) Assumed),
     --(Statement "zIsElement" (Atom "element" [Var "Z"]) Assumed),
-    (Statement "defSymmetric" ((Atom "symmetric" [Var "r"] `Iff` Forall "X" (Forall "Y" (Atom "element" [Var "X"] `And` Atom "element" [Var "Y"] `Impl`  Atom "relapp" [Var "r", Var "X", Var "Y"] `Impl` Atom "relapp" [Var "r", Var "Y", Var "X"])))) Assumed),
+    (Statement "defSymmetric" ((Atom "symmetric" [Var "r"] `Iff` Forall "X" (Forall "Y" (Atom "element" [Var "X"] `And` Atom "element" [Var "Y"] `And` Atom "relapp" [Var "r", Var "X", Var "Y"] `Impl` Atom "relapp" [Var "r", Var "Y", Var "X"])))) Assumed),
     (Statement "defBound" (Atom "bound" [Var "r"] `Iff` Forall "X" (Atom "element" [Var "X"] `Impl` (Exists "Y" (Atom "element" [Var "Y"] `And` Atom "relapp" [Var "r", Var "X", Var "Y"])))) Assumed),
     (Statement "defTransitive" ((Atom "transitive" [Var "r"] `Iff` Forall "X" (Forall "Y" (Forall "Z" (Atom "element" [Var "X"] `And` Atom "element" [Var "Y"] `And` Atom "element" [Var "Y"] `Impl` (Atom "relapp" [Var "r", Var "X", Var "Y"] `And` Atom "relapp" [Var "r", Var "Y", Var "Z"]) `Impl` Atom "relapp" [Var "r", Var "X", Var "Z"]))))) Assumed),
     (Statement "defReflexive" ((Atom "reflexive" [Var "r"] `Iff` Forall "X" (Atom "element" [Var "X"]  `Impl` Atom "relapp" [Var "r", Var "X", Var "X"]))) Assumed),

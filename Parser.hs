@@ -85,21 +85,24 @@ sections = many1 $   definition
 definition =
   do reserved "Definition"
      id <- givenOrNewId
-     st  <- statement Assumed
-     return (Statement id (getFormula st) Assumed)
+     f  <- fof
+     reserved "."
+     return (Statement id f Assumed)
 
 proposition = 
   do reserved "Proposition"
      id <- givenOrNewId
-     st <- statement ByContext
-     return (Statement id (getFormula st) ByContext)
+     f <- fof
+     reserved "."
+     return (Statement id f ByContext)
 
 lemma =
   do reserved "Lemma:"
-     conj  <- statement Assumed
+     conj  <- fof
+     reserved "."
      id <- newId
-     derivation <- ((proofDirect $ getFormula conj) <|> (proofContradiction $ getFormula conj))
-     return $ (Statement id (getFormula conj) (BySequence derivation))
+     derivation <- ((proofDirect conj) <|> (proofContradiction conj))
+     return $ (Statement id conj (BySequence derivation))
 
 
 -- PROOFS TACTICS
@@ -107,7 +110,7 @@ lemma =
 proofDirect (Impl l r) = 
   do reserved "Proof."
      lId <- newId
-     derivation <- many $ statement ByContext
+     derivation <- many $ statement
      rId <- newId
      reserved "qed."
      return ([(Statement lId l Assumed)] ++ derivation ++ [(Statement rId r ByContext)])
@@ -115,38 +118,68 @@ proofDirect (Impl l r) =
 proofContradiction conj = 
   do reserved "Proof by contradiction."
      assId <- newId
-     derivation <- many $ statement ByContext
+     derivation <- many statement
      botId <- newId
      reserved "Contradiction."
      reserved "qed."
      return ([(Statement assId (Not conj) Assumed)] ++ derivation ++ [(Statement botId Bot ByContext)])
 
 
+-- STATEMENTS 
+
+--statement :: ParsecT String u Identity Statement
+statement = then' <|> take' <|> assume
 
 
--- SENTENCES 
+-- STATEMENT MARKERS
 
---statement :: Proof -> ParsecT String u Identity Statement
-statement pr =
-  do f <- subSentence
+--exists :: Parser Formula
+then' =
+  do reserved "Then"
+     spaces
+     f <- fof
      by <- optionMaybe subContext
      reserved "."
      id <- newId
      case by of
-       Nothing -> return $ Statement id f pr 
-       Just ids -> return $ Statement id f $ BySubcontext ids
-
+        Nothing -> return $ Statement id f ByContext 
+        Just ids -> return $ Statement id f $ BySubcontext ids
+take' = 
+  do reserved "Take"
+     var <- many alphaNum
+     spaces
+     reserved "such that"
+     f <- fof
+     by <- optionMaybe subContext
+     reserved "."
+     id <- newId
+     proofId <- newId
+     case by of
+        Nothing  -> return (Statement id f (BySequence [
+                      (Statement proofId (Exists var (f)) ByContext)
+                    ]))
+        Just ids -> return (Statement id f (BySequence [
+                      (Statement proofId (Exists var (f)) $ BySubcontext ids)
+                    ]))
 
 subContext = 
   do reserved "by"
-     id <- many alphaNum
+     id <- many alphaNum -- TODO intersperced id's
      return [id]
+
+assume =
+  do reserved "Assume"
+     spaces
+     f <- fof
+     reserved "."
+     id <- newId
+     return $ Statement id f Assumed
 
 
 -- We have different precedences
-subSentence = level1 `chainl1` (try iff)
-level1 = (forall <|> exists <|> try then' <|> level2) `chainl1` (try implies)
-level2 = (try is <|> try take' <|> try atom <|> try not') `chainl1` (try andE)
+fof = level1 `chainl1` (try iff)
+level1 = (forall <|> exists <|> level2) `chainl1` (try implies)
+level2 = (try is <|> try atom <|> try not') `chainl1` (try andE)
 
 -- FORMULA
 
@@ -164,7 +197,7 @@ forall =
      var <- many alphaNum
      spaces
      reserved "."
-     sent <- subSentence
+     sent <- fof
      return (Forall var sent)
 
 --exists :: Parser Formula
@@ -174,15 +207,8 @@ exists =
      var <- many alphaNum
      spaces
      reserved "."
-     sent <- subSentence
+     sent <- fof
      return (Exists var sent)
-
---exists :: Parser Formula
-then' =
-  do reserved "Then"
-     spaces
-     sent <- subSentence
-     return (sent)
 
 --implies :: Parser (Formula -> Formula -> Formula)
 implies =
@@ -201,7 +227,7 @@ andE =
 --not' :: Parser Formula
 not' = 
   do reserved "not"
-     f <- subSentence
+     f <- fof
      return (Not f)
 
 --is :: Parser Formula
@@ -211,14 +237,6 @@ is =
      reserved "is"
      predicate <- many alphaNum
      return (Atom predicate [Var name])
-
-take' = 
-  do reserved "Take"
-     var <- many alphaNum
-     spaces
-     reserved "such that"
-     atom <- atom
-     return (Exists var atom)
 
 --atom :: Parser Formula
 atom =
