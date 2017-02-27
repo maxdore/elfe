@@ -21,15 +21,14 @@ instance Show Context where
   show (Context [] p) = show p
   show (Context ((Statement id axiom proof):hs) p) = show (Context hs p) ++ "fof(" ++ id ++ ", axiom, (" ++ show axiom ++ ")).\n"
 
-restrContext :: Context -> [String] -> [Statement]
-restrContext (Context [] Empty)  ids = []
-restrContext (Context [] p)      ids = restrContext p ids
-restrContext (Context (s:sts) p) ids | getId s `elem` ids = s : (restrContext (Context sts p) ids)
-                                     | otherwise          = (restrContext (Context sts p) ids)
+restrContext :: [Statement] -> [String] -> [Statement]
+restrContext [] _ = []
+restrContext (s:sts) ids | getId s `elem` ids = s : restrContext sts ids
+                         | otherwise          = restrContext sts ids
 
 subContext :: Context -> [String] -> Context
-subContext (Context cur p) ids = Context (cur ++ (restrContext p ids)) Empty
-
+subContext (Context sts Empty) ids = Context (restrContext sts ids) Empty
+subContext (Context sts p) ids = Context sts $ subContext p ids
 
 
 -- MAIN PROVING LOGIC
@@ -105,4 +104,4 @@ runATP task (Prover command args provedMessage disprovedMessage unknownMessage) 
       then trace "PROVED" return Correct
     else if neg
       then trace ("DISPROVED\n" ++ task) return Incorrect
-    else trace ("UNKNOWN\n" ++ task) return Unknown
+    else trace ("UNKNOWN\n" ++ ofl) return Unknown

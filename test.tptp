@@ -1,6 +1,6 @@
-fof(s0, axiom, ((reflexive(r)) <=> (! [VX] : ((element(VX)) => (relapp(r,VX,VX)))))).
-fof(sboundness, axiom, ((bound(r)) <=> (! [VX] : ((element(VX)) => (? [VY] : ((element(y)) & (relapp(r,VX,VY)))))))).
+fof(ssymmetry, axiom, ((symmetric(r)) <=> (! [VX] : (! [VY] : ((((element(VX)) & (element(VY))) & (relapp(r,VX,VY))) => (relapp(r,VY,VX))))))).
+fof(s6, axiom, (relapp(r,y,x))).
+fof(s4, axiom, ((element(y)) & (relapp(r,x,y)))).
 fof(s3, axiom, (element(x))).
 fof(s2, axiom, (((transitive(r)) & (symmetric(r))) & (bound(r)))).
-fof(s5, conjecture, (? [Vy] : ((element(Vy)) & (relapp(r,x,Vy))))).
-
+fof(s7, conjecture, (relapp(r,x,x))).
