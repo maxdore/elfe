@@ -44,19 +44,16 @@ parseString str = do
 data ParserState = ParserState { counter :: Int
                                , namedIds :: [String]
                                , fixedVars :: [String]
-                               , equivs :: [(Formula, Formula)]
                                }
 instance Show ParserState where
-  show (ParserState c n f e) =    "Counter: " ++ show c ++ "\n" 
+  show (ParserState c n f) =    "Counter: " ++ show c ++ "\n" 
                                ++ "Named IDs: " ++ intercalate "," n ++ "\n"  
                                ++ "Fixed Vars: " ++ intercalate "," f ++ "\n"  
-                               ++ "Equivalences:\n" ++ (intercalate "\n" $ map (\(l,r) -> show l ++ "\n" ++ show r) e) ++ "\n"  
 
-initParseState                            = ParserState 0 [] [] []
-incCounter    (ParserState c nis fvs eqs) = ParserState (c+1) nis fvs eqs
-addNamedId n  (ParserState c nis fvs eqs) = ParserState c (nis ++ [n]) fvs eqs
-addFixedVar v (ParserState c nis fvs eqs) = ParserState c nis (fvs ++ [v]) eqs
-addEquiv e    (ParserState c nis fvs eqs) = ParserState c nis fvs (eqs ++ [e])
+initParseState                            = ParserState 0 [] []
+incCounter    (ParserState c nis fvs) = ParserState (c+1) nis fvs
+addNamedId n  (ParserState c nis fvs) = ParserState c (nis ++ [n]) fvs
+addFixedVar v (ParserState c nis fvs) = ParserState c nis (fvs ++ [v])
 
 
 -- ID MANAGMENT
@@ -93,7 +90,6 @@ definition =
   do reserved "Definition"
      id <- givenOrNewId
      f  <- fof
-     updateState (addEquiv (getLeft f, getRight f))
      reserved "."
      return (Statement id f Assumed)
 
@@ -132,7 +128,7 @@ direct goal =
 --     return ([(Statement assId (Not goal) Assumed)] ++ derivation ++ [(Statement botId Bot ByContext)])
 
 
-unfold goal = try (tactic goal) <|> (try (equiv goal)) <|> (finalGoal goal)
+unfold goal = try (tactic goal) <|> (finalGoal goal)
 
 -- unfold common proofs
 
@@ -154,23 +150,6 @@ tactic (Impl l r) =
      trace ("unfolded implies to " ++ show r) return $ (Statement lId l Assumed) : derivation ++ [(Statement rId r ByContext)]
 
 tactic _ = fail "Formula cannot be unfolded anymore"
-
-
--- find equivalent proofs in definitions
-
-findNewGoal goal = 
-  do possibleGoals <- equivs <$> getState
-     s <- getState
-     --goals <- filter 
-     trace ("KJHSAKJDHASKJH\n" ++ show s ++  "\nLASJDKJASDLK\n\n") return Nothing -- $ Just $ Forall "X" Top
-
-equiv goal = 
-  do newGoal <- findNewGoal goal
-     case newGoal of
-        Nothing -> fail "No equivalent goal found"
-        Just g -> do
-          derivation <- unfold g
-          return derivation
 
 
 -- otherwise this should be proved 
