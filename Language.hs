@@ -30,6 +30,12 @@ instance Show Formula where
   show (Exists v f)  = "? [" ++ varPrefix ++ v ++ "] : (" ++ (show $ safeVar f v) ++ ")"
   show (Forall v f)  = "! [" ++ varPrefix ++ v ++ "] : (" ++ (show $ safeVar f v) ++ ")"
 
+getLeft (Iff l r) = l
+getLeft (Forall v f) = getLeft f
+
+getRight (Iff l r) = r
+getRight (Forall v f) = getRight f
+
 varPrefix = "V"
 
 safeVar :: Formula -> String -> Formula
@@ -48,6 +54,25 @@ safeVar' [] _ = []
 safeVar' ((Var s):ts) v | s == v    = Var (varPrefix ++ v) : (safeVar' ts v) 
                         | otherwise = Var s : (safeVar' ts v) 
 safeVar' ((Cons s t):ts) v = (Cons s (safeVar' t v)) : (safeVar' ts v) 
+
+
+replaceVar :: Formula -> String -> String -> Formula
+replaceVar (Atom s terms) old new = Atom s $ replaceVar' terms old new
+replaceVar (Impl l r)     old new = Impl (replaceVar l old new) (replaceVar r old new)
+replaceVar (Iff l r)      old new = Iff (replaceVar l old new) (replaceVar r old new)
+replaceVar (Not f)        old new = Not $ replaceVar f old new 
+replaceVar (Or l r)       old new = Or (replaceVar l old new) (replaceVar r old new)
+replaceVar (And l r)      old new = And (replaceVar l old new) (replaceVar r old new)
+replaceVar (Exists s f)   old new = Exists s $ replaceVar f old new
+replaceVar (Forall s f)   old new = Forall s $ replaceVar f old new
+replaceVar f              old new = f
+
+replaceVar' :: [Term] -> String -> String -> [Term]
+replaceVar' [] _ _ = []
+replaceVar' ((Var s):ts) old new    | s == old    = Var (new) : (replaceVar' ts old new) 
+                                    | otherwise   = Var s : (replaceVar' ts old new) 
+replaceVar' ((Cons s t):ts) old new = (Cons s (replaceVar' t old new)) : (replaceVar' ts old new) 
+
 
 
 data Statement = Statement { id :: String

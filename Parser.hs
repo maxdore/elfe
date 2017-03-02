@@ -2,6 +2,7 @@ module Parser where
 
 import System.IO
 import Control.Monad
+import Data.List
 import Text.Parsec.Prim (ParsecT)
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Expr
@@ -31,18 +32,6 @@ semiSep    = Token.semiSep    lexer
 reservedOp = Token.reservedOp lexer
 
 
-data ParserState = ParserState { counter :: Int
-                               , namedIds :: [String]
-                               }
-initParseState = ParserState 0 []
-incCounter (ParserState c ns) = ParserState (c+1) ns
-addNamedId n (ParserState c ns) = ParserState c (ns ++ [n])
-
---main :: IO()
---main = do
---  problem <- getContents
---  print $ parseString problem 
-
 
 parseString :: String -> IO [Statement]
 parseString str = do 
@@ -50,15 +39,27 @@ parseString str = do
       Left e  -> return $ error $ show e
       Right r -> return r
 
+-- PARSER STATE
+
+data ParserState = ParserState { counter :: Int
+                               , namedIds :: [String]
+                               , fixedVars :: [String]
+                               , equivs :: [(Formula, Formula)]
+                               }
+instance Show ParserState where
+  show (ParserState c n f e) =    "Counter: " ++ show c ++ "\n" 
+                               ++ "Named IDs: " ++ intercalate "," n ++ "\n"  
+                               ++ "Fixed Vars: " ++ intercalate "," f ++ "\n"  
+                               ++ "Equivalences:\n" ++ (intercalate "\n" $ map (\(l,r) -> show l ++ "\n" ++ show r) e) ++ "\n"  
+
+initParseState                            = ParserState 0 [] [] []
+incCounter    (ParserState c nis fvs eqs) = ParserState (c+1) nis fvs eqs
+addNamedId n  (ParserState c nis fvs eqs) = ParserState c (nis ++ [n]) fvs eqs
+addFixedVar v (ParserState c nis fvs eqs) = ParserState c nis (fvs ++ [v]) eqs
+addEquiv e    (ParserState c nis fvs eqs) = ParserState c nis fvs (eqs ++ [e])
+
 
 -- ID MANAGMENT
-
-newId :: ParsecT s ParserState Identity String
-newId = do 
-  cur <- counter <$> getState
-  updateState incCounter
-  return $ idPrefix ++ show cur
-
 
 givenOrNewId = undefId <|> defId
 
@@ -69,13 +70,19 @@ undefId =
 
 defId = 
   do id <- many1 alphaNum
-     updateState (addNamedId id)
+     updateState $ addNamedId id
      reserved ":"
      return $ idPrefix ++ id
 
+newId :: ParsecT String ParserState Identity String
+newId = do 
+  cur <- counter <$> getState
+  updateState incCounter
+  return $ idPrefix ++ show cur
+
 -- SECTIONS
 
---sections :: ParsecT ParserState u Identity [Statement]
+sections :: ParsecT String ParserState Identity [Statement]
 sections = many1 $   definition
                  <|> proposition
                  <|> lemma
@@ -86,6 +93,7 @@ definition =
   do reserved "Definition"
      id <- givenOrNewId
      f  <- fof
+     updateState (addEquiv (getLeft f, getRight f))
      reserved "."
      return (Statement id f Assumed)
 
@@ -98,42 +106,88 @@ proposition =
 
 lemma =
   do reserved "Lemma:"
-     conj  <- fof
+     goal  <- fof
      reserved "."
      id <- newId
-     derivation <- ((proofDirect conj) <|> (proofContradiction conj))
-     return $ (Statement id conj (BySequence derivation))
+     derivation <- ((direct goal)) -- <|> (contradiction goal))
+     return $ (Statement id goal (BySequence derivation))
 
 
 -- PROOFS TACTICS
 
-proofDirect (Impl l r) = 
+direct :: Formula -> ParsecT String ParserState Identity [Statement]
+direct goal = 
   do reserved "Proof."
-     lId <- newId
-     derivation <- many $ statement
-     rId <- newId
+     derivation <- unfold goal
      reserved "qed."
-     return ([(Statement lId l Assumed)] ++ derivation ++ [(Statement rId r ByContext)])
+     return derivation
 
-proofContradiction conj = 
-  do reserved "Proof by contradiction."
-     assId <- newId
-     derivation <- many statement
-     botId <- newId
-     reserved "Contradiction."
-     reserved "qed."
-     return ([(Statement assId (Not conj) Assumed)] ++ derivation ++ [(Statement botId Bot ByContext)])
+--contradiction goal = 
+--  do reserved "Proof by contradiction."
+--     assId <- newId
+--     derivation <- many statement
+--     botId <- newId
+--     reserved "Contradiction."
+--     reserved "qed."
+--     return ([(Statement assId (Not goal) Assumed)] ++ derivation ++ [(Statement botId Bot ByContext)])
+
+
+unfold goal = try (tactic goal) <|> (try (equiv goal)) <|> (finalGoal goal)
+
+-- unfold common proofs
+
+tactic (Forall v f) = 
+  do reserved "Let"
+     var <- many alphaNum
+     updateState $ addFixedVar var
+     spaces
+     reserved "be arbitrary."
+     lId <- newId
+     derivation <- unfold $ replaceVar f v var
+     trace ("unfolded forall to " ++ show f) return derivation
+
+tactic (Impl l r) =
+  do reserved "Let"
+     lId <- newId
+     derivation <- unfold r
+     rId <- newId
+     trace ("unfolded implies to " ++ show r) return $ (Statement lId l Assumed) : derivation ++ [(Statement rId r ByContext)]
+
+tactic _ = fail "Formula cannot be unfolded anymore"
+
+
+-- find equivalent proofs in definitions
+
+findNewGoal goal = 
+  do possibleGoals <- equivs <$> getState
+     s <- getState
+     --goals <- filter 
+     trace ("KJHSAKJDHASKJH\n" ++ show s ++  "\nLASJDKJASDLK\n\n") return Nothing -- $ Just $ Forall "X" Top
+
+equiv goal = 
+  do newGoal <- findNewGoal goal
+     case newGoal of
+        Nothing -> fail "No equivalent goal found"
+        Just g -> do
+          derivation <- unfold g
+          return derivation
+
+
+-- otherwise this should be proved 
+
+finalGoal goal =
+  do derivation <- many statement
+     trace ("final goal " ++ show goal) return derivation
 
 
 -- STATEMENTS 
 
 --statement :: ParsecT String u Identity Statement
-statement = then' <|> take' <|> assume
+statement = then' <|> take'
 
 
 -- STATEMENT MARKERS
 
---exists :: Parser Formula
 then' =
   do reserved "Then"
      spaces
@@ -166,15 +220,6 @@ subContext =
   do reserved "by"
      id <- many alphaNum -- TODO intersperced id's
      return [id]
-
-assume =
-  do reserved "Assume"
-     spaces
-     f <- fof
-     reserved "."
-     id <- newId
-     return $ Statement id f Assumed
-
 
 -- We have different precedences
 fof = level1 `chainl1` (try iff)
