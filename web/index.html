@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>ELFE Prover</title>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://cdn.jsdelivr.net/vue.resource/1.2.1/vue-resource.min.js"></script>
+    <script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+    <script src="scripts.js"></script>
+    <link href="normalize.css" rel="stylesheet" type="text/css" />
+    <link href="skeleton.css" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Droid+Sans+Mono" rel="stylesheet">
+    <link href="style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+
+    <div class="container">
+        <h2>ELFE Prover</h2>
+
+        <div class="prover">
+            <textarea class="input" v-model="input" v-on:keydown="inputChanged"></textarea>
+            <div class="output"><div class="inner">{{ output }}</div></div>
+        </div>
+    </div>
+
+</body>
+</html>

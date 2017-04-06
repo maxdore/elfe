@@ -10,8 +10,6 @@ instance Show Term where
   show (Var s) = "" ++ s
   show (Cons s terms) = s ++ "(" ++ (intercalate "," $ map show terms) ++ ")" 
 
-
-
 data Formula = Impl Formula Formula  | Iff Formula Formula
              | Atom String [Term]    | Not Formula
              | Top                   | Bot
@@ -27,8 +25,8 @@ instance Show Formula where
   show (Bot)         = "$false"
   show (Or l r)      = "(" ++ (show l) ++ ") | (" ++ (show r) ++ ")"
   show (And l r)     = "(" ++ (show l) ++ ") & (" ++ (show r) ++ ")"
-  show (Exists v f)  = "? [" ++ varPrefix ++ v ++ "] : (" ++ (show $ safeVar f v) ++ ")"
-  show (Forall v f)  = "! [" ++ varPrefix ++ v ++ "] : (" ++ (show $ safeVar f v) ++ ")"
+  show (Exists v f)  = "? [" ++ varPrefix ++ v ++ "] : (" ++ (show $ replaceVar f v (varPrefix++v)) ++ ")"
+  show (Forall v f)  = "! [" ++ varPrefix ++ v ++ "] : (" ++ (show $ replaceVar f v (varPrefix++v)) ++ ")"
 
 getLeft (Iff l r) = l
 getLeft (Forall v f) = getLeft f
@@ -100,5 +98,5 @@ instance Show Proof where
   show Assumed = "Assumed"
   show ByContext = "ByContext"
   show (BySubcontext is) = "BySubcontext: " ++  (intercalate "" is)
-  show (BySequence hs) = "Prove by seq:\n" ++ (concat $ map (\h -> "   " ++ show h) hs)
+  show (BySequence hs) = "Prove by seq:\n" ++ (concat $ map (\h -> "   " ++ show h) hs) ++ "   end seq"
   show (BySplit cs) = "Prove by cases:\n" ++ (concat $ map (\c -> "   " ++ show c) cs)

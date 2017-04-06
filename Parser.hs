@@ -26,7 +26,6 @@ lexer = Token.makeTokenParser languageDef
 
 identifier = Token.identifier lexer 
 reserved   = Token.reserved   lexer 
---parens     = Token.parens     lexer 
 whiteSpace = Token.whiteSpace lexer 
 semiSep    = Token.semiSep    lexer
 reservedOp = Token.reservedOp lexer
@@ -105,51 +104,105 @@ lemma =
      goal  <- fof
      reserved "."
      id <- newId
-     derivation <- ((direct goal)) -- <|> (contradiction goal))
+     derivation <- (direct goal) <|> (contradiction goal)
      return $ (Statement id goal (BySequence derivation))
 
 
--- PROOFS TACTICS
+-- PROOFS unfoldS
 
 direct :: Formula -> ParsecT String ParserState Identity [Statement]
 direct goal = 
-  do reserved "Proof."
-     derivation <- unfold goal
+  do reserved "Proof:"
+     derivation <- derive goal
      reserved "qed."
      return derivation
 
---contradiction goal = 
---  do reserved "Proof by contradiction."
---     assId <- newId
---     derivation <- many statement
---     botId <- newId
---     reserved "Contradiction."
---     reserved "qed."
---     return ([(Statement assId (Not goal) Assumed)] ++ derivation ++ [(Statement botId Bot ByContext)])
+contradiction :: Formula -> ParsecT String ParserState Identity [Statement]
+contradiction goal = 
+  do reserved "Proof by contradiction:"
+     derivation <- derive ((Not goal) `Impl` Bot)
+     reserved "qed."
+     return derivation
 
 
-unfold goal = try (tactic goal) <|> (finalGoal goal)
+derive :: Formula -> ParsecT String ParserState Identity [Statement]
+derive goal = try (unfold goal) <|> try (enfold goal) <|> try (finalGoal goal)
 
--- unfold common proofs
+-- derive over conjecture structure
 
-tactic (Forall v f) = 
+unfold :: Formula -> ParsecT String ParserState Identity [Statement]
+unfold (Forall v f) = 
   do reserved "Let"
      var <- many alphaNum
-     updateState $ addFixedVar var
      spaces
      reserved "be arbitrary."
+     trace ("unfold forall to " ++ show f) try spaces
+     updateState $ addFixedVar var
      lId <- newId
-     derivation <- unfold $ replaceVar f v var
-     trace ("unfolded forall to " ++ show f) return derivation
+     derivation <- derive $ replaceVar f v var
+     return derivation
 
-tactic (Impl l r) =
-  do reserved "Let"
+unfold (Exists v f) = 
+  do reserved "Take"
+     var <- many alphaNum
+     reserved "."
+     trace ("unfold exists to " ++ show f) try spaces
      lId <- newId
-     derivation <- unfold r
+     derivation <- derive f
+     return derivation
+
+unfold (Impl l r) =
+  do reserved "Assume"
+     l' <- fof
+     reserved "."
+     trace ("unfold implies " ++ show l) try spaces 
+     derivation <- derive r
+     reserved "Hence"
+     r' <- fof
+     reserved "."
+     lId <- newId
      rId <- newId
-     trace ("unfolded implies to " ++ show r) return $ (Statement lId l Assumed) : derivation ++ [(Statement rId r ByContext)]
+     -- TODO check if l (r) equivalent to l' (r')
+     return $ (Statement lId l Assumed) : derivation ++ [(Statement rId r ByContext)]
 
-tactic _ = fail "Formula cannot be unfolded anymore"
+unfold (Not (Impl l r)) = unfold (And l (Not r))
+unfold (Not (Forall v f)) = unfold (Exists v (Not f))
+unfold (Not (Exists v f)) = unfold (Forall v (Not f))
+
+unfold _ = fail "Formula cannot be unfold anymore"
+
+
+-- something else is proved
+
+enfold :: Formula -> ParsecT String ParserState Identity [Statement]
+enfold oldGoal = 
+  do newGoal <- lookAhead enfoldGoal
+     derivation <- derive newGoal
+     id <- newId
+     trace ("Found enfold " ++ show newGoal) return [Statement id newGoal $ BySequence derivation]
+
+enfoldGoal = try enfoldImplies <|> try enfoldForall
+
+enfoldImplies =
+  do reserved "Assume"
+     l <- fof
+     reserved "."
+     trace ("Found left impl: " ++ show l) try spaces
+     _ <- finalGoal Top -- TODO Allow nested hence also in proof construction
+     reserved "Hence"
+     r <- fof
+     reserved "."
+     trace ("Found implies creation " ++ show l ++ " impl " ++ show r) try spaces
+     return (Impl l r)
+
+enfoldForall =
+  do reserved "Let"
+     var <- many alphaNum
+     spaces
+     reserved "be arbitrary."
+     trace ("Found forall creation " ++ var) $ try spaces
+     f <- enfoldGoal
+     return (Forall var f)
 
 
 -- otherwise this should be proved 
@@ -162,7 +215,7 @@ finalGoal goal =
 -- STATEMENTS 
 
 --statement :: ParsecT String u Identity Statement
-statement = then' <|> take'
+statement = then' <|> take' <|> fail "no derivation statement"
 
 
 -- STATEMENT MARKERS
@@ -179,7 +232,7 @@ then' =
         Just ids -> return $ Statement id f $ BySubcontext ids
 take' = 
   do reserved "Take"
-     var <- many alphaNum
+     vars <- var `sepBy` char ','
      spaces
      reserved "such that"
      f <- fof
@@ -189,11 +242,15 @@ take' =
      proofId <- newId
      case by of
         Nothing  -> return (Statement id f (BySequence [
-                      (Statement proofId (Exists var (f)) ByContext)
+                      (Statement proofId (enfoldExists vars f) ByContext)
                     ]))
         Just ids -> return (Statement id f (BySequence [
-                      (Statement proofId (Exists var (f)) $ BySubcontext ids)
+                      (Statement proofId (enfoldExists vars f) $ BySubcontext ids)
                     ]))
+
+enfoldExists :: [Term] -> Formula -> Formula
+enfoldExists [] f = f
+enfoldExists ((Var v):vs) f = Exists v (enfoldExists vs f)
 
 subContext = 
   do reserved "by"
@@ -202,10 +259,21 @@ subContext =
 
 -- We have different precedences
 fof = level1 `chainl1` (try iff)
-level1 = (forall <|> exists <|> level2) `chainl1` (try implies)
-level2 = (try is <|> try atom <|> try not') `chainl1` (try andE)
+level1 = (forall <|> exists  <|> level2) `chainl1` (try implies)
+level2 = level3 `chainl1` (try and')
+level3 = (try is <|> try atom <|> try not' <|> try bot <|> parentheses) `chainl1` (try or')
 
 -- FORMULA
+--parentheses :: Parser Parentheses
+parentheses = do
+    spaces
+    reservedOp "("
+    spaces
+    f <- fof
+    spaces
+    reserved ")"
+    spaces
+    return f
 
 --iff :: Parser (Formula -> Formula -> Formula)
 iff =
@@ -242,9 +310,16 @@ implies =
      return Impl
 
 --and' :: Parser (Formula -> Formula -> Formula)
-andE =
+and' =
   do spaces
-     reservedOp "and"
+     reserved "and"
+     spaces
+     return And
+
+--or' :: Parser (Formula -> Formula -> Formula)
+or' =
+  do spaces
+     reserved "or"
      spaces
      return And
 
@@ -253,6 +328,10 @@ not' =
   do reserved "not"
      f <- fof
      return (Not f)
+
+bot = 
+  do reserved "contradiction"
+     return Bot
 
 --is :: Parser Formula
 is = 
@@ -270,7 +349,7 @@ atom =
      reserved ")"
      return (Atom predicate terms)
 
---term :: Parser Term
+term :: ParsecT String ParserState Identity Term
 term = (try cons) <|> var 
 
 cons =

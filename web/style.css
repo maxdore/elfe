@@ -1,0 +1,29 @@
+.prover {
+    font-family: 'Droid Sans Mono', monospace;
+    font-size: 15px;
+}
+
+.input {
+    display: block;
+    float: left;
+    width: 70%;
+    height: 800px;
+    border-radius: 4px 0 0 4px;
+    resize: none;
+}
+
+.output {
+    float: left;
+    width: 30%;
+    height: 800px;
+
+}
+
+.output .inner {
+    padding: 12px;
+    height: 774px;
+    background-color: #f7f7f7;
+    border: 1px solid #d1d1d1;
+    border-left: 0;
+    border-radius: 0 4px 4px 0;
+}

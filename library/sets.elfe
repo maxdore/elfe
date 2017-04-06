@@ -1,0 +1,10 @@
+Definition equality: for all A. for all B. set(A) and set(B) implies 
+    equal(A,B) iff for all x. 
+        (in(A,x) implies in(B,x)) and 
+        (in(B,x) implies in(A,x)).
+
+# Include equality
+
+# TODO: Define x in A as sugar for in(A,x)
+
+

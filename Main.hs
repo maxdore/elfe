@@ -13,6 +13,6 @@ main = do
     [arg] -> do str <- readFile $ arg
                 problem <- parseString str
                 putStrLn $ show problem
-                res <- verSeq problem (Context [] Empty) (return Correct)
+                res <- verify problem
                 putStrLn $ show res
     _ -> error "too many arguments - just give the file"

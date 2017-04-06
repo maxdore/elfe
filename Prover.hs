@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Prover where
 
 import Control.Applicative                                   
@@ -12,6 +14,7 @@ import Debug.Trace
 
 import Language
 
+import GHC.Generics (Generic)
 
 -- CONTEXT MANAGMENT
 
@@ -34,7 +37,9 @@ subContext (Context sts p) ids = Context sts $ subContext p ids
 -- MAIN PROVING LOGIC
 
 data ProofStatus = Correct | Incorrect | Unknown
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
+
+verify problem = verSeq problem (Context [] Empty) (return Correct)
 
 verStat :: Statement -> Context -> IO ProofStatus
 verStat (Statement id f Assumed) context = trace ("Assume " ++ id ++ ": " ++ show f) return Correct 
@@ -83,7 +88,7 @@ z3 = Prover "../prover/Z3/build/z3_wrapper.sh" [] ["% SZS status Theorem"] ["% S
 
 prove :: String -> IO ProofStatus
 prove s = runATP s z3
-
+  
 runATP :: String -> Prover -> IO ProofStatus
 runATP task (Prover command args provedMessage disprovedMessage unknownMessage) = do
   let run = runInteractiveProcess command args Nothing Nothing

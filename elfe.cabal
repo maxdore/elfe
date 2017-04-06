@@ -1,0 +1,26 @@
+name:                elfe
+version:             0.0.1
+synopsis:            Interactive theorem proving for students
+homepage:            https://elfe-prover.org
+license:             MIT
+author:              Maximilian Dore
+maintainer:          maximilian.dore@rwth-aachen.de
+build-type:          Simple
+cabal-version:       >=1.8
+
+executable elfe
+  main-is:             Main.hs
+  -- other-modules:
+  build-depends:       base ==4.6.*
+                     , wai
+                     , warp
+                     , http-types
+                     , resourcet
+                     , scotty
+                     , text
+                     , bytestring
+                     , blaze-html
+                     , transformers
+                     , wai-middleware-static
+                     , wai-extra
+                     , time

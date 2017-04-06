@@ -1,0 +1,10 @@
+Definition reflexive: for all A. equal(A,A).
+
+Definition symmetric: for all A. for all B.
+    equal(A,B) implies equal(B,A). 
+
+Definition transitive: for all A. for all B. for all C.
+    equal(A,B) and equal(B,C) implies equal(A,C). 
+
+
+// TODO: a = b as sugar for equal(a,b)
