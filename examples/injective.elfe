@@ -1,0 +1,20 @@
+Use equality.
+Use functions.
+
+Lemma: for all f. for all g. for all A. for all B. for all C. function(f,A,B) and function(g,B,C) and injective(composition(f,g)) implies injective(f).
+Proof:
+    Let f be arbitrary.
+    Let g be arbitrary.
+    Let a be arbitrary.
+    Let b be arbitrary.
+    Let c be arbitrary.
+    Assume function(f,a,b) and function(g,b,c) and injective(composition(g,f)).
+    # proof for all x1. for all x2. for all y. relapp(f,x1,y) and relapp(f,x2,y) implies equal(x1,x2).
+    Let x1 be arbitrary.
+    Let x2 be arbitrary.
+    Let y be arbitrary.
+    Assume relapp(f,x1,y) and relapp(f,x2,y).
+    Take z such that relapp(composition(f,g),x1,z) and relapp(composition(f,g),x2,z).
+    Hence equal(x1,x2).
+    Hence injective(f).
+qed.

@@ -7,9 +7,11 @@ import Text.Parsec.Prim (ParsecT)
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Expr
 import Text.ParserCombinators.Parsec.Language
+import System.IO.Unsafe
 import qualified Text.ParserCombinators.Parsec.Token as Token
 import Data.Functor.Identity (Identity)
 import Debug.Trace
+import Control.Monad.Trans (lift)
 
 import Language
 
@@ -34,7 +36,7 @@ reservedOp = Token.reservedOp lexer
 
 parseString :: String -> IO [Statement]
 parseString str = do 
-    case runParser sections initParseState "" str of
+    case runParser elfeParser initParseState "" str of
       Left e  -> return $ error $ show e
       Right r -> return r
 
@@ -76,7 +78,20 @@ newId = do
   updateState incCounter
   return $ idPrefix ++ show cur
 
--- SECTIONS
+
+elfeParser = do
+  includes <- many include
+  secs <- sections
+  return $ foldr (++) [] includes ++ secs
+
+include = 
+  do reserved "Use"
+     name <- many alphaNum
+     parsed <- lift $ case runParser sections initParseState "" (unsafePerformIO $ readFile $ "library/" ++ name ++ ".elfe") of
+        Left e  -> return $ error $ show e
+        Right r -> return r
+     reserved "."
+     return parsed
 
 sections :: ParsecT String ParserState Identity [Statement]
 sections = many1 $   definition
