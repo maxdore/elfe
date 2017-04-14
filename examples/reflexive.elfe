@@ -1,0 +1,28 @@
+Use relations.
+
+Let relation(R).
+
+Lemma: transitive(R) and symmetric(R) and bound(R) implies reflexive(R).
+Proof:
+    Let r be arbitrary.
+    Assume relation(r).
+    Assume transitive(r) and symmetric(r) and bound(r).
+    Let x be arbitrary.
+    Assume element(x).
+    Take y such that element(y) and relapp(r,x,y) by boundness.
+    Then relapp(r,y,x) by symmetry.
+    Hence relapp(r,x,x).
+    Hence reflexive(r).
+    Hence transitive(r) and symmetric(r) and bound(r).
+qed.
+
+# WANTED STRUCTURE
+# Lemma: R transitive, symmetric and bound implies R is reflexive.
+# Proof:
+#     Let R be transitive, symmetric and bound relation.
+#     Let x be element.
+#     Take element y such that R[x,y] by boundness.
+#     Then R[y,x] by symmetry.
+#     Hence R[x,x] by transitivity.
+#     Hence r is reflexive.
+# qed.

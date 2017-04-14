@@ -3,28 +3,28 @@ Definition function: for all f. for all A. for all B.
         relapp(f,x,y) and 
         (for all y2. in(y2,B) implies (equal(y,y2) or not relapp(f,x,y2))).
 
-Definition functionClosure: for all f. for all A. for all B. function(f,A,B) implies
+# Notation: f: A -> B.
+
+Definition composition: for all f. for all g. for all A. for all B. for all C. function(f,A,B) and function(g,B,C) implies 
+    for all x. for all y. for all z. in(x,A) and in(y,B) and in(z,C) implies
+        (function(composition(f,g),A,C)) and
+        (relapp(composition(f,g),x,z) iff relapp(f,x,y) and relapp(g,y,z)).
+
+Let function(f,A,B).
+
+Definition functionClosure:
     (for all x. for all y. equal(x,y) implies exists z. relapp(f,x,z) and relapp(f,y,z)) and 
     (for all g. for all C. for all D. function(g,C,D) implies
         for all c. for all d. for all e. relapp(g,c,e) and relapp(g,d,e) implies 
             exists m. relapp(composition(g,f),c,m) and relapp(composition(g,f),d,m)
     ).
 
-# Todo: Define f : A -> B as sugar for function(f,A,B)
-# Todo: Define f(x) = y as sugar for y such that relapp(f,x,y)
-# How to compute f(x)? I.e., find y such that relapp(f,x,y)?
-
-Definition injective: for all f. for all A. for all B. function(f,A,B) implies injective(f) iff
+Definition injective: injective(f) iff
     for all x1. for all x2. for all y. relapp(f,x1,y) and relapp(f,x2,y) implies equal(x1,x2).
-# Normal definition: f(x) = f(x') implies x = x'
 
-Definition surjective: for all f. for all A. for all B. function(f,A,B) implies surjective(f) iff
+Definition surjective: surjective(f) iff
     for all y. in(y,B) implies exists x. in(x,A) and relapp(f,x,y).
 
-Definition composition: for all f. for all g. for all A. for all B. for all C. function(f,A,B) and function(g,B,C) implies 
-    for all x. for all y. for all z. in(x,A) and in(y,B) and in(z,C) implies
-        (function(composition(f,g),A,C)) and
-        (relapp(composition(f,g),x,z) iff relapp(f,x,y) and relapp(g,y,z)).
 
 
 

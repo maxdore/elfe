@@ -46,7 +46,7 @@ verStat (Statement id f Assumed) context = trace ("Assume " ++ id ++ ": " ++ sho
 verStat (Statement id f ByContext) context = trace ("Prove  " ++ id ++ ": " ++ show f) checkStat (Statement id f ByContext) context 
 verStat (Statement id f (BySubcontext ids)) context = trace ("Prove  " ++ id ++ ": " ++ show f ++ " by " ++ concat ids) checkStat (Statement id f ByContext) $ subContext context ids
 verStat (Statement id f (BySequence sequ)) context = trace ("Check  " ++ id ++ ": " ++ show f) verSeq sequ (Context [] context) (return Correct) 
-verStat (Statement id f (BySplit cases)) context = trace ("Cases  " ++ id ++ ": " ++ show f) verCaseDist (Statement id f Assumed) cases context
+verStat (Statement id f (BySplit cases)) context = trace ("Cases  " ++ id ++ ": " ++ show f) verifyCases cases context (return Correct)
 
 verSeq :: [Statement] -> Context -> IO ProofStatus -> IO ProofStatus
 verSeq [] _ status = status
@@ -57,14 +57,6 @@ verSeq (st:sts) (Context hs p) status = do
 
 checkStat :: Statement -> Context -> IO ProofStatus
 checkStat (Statement id formula p) context = prove (show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show formula ++ ")).\n") --return Correct
-
-verCaseDist :: Statement -> [Statement] -> Context -> IO ProofStatus
-verCaseDist (Statement id formula _) cases context = do
-  distR <- trace ("Prove distinction correct:\n" ++ stat2Conj cases) prove (show context ++ "fof(" ++ id ++ ", conjecture, ((" ++ stat2Conj cases ++ ") => (" ++ show formula ++ "))).\n") 
-  caseR <- verifyCases cases context (return Correct)
-  if distR == Correct && caseR == Correct
-    then return Correct
-    else return Incorrect
 
 verifyCases :: [Statement] -> Context -> IO ProofStatus -> IO ProofStatus
 verifyCases [] context status = status 

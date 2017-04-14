@@ -8,7 +8,7 @@ import Sequences
 main = do
   args <- getArgs;
   case args of
-    []    -> do res <- verSeq p (Context [] Empty) (return Correct)
+    []    -> do res <- verSeq p (Context [] Empty) (return Correct) -- todo allow stdin 
                 putStrLn $ show res
     [arg] -> do str <- readFile $ arg
                 problem <- parseString str

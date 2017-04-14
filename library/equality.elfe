@@ -1,10 +1,11 @@
-Definition reflexive: for all A. equal(A,A).
+Notation: x = y.
+Notation: R[x,y].
+Notation: ~x.
 
-Definition symmetric: for all A. for all B.
-    equal(A,B) implies equal(B,A). 
+Definition reflexive: for all x. x = x.
 
-Definition transitive: for all A. for all B. for all C.
-    equal(A,B) and equal(B,C) implies equal(A,C). 
+# Definition symmetric: for all x. for all y. x = y implies y = x. 
 
+# Definition transitive: for all x. for all y. for all z.
+    x = y and y = z implies x = z. 
 
-// TODO: a = b as sugar for equal(a,b)

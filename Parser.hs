@@ -1,8 +1,12 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Parser where
 
 import System.IO
 import Control.Monad
 import Data.List
+import Data.Text (split, pack, unpack)
+import Data.Char (isLetter)
+
 import Text.Parsec.Prim (ParsecT)
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Expr
@@ -45,16 +49,22 @@ parseString str = do
 data ParserState = ParserState { counter :: Int
                                , namedIds :: [String]
                                , fixedVars :: [String]
+                               , sugars :: [[String]]
+                               , lets :: [Formula]
                                }
 instance Show ParserState where
-  show (ParserState c n f) =    "Counter: " ++ show c ++ "\n" 
+  show (ParserState c n f s l) =    "Counter: " ++ show c ++ "\n" 
                                ++ "Named IDs: " ++ intercalate "," n ++ "\n"  
                                ++ "Fixed Vars: " ++ intercalate "," f ++ "\n"  
 
-initParseState                            = ParserState 0 [] []
-incCounter    (ParserState c nis fvs) = ParserState (c+1) nis fvs
-addNamedId n  (ParserState c nis fvs) = ParserState c (nis ++ [n]) fvs
-addFixedVar v (ParserState c nis fvs) = ParserState c nis (fvs ++ [v])
+initParseState                              = ParserState 0 [] [] [] []
+incCounter    (ParserState c nis fvs ss ls) = ParserState (c+1) nis fvs ss ls
+addNamedId n  (ParserState c nis fvs ss ls) = ParserState c (nis ++ [n]) fvs ss ls
+addFixedVar v (ParserState c nis fvs ss ls) = ParserState c nis (fvs ++ [v]) ss ls
+addSugar s    (ParserState c nis fvs ss ls) = ParserState c nis fvs (ss ++ [s]) ls
+addLet l      (ParserState c nis fvs ss ls) = ParserState c nis fvs ss (ls ++ [l])
+
+type PS = ParsecT String ParserState Identity
 
 
 -- ID MANAGMENT
@@ -72,7 +82,7 @@ defId =
      reserved ":"
      return $ idPrefix ++ id
 
-newId :: ParsecT String ParserState Identity String
+newId :: PS String
 newId = do 
   cur <- counter <$> getState
   updateState incCounter
@@ -87,32 +97,51 @@ elfeParser = do
 include = 
   do reserved "Use"
      name <- many alphaNum
-     parsed <- lift $ case runParser sections initParseState "" (unsafePerformIO $ readFile $ "library/" ++ name ++ ".elfe") of
+     parsed <- lift $ case runParser elfeParser initParseState "" (unsafePerformIO $ readFile $ "library/" ++ name ++ ".elfe") of
         Left e  -> return $ error $ show e
         Right r -> return r
      reserved "."
      return parsed
 
-sections :: ParsecT String ParserState Identity [Statement]
-sections = many1 $   definition
-                 <|> proposition
-                 <|> lemma
-                 -- <|> notionSection
+sections :: PS [Statement]
+sections = do
+  secs <- many $   
+           notation
+       <|> let'
+       <|> definition
+       <|> proposition
+       <|> lemma
+  return $ foldr (++) [] secs
 
---definitionSection :: Parser Statement
+notation =
+  do reserved "Notation:"
+     sugar <- manyTill anyChar $ char '.'
+     trace ("found sugar " ++ show (split isLetter $ pack sugar) ) try spaces
+     updateState $ addSugar $ map unpack $ split isLetter $ pack sugar
+     return []
+
+let' =
+  do reserved "Let"
+     spaces
+     f <- atom
+     reserved "."
+     updateState $ addLet f
+     trace ("found let " ++ show f) try spaces
+     return []
+
 definition =
   do reserved "Definition"
      id <- givenOrNewId
      f  <- fof
      reserved "."
-     return (Statement id f Assumed)
+     return [(Statement id f Assumed)]
 
 proposition = 
   do reserved "Proposition"
      id <- givenOrNewId
      f <- fof
      reserved "."
-     return (Statement id f ByContext)
+     return [(Statement id f ByContext)]
 
 lemma =
   do reserved "Lemma:"
@@ -120,19 +149,19 @@ lemma =
      reserved "."
      id <- newId
      derivation <- (direct goal) <|> (contradiction goal)
-     return $ (Statement id goal (BySequence derivation))
+     return [(Statement id goal (BySequence derivation))]
 
 
 -- PROOFS unfoldS
 
-direct :: Formula -> ParsecT String ParserState Identity [Statement]
+direct :: Formula -> PS [Statement]
 direct goal = 
   do reserved "Proof:"
      derivation <- derive goal
      reserved "qed."
      return derivation
 
-contradiction :: Formula -> ParsecT String ParserState Identity [Statement]
+contradiction :: Formula -> PS [Statement]
 contradiction goal = 
   do reserved "Proof by contradiction:"
      derivation <- derive ((Not goal) `Impl` Bot)
@@ -140,12 +169,12 @@ contradiction goal =
      return derivation
 
 
-derive :: Formula -> ParsecT String ParserState Identity [Statement]
+derive :: Formula -> PS [Statement]
 derive goal = try (unfold goal) <|> try (enfold goal) <|> try (finalGoal goal)
 
 -- derive over conjecture structure
 
-unfold :: Formula -> ParsecT String ParserState Identity [Statement]
+unfold :: Formula -> PS [Statement]
 unfold (Forall v f) = 
   do reserved "Let"
      var <- many alphaNum
@@ -189,12 +218,19 @@ unfold _ = fail "Formula cannot be unfold anymore"
 
 -- something else is proved
 
-enfold :: Formula -> ParsecT String ParserState Identity [Statement]
+enfold :: Formula -> PS [Statement]
 enfold oldGoal = 
   do newGoal <- lookAhead enfoldGoal
      derivation <- derive newGoal
-     id <- newId
-     trace ("Found enfold " ++ show newGoal) return [Statement id newGoal $ BySequence derivation]
+     oldId <- newId
+     soundnessId <- newId
+     newId <- newId
+     trace ("Found enfold " ++ show newGoal) return [Statement oldId oldGoal $ 
+          BySplit [
+            (Statement soundnessId (newGoal `Impl` oldGoal) ByContext),
+            (Statement newId newGoal $ BySequence derivation)
+          ]
+        ]
 
 enfoldGoal = try enfoldImplies <|> try enfoldForall
 
@@ -238,7 +274,7 @@ statement = then' <|> take' <|> fail "no derivation statement"
 then' =
   do reserved "Then"
      spaces
-     f <- fof
+     f <- level0
      by <- optionMaybe subContext
      reserved "."
      id <- newId
@@ -250,7 +286,7 @@ take' =
      vars <- var `sepBy` char ','
      spaces
      reserved "such that"
-     f <- fof
+     f <- level0
      by <- optionMaybe subContext
      reserved "."
      id <- newId
@@ -272,19 +308,31 @@ subContext =
      id <- many alphaNum -- TODO intersperced id's
      return [id]
 
--- We have different precedences
-fof = level1 `chainl1` (try iff)
-level1 = (forall <|> exists  <|> level2) `chainl1` (try implies)
-level2 = level3 `chainl1` (try and')
-level3 = (try is <|> try atom <|> try not' <|> try bot <|> parentheses) `chainl1` (try or')
 
 -- FORMULA
+
+fof = 
+  do f <- level0
+     lets <- lets <$> getState
+     let qF = insertLets f lets
+     if f == qF
+         then return qF
+         else do
+          trace (show f ++ " EXTENDED TO " ++ (show qF)) try spaces
+          return qF
+
+-- We have different precedences
+level0 = level1 `chainl1` (try iff)
+level1 = (forall <|> exists  <|> level2) `chainl1` (try implies)
+level2 = level3 `chainl1` (try and')
+level3 = (try atom <|> try not' <|> try bot <|> parentheses) `chainl1` (try or')
+
 --parentheses :: Parser Parentheses
 parentheses = do
     spaces
     reservedOp "("
     spaces
-    f <- fof
+    f <- level0
     spaces
     reserved ")"
     spaces
@@ -304,7 +352,7 @@ forall =
      var <- many alphaNum
      spaces
      reserved "."
-     sent <- fof
+     sent <- level0
      return (Forall var sent)
 
 --exists :: Parser Formula
@@ -314,7 +362,7 @@ exists =
      var <- many alphaNum
      spaces
      reserved "."
-     sent <- fof
+     sent <- level0
      return (Exists var sent)
 
 --implies :: Parser (Formula -> Formula -> Formula)
@@ -341,14 +389,16 @@ or' =
 --not' :: Parser Formula
 not' = 
   do reserved "not"
-     f <- fof
+     f <- level0
      return (Not f)
 
 bot = 
   do reserved "contradiction"
      return Bot
 
---is :: Parser Formula
+atom :: PS Formula
+atom = try sugaredAtom <|> try is <|> try rawAtom 
+
 is = 
   do name <- many alphaNum
      spaces
@@ -356,17 +406,51 @@ is =
      predicate <- many alphaNum
      return (Atom predicate [Var name])
 
---atom :: Parser Formula
-atom =
+rawAtom =
   do predicate <- many alphaNum 
      reservedOp "("
      terms <- term `sepBy` (char ',')
      reserved ")"
      return (Atom predicate terms)
 
-term :: ParsecT String ParserState Identity Term
-term = (try cons) <|> var 
 
+strPrefix :: String -> String
+strPrefix [] = []
+strPrefix (x:xs) | isLetter x = x : strPrefix xs
+                 | otherwise  = [] 
+
+matches :: [String] -> String -> [Term] -> Maybe [Term]
+matches [] [] ts      = Just ts
+matches _  [] _       = Nothing
+matches [] _  _       = Nothing
+matches (c:cs) raw ts | c == ""   = if length (strPrefix raw) > 0
+                                  then matches cs (drop (length $ strPrefix raw) raw) ((Var $ strPrefix raw):ts)
+                                  else Nothing
+                      | otherwise = if c `isPrefixOf` raw 
+                                  then matches cs (drop (length c) raw) ts
+                                  else Nothing
+
+sugar2alpha [] = []
+sugar2alpha (s:ss) = show (map fromEnum s) ++ sugar2alpha ss 
+
+matchSugars :: [[String]] -> String -> Maybe Formula
+matchSugars [] _ = Nothing
+matchSugars (s:ss) raw = 
+    case matches s raw [] of
+      Nothing -> matchSugars ss raw
+      Just ts -> Just $ Atom (sugar2alpha s) ts
+ 
+sugaredAtom =
+  do ss <- sugars <$> getState
+     raw <- manyTill anyChar $ char '.'
+     case matchSugars ss raw of
+        Nothing -> trace raw fail "No sugar matched"
+        Just f -> do
+          trace ("matched! "++ show f) return f 
+
+term :: PS Term
+term = (try cons) <|> var 
+ 
 cons =
   do predicate <- many alphaNum 
      reservedOp "("

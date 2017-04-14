@@ -1,10 +1,11 @@
-// Todo R(a,b, ... ) as sugar for relapp(R,a,b,...)
+Let relation(R).
 
+Definition symmetry: R is symmetric iff for all X. for all Y. element(X) and element(Y) and relapp(R,X,Y) implies relapp(R,Y,X).
 
-Definition symmetry: for all R. relation(R) implies R is symmetric iff for all X. for all Y. element(X) and element(Y) and relapp(R,X,Y) implies relapp(R,Y,X).
+Definition boundness: R is bound iff for all X. element(X) implies exists Y. element(Y) and relapp(R,X,Y).
 
-Definition transitivity: for all R. relation(R) implies R is transitive iff for all X. for all Y. for all Z. element(X) and element(Y) and element(Z) and relapp(R,X,Y) and relapp(R,Y,Z) implies relapp(R,X,Z).
+Definition transitivity: R is transitive iff for all X. for all Y. for all Z. element(X) and element(Y) and element(Z) and relapp(R,X,Y) and relapp(R,Y,Z) implies relapp(R,X,Z).
 
-Definition reflexivity: for all R. relation(R) implies R is reflexive iff for all X. element(X) implies relapp(R,X,X).
+Definition reflexivity: R is reflexive iff for all X. element(X) implies relapp(R,X,X).
 
-Definition boundness: for all R. relation(R) implies R is bound iff for all X. element(X) implies exists Y. element(Y) and relapp(R,X,Y).
+// Notation: R[x,y]
