@@ -1,11 +1,9 @@
-Notation: x = y.
-Notation: R[x,y].
-Notation: ~x.
+Notation equal: x = y.
 
 Definition reflexive: for all x. x = x.
 
-# Definition symmetric: for all x. for all y. x = y implies y = x. 
+Definition symmetric: for all x. for all y. x = y implies y = x. 
 
-# Definition transitive: for all x. for all y. for all z.
+Definition transitive: for all x. for all y. for all z.
     x = y and y = z implies x = z. 
 

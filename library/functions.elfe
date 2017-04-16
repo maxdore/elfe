@@ -1,20 +1,20 @@
+Notation function: f: A -> B.
+
 Definition function: for all f. for all A. for all B. 
-    function(f,A,B) iff for all x. in(x,A) implies exists y. in(y,B) and 
+    f: A -> B iff for all x. in(x,A) implies exists y. in(y,B) and 
         relapp(f,x,y) and 
         (for all y2. in(y2,B) implies (equal(y,y2) or not relapp(f,x,y2))).
 
-# Notation: f: A -> B.
-
-Definition composition: for all f. for all g. for all A. for all B. for all C. function(f,A,B) and function(g,B,C) implies 
+Definition composition: for all f. for all g. for all A. for all B. for all C. f: A -> B and g: B -> C implies 
     for all x. for all y. for all z. in(x,A) and in(y,B) and in(z,C) implies
-        (function(composition(f,g),A,C)) and
+        (sfunction(composition(f,g),A,C)) and
         (relapp(composition(f,g),x,z) iff relapp(f,x,y) and relapp(g,y,z)).
 
-Let function(f,A,B).
+Let f: A -> B.
 
 Definition functionClosure:
     (for all x. for all y. equal(x,y) implies exists z. relapp(f,x,z) and relapp(f,y,z)) and 
-    (for all g. for all C. for all D. function(g,C,D) implies
+    (for all g. for all C. for all D. g: C -> D implies
         for all c. for all d. for all e. relapp(g,c,e) and relapp(g,d,e) implies 
             exists m. relapp(composition(g,f),c,m) and relapp(composition(g,f),d,m)
     ).

@@ -1,6 +1,3 @@
-fof(scomposition, axiom, (! [Vf] : (! [Vg] : (! [VA] : (! [VB] : (! [VC] : (((function(Vf,VA,VB)) & (function(Vg,VB,VC))) => (! [Vx] : (! [Vy] : (! [Vz] : ((((in(Vx,VA)) & (in(Vy,VB))) & (in(Vz,VC))) => ((relapp(composition(Vf,Vg),Vx,Vz)) <=> ((relapp(Vf,Vx,Vy)) & (relapp(Vg,Vy,Vz))))))))))))))).
-fof(ssurjective, axiom, (! [Vf] : (! [VA] : (! [VB] : (((function(Vf,VA,VB)) => (surjective(Vf))) <=> (! [Vy] : ((in(Vy,VB)) => (? [Vx] : ((in(Vx,VA)) & (relapp(Vf,Vx,Vy))))))))))).
-fof(sinjective, axiom, (! [Vf] : (! [VA] : (! [VB] : (((function(Vf,VA,VB)) => (injective(Vf))) <=> (! [Vx1] : (! [Vx2] : (! [Vy] : (((relapp(Vf,Vx1,Vy)) & (relapp(Vf,Vx2,Vy))) => (equal(Vx1,Vx2))))))))))).
-fof(sfunction, axiom, (! [Vf] : (! [VA] : (! [VB] : ((function(Vf,VA,VB)) <=> (! [Vx] : ((in(Vx,VA)) => (? [Vy] : (((in(Vy,VB)) & (relapp(Vf,Vx,Vy))) & (! [Vy2] : ((in(Vy2,VB)) => ((equal(Vy,Vy2)) & (~(relapp(Vf,Vx,Vy2))))))))))))))).
-fof(s3, axiom, (((function(f,A,B)) & (function(g,B,C))) & (injective(composition(g,f))))).
-fof(s4, conjecture, (injective(f))).
+fof(ssubset, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => ((ssub(VA,VB)) <=> (! [Vx] : (((sin(Vx,VA)) => (sin(Vx,VB))))))))))).
+fof(sequality, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => ((sequal(VA,VB)) <=> (! [Vx] : ((sin(Vx,VA)) <=> (sin(Vx,VB)))))))))).
+fof(s0, conjecture, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => ((sequal(VA,VB)) <=> ((ssub(VA,VB)) & (ssub(VB,VA))))))))).

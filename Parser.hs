@@ -49,7 +49,7 @@ parseString str = do
 data ParserState = ParserState { counter :: Int
                                , namedIds :: [String]
                                , fixedVars :: [String]
-                               , sugars :: [[String]]
+                               , sugars :: [(String, [String])]
                                , lets :: [Formula]
                                }
 instance Show ParserState where
@@ -63,6 +63,9 @@ addNamedId n  (ParserState c nis fvs ss ls) = ParserState c (nis ++ [n]) fvs ss 
 addFixedVar v (ParserState c nis fvs ss ls) = ParserState c nis (fvs ++ [v]) ss ls
 addSugar s    (ParserState c nis fvs ss ls) = ParserState c nis fvs (ss ++ [s]) ls
 addLet l      (ParserState c nis fvs ss ls) = ParserState c nis fvs ss (ls ++ [l])
+addLets :: String -> [Term] -> ParserState -> ParserState
+addLets n vs  (ParserState c nis fvs ss ls) = ParserState c nis fvs ss (ls ++ (map (\v -> Atom n [v]) vs))
+
 
 type PS = ParsecT String ParserState Identity
 
@@ -94,6 +97,7 @@ elfeParser = do
   secs <- sections
   return $ foldr (++) [] includes ++ secs
 
+
 include = 
   do reserved "Use"
      name <- many alphaNum
@@ -105,29 +109,49 @@ include =
 
 sections :: PS [Statement]
 sections = do
-  secs <- many $   
-           notation
-       <|> let'
-       <|> definition
-       <|> proposition
-       <|> lemma
+  secs <- many $   notation
+               <|> let'
+               <|> definition
+               <|> proposition
+               <|> lemma
   return $ foldr (++) [] secs
 
+
+insertPlaceholders :: [String] -> [String]
+insertPlaceholders [] = []
+insertPlaceholders [x] = [x]
+insertPlaceholders (x:y:xs) | x /= "" && y /= "" = x : "" : insertPlaceholders (y : xs)
+                            | otherwise          = x : (insertPlaceholders (y:xs))
+
 notation =
-  do reserved "Notation:"
+  do reserved "Notation"
+     id <- givenOrNewId
      sugar <- manyTill anyChar $ char '.'
-     trace ("found sugar " ++ show (split isLetter $ pack sugar) ) try spaces
-     updateState $ addSugar $ map unpack $ split isLetter $ pack sugar
+     spaces
+     updateState $ addSugar (id, insertPlaceholders $ map unpack $ split (`elem` (['a'..'z'] ++ ['A'..'Z'])) $ pack sugar)
      return []
 
 let' =
   do reserved "Let"
      spaces
-     f <- atom
+     (try letBe) <|> try letRaw
      reserved "."
-     updateState $ addLet f
-     trace ("found let " ++ show f) try spaces
      return []
+
+letRaw =
+  do f <- atom
+     trace ("found let " ++ show f) try spaces
+     updateState $ addLet f
+
+
+letBe =
+  do vars <- var `sepBy` char ','
+     try spaces
+     reserved "be"
+     try spaces
+     name <- eid
+     updateState $ addLets name vars
+
 
 definition =
   do reserved "Definition"
@@ -152,7 +176,7 @@ lemma =
      return [(Statement id goal (BySequence derivation))]
 
 
--- PROOFS unfoldS
+-- PROOFS
 
 direct :: Formula -> PS [Statement]
 direct goal = 
@@ -311,23 +335,20 @@ subContext =
 
 -- FORMULA
 
+fof :: PS Formula
 fof = 
   do f <- level0
      lets <- lets <$> getState
      let qF = insertLets f lets
-     if f == qF
-         then return qF
-         else do
-          trace (show f ++ " EXTENDED TO " ++ (show qF)) try spaces
-          return qF
+     return $ cleanFormula qF
 
 -- We have different precedences
 level0 = level1 `chainl1` (try iff)
 level1 = (forall <|> exists  <|> level2) `chainl1` (try implies)
 level2 = level3 `chainl1` (try and')
-level3 = (try atom <|> try not' <|> try bot <|> parentheses) `chainl1` (try or')
+level3 = (try parentheses <|> try not' <|> try atom <|> try bot) `chainl1` (try or')
 
---parentheses :: Parser Parentheses
+parentheses :: PS Formula
 parentheses = do
     spaces
     reservedOp "("
@@ -335,27 +356,37 @@ parentheses = do
     f <- level0
     spaces
     reserved ")"
-    spaces
+    trace ("FOUND PARENTHESES") spaces
     return f
 
---iff :: Parser (Formula -> Formula -> Formula)
+iff :: PS (Formula -> Formula -> Formula)
 iff =
   do spaces
      reservedOp "iff"
      spaces
      return Iff
 
---forall :: Parser Formula
-forall =
-  do reserved "for all"
-     spaces
-     var <- many alphaNum
+v = 
+  do var <- eid 
      spaces
      reserved "."
-     sent <- level0
-     return (Forall var sent)
+     f <- level0
+     return (Forall var f)
 
---exists :: Parser Formula
+a = 
+  do atom <- atom
+     spaces
+     reserved "."
+     f <- level0
+     return $ universallyQuantify (getVarsOfAtom atom) (atom `Impl` f) 
+
+
+forall :: PS Formula
+forall =
+  do reserved "for all"
+     try v <|> a
+
+exists :: PS Formula
 exists =
   do reserved "exists"
      spaces
@@ -365,28 +396,28 @@ exists =
      sent <- level0
      return (Exists var sent)
 
---implies :: Parser (Formula -> Formula -> Formula)
+implies :: PS (Formula -> Formula -> Formula)
 implies =
   do spaces
      reservedOp "implies"
      spaces
      return Impl
 
---and' :: Parser (Formula -> Formula -> Formula)
+and' :: PS (Formula -> Formula -> Formula)
 and' =
   do spaces
      reserved "and"
      spaces
      return And
 
---or' :: Parser (Formula -> Formula -> Formula)
+or' :: PS (Formula -> Formula -> Formula)
 or' =
   do spaces
      reserved "or"
      spaces
      return And
 
---not' :: Parser Formula
+not' :: PS Formula
 not' = 
   do reserved "not"
      f <- level0
@@ -397,7 +428,7 @@ bot =
      return Bot
 
 atom :: PS Formula
-atom = try sugaredAtom <|> try is <|> try rawAtom 
+atom = try is <|> try rawAtom <|> try sugaredAtom
 
 is = 
   do name <- many alphaNum
@@ -424,29 +455,27 @@ matches [] [] ts      = Just ts
 matches _  [] _       = Nothing
 matches [] _  _       = Nothing
 matches (c:cs) raw ts | c == ""   = if length (strPrefix raw) > 0
-                                  then matches cs (drop (length $ strPrefix raw) raw) ((Var $ strPrefix raw):ts)
-                                  else Nothing
+                                      then matches cs (drop (length $ strPrefix raw) raw) ((Var $ strPrefix raw):ts)
+                                      else Nothing
                       | otherwise = if c `isPrefixOf` raw 
-                                  then matches cs (drop (length c) raw) ts
-                                  else Nothing
+                                      then matches cs (drop (length c) raw) ts
+                                      else Nothing
 
-sugar2alpha [] = []
-sugar2alpha (s:ss) = show (map fromEnum s) ++ sugar2alpha ss 
-
-matchSugars :: [[String]] -> String -> Maybe Formula
+matchSugars :: [(String, [String])] -> String -> Maybe Formula
 matchSugars [] _ = Nothing
-matchSugars (s:ss) raw = 
+matchSugars ((id,s):ss) raw = 
     case matches s raw [] of
-      Nothing -> matchSugars ss raw
-      Just ts -> Just $ Atom (sugar2alpha s) ts
+      Nothing -> trace (show s ++ " not matched") matchSugars ss raw
+      Just ts -> Just $ Atom id $ reverse ts
  
 sugaredAtom =
-  do ss <- sugars <$> getState
-     raw <- manyTill anyChar $ char '.'
+  do raw <- lookAhead $ manyTill (try anyChar) $ lookAhead $ (try $ string ".") <|> (try $ string " implies") <|> (try $ string " and") <|> (try $ string " iff") <|> (try $ string " or") <|> (try $ string "not")
+     ss <- sugars <$> getState
      case matchSugars ss raw of
-        Nothing -> trace raw fail "No sugar matched"
+        Nothing -> trace (raw ++ " not matched") return Bot
         Just f -> do
-          trace ("matched! "++ show f) return f 
+          ignore <- manyTill (try anyChar) $ lookAhead $ (try $ string ".") <|> (try $ string " implies") <|> (try $ string " and") <|> (try $ string " iff") <|> (try $ string " or") <|> (try $ string "not")
+          trace (raw ++ " matched! "++ show f) return f 
 
 term :: PS Term
 term = (try cons) <|> var 
@@ -458,6 +487,11 @@ cons =
      reserved ")"
      return (Cons predicate terms)
 
+eid =
+  do s <- many1 alphaNum
+     return s
+
 var =
-  do var <- many1 alphaNum
+  do var <- eid
      return (Var var)
+

@@ -1,12 +1,17 @@
-Use equality.
+Notation in: a ϵ A.
+Notation equal: x = y.
 
-Notation: a in A stands for in(a,A).
+Let A,B be set.
 
-Let A, B be sets.
+Definition equality: A = B iff for all x. x ϵ A iff x ϵ B. 
 
-Definition equality: A = B iff for all x. x in A iff x in B. 
+Notation sub: A ⊆ B.
+Definition subset: A ⊆ B iff for all x ϵ A. x ϵ B. 
 
+# Notation uni: A ∪ B.
+# Definition union: x ϵ (A ∪ B) iff x ϵ A or x ϵ B.
 
-# TODO: Define x in A as sugar for in(A,x)
+# Notation intsec: A ∩ B.
+# Definition intersection: x ϵ (A ∩ B) iff x ϵ A and x ϵ B.
 
-
+Proposition: A = B iff A ⊆ B and B ⊆ A.

@@ -72,6 +72,23 @@ replaceVar' ((Var s):ts) old new    | s == old    = Var (new) : (replaceVar' ts 
 replaceVar' ((Cons s t):ts) old new = (Cons s (replaceVar' t old new)) : (replaceVar' ts old new) 
 
 
+-- Collection of sanity criteria for a formula
+cleanFormula :: Formula -> Formula
+cleanFormula f = cleanQuantifier f [] []
+
+-- Remove multiple quantified variables
+cleanQuantifier :: Formula -> [String] -> [String] -> Formula
+cleanQuantifier (Forall s f)   a e = if s `elem` a then (cleanQuantifier f a e) else (Forall s (cleanQuantifier f (s:a) e))
+cleanQuantifier (Exists s f)   a e = if s `elem` e then (cleanQuantifier f a e) else (Forall s (cleanQuantifier f a (s:e)))
+cleanQuantifier (Impl l r)     a e = Impl (cleanQuantifier l a e) (cleanQuantifier r a e)
+cleanQuantifier (Iff l r)      a e = Iff (cleanQuantifier l a e) (cleanQuantifier r a e)
+cleanQuantifier (Or l r)       a e = Or (cleanQuantifier l a e) (cleanQuantifier r a e)
+cleanQuantifier (And l r)      a e = And (cleanQuantifier l a e) (cleanQuantifier r a e)
+cleanQuantifier (Not f)        a e = Not $ cleanQuantifier f a e
+cleanQuantifier f              _ _ = f 
+
+
+
 contains :: Formula -> [Term] -> Bool
 contains (Atom _ fvs) vs = foldl (\a x -> x `elem` vs || a) False (concat $ map getVarsOfTerm fvs)
 contains (Impl l r) vs = l `contains` vs || r `contains` vs
@@ -84,25 +101,25 @@ contains (Forall _ f) vs = f `contains` vs
 contains f _ = False
 
 
-universallyQuantify :: Formula -> [Term] -> Formula
-universallyQuantify f [] = f 
-universallyQuantify f ((Var s):vs) = Forall s $ universallyQuantify f vs
+universallyQuantify :: [Term] -> Formula -> Formula
+universallyQuantify [] f = f 
+universallyQuantify ((Var s):vs) f = Forall s $ universallyQuantify vs f
 
+
+getVarsOfAtom :: Formula -> [Term]
+getVarsOfAtom (Atom s ts) = concat $ map getVarsOfTerm ts
 
 getVarsOfTerm :: Term -> [Term]
 getVarsOfTerm (Var s) = [(Var s)]
 getVarsOfTerm (Cons _ ts) = concat $ map getVarsOfTerm ts
 
--- concat $ map getVarsOfTerm ts
 insertLets :: Formula -> [Formula] -> Formula
 insertLets f [] = f
 insertLets f ((Atom s ts):as) =
   if f `contains` vars
-    then universallyQuantify ((Atom s ts) `Impl` f) vars
+    then universallyQuantify vars ((Atom s ts) `Impl` (insertLets f as))
     else f
       where vars = concat $ map getVarsOfTerm ts
-
-
 
 
 data Statement = Statement { id :: String
@@ -119,10 +136,9 @@ stat2Conj [(Statement id formula proof)] = "(" ++ show formula ++ ")"
 stat2Conj ((Statement id formula proof):xs) = "(" ++ show formula ++ ") & " ++ (stat2Conj xs)
 
 
-getFormula (Statement id f p) = f
-
 idPrefix :: String
 idPrefix = "s"
+
 getId :: Statement -> String
 getId (Statement id f p) = drop (length idPrefix) id
 
