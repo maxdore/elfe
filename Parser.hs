@@ -11,11 +11,10 @@ import Text.Parsec.Prim (ParsecT)
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Expr
 import Text.ParserCombinators.Parsec.Language
-import System.IO.Unsafe
 import qualified Text.ParserCombinators.Parsec.Token as Token
 import Data.Functor.Identity (Identity)
+
 import Debug.Trace
-import Control.Monad.Trans (lift)
 
 import Language
 
@@ -63,8 +62,8 @@ addNamedId n  (ParserState c nis fvs ss ls) = ParserState c (nis ++ [n]) fvs ss 
 addFixedVar v (ParserState c nis fvs ss ls) = ParserState c nis (fvs ++ [v]) ss ls
 addSugar s    (ParserState c nis fvs ss ls) = ParserState c nis fvs (ss ++ [s]) ls
 addLet l      (ParserState c nis fvs ss ls) = ParserState c nis fvs ss (ls ++ [l])
-addLets :: String -> [Term] -> ParserState -> ParserState
 addLets n vs  (ParserState c nis fvs ss ls) = ParserState c nis fvs ss (ls ++ (map (\v -> Atom n [v]) vs))
+clearLets     (ParserState c nis fvs ss ls) = ParserState c nis fvs ss []
 
 
 type PS = ParsecT String ParserState Identity
@@ -92,29 +91,22 @@ newId = do
   return $ idPrefix ++ show cur
 
 
+elfeParser :: PS [Statement]
 elfeParser = do
-  includes <- many include
-  secs <- sections
-  return $ foldr (++) [] includes ++ secs
-
-
-include = 
-  do reserved "Use"
-     name <- many alphaNum
-     parsed <- lift $ case runParser elfeParser initParseState "" (unsafePerformIO $ readFile $ "library/" ++ name ++ ".elfe") of
-        Left e  -> return $ error $ show e
-        Right r -> return r
-     reserved "."
-     return parsed
-
-sections :: PS [Statement]
-sections = do
-  secs <- many $   notation
+  secs <- many $   newContext
+               <|> notation
                <|> let'
                <|> definition
                <|> proposition
                <|> lemma
   return $ foldr (++) [] secs
+
+
+
+newContext = do
+  reserved "!!!NEWCONTEXT!!!"
+  updateState clearLets
+  return [] 
 
 
 insertPlaceholders :: [String] -> [String]
@@ -165,7 +157,7 @@ proposition =
      id <- givenOrNewId
      f <- fof
      reserved "."
-     return [(Statement id f ByContext)]
+     return [(Statement id f Assumed)]
 
 lemma =
   do reserved "Lemma:"
@@ -178,25 +170,33 @@ lemma =
 
 -- PROOFS
 
+qed = string "qed" <|> string "∎"
+ 
 direct :: Formula -> PS [Statement]
 direct goal = 
   do reserved "Proof:"
-     derivation <- derive goal
-     reserved "qed."
+     derivation <- derive $ unfoldLets goal
+     qed
      return derivation
 
 contradiction :: Formula -> PS [Statement]
 contradiction goal = 
   do reserved "Proof by contradiction:"
-     derivation <- derive ((Not goal) `Impl` Bot)
-     reserved "qed."
+     derivation <- derive $ unfoldLets ((Not goal) `Impl` Bot)
+     qed
      return derivation
+
+
+
+unfoldLets :: Formula -> Formula
+unfoldLets f = f
+
 
 
 derive :: Formula -> PS [Statement]
 derive goal = try (unfold goal) <|> try (enfold goal) <|> try (finalGoal goal)
 
--- derive over conjecture structure
+-- unfold the goal formula
 
 unfold :: Formula -> PS [Statement]
 unfold (Forall v f) = 
@@ -222,16 +222,18 @@ unfold (Exists v f) =
 unfold (Impl l r) =
   do reserved "Assume"
      l' <- fof
-     reserved "."
-     trace ("unfold implies " ++ show l) try spaces 
-     derivation <- derive r
-     reserved "Hence"
-     r' <- fof
-     reserved "."
-     lId <- newId
-     rId <- newId
-     -- TODO check if l (r) equivalent to l' (r')
-     return $ (Statement lId l Assumed) : derivation ++ [(Statement rId r ByContext)]
+     if l /= l'
+      then trace ("Assume did not work out") fail "narp"
+      else do
+       reserved "."
+       trace ("unfold implies " ++ show l) try spaces 
+       derivation <- derive r
+       reserved "Hence"
+       r' <- fof
+       reserved "."
+       lId <- newId
+       rId <- newId
+       return $ (Statement lId l Assumed) : derivation ++ [(Statement rId r ByContext)]
 
 unfold (Not (Impl l r)) = unfold (And l (Not r))
 unfold (Not (Forall v f)) = unfold (Exists v (Not f))
@@ -280,7 +282,7 @@ enfoldForall =
      return (Forall var f)
 
 
--- otherwise this should be proved 
+-- the final goal is derived with a sequence
 
 finalGoal goal =
   do derivation <- many statement
@@ -356,7 +358,7 @@ parentheses = do
     f <- level0
     spaces
     reserved ")"
-    trace ("FOUND PARENTHESES") spaces
+    spaces
     return f
 
 iff :: PS (Formula -> Formula -> Formula)
@@ -424,7 +426,7 @@ not' =
      return (Not f)
 
 bot = 
-  do reserved "contradiction"
+  do string "contradiction" <|> string "⊥"
      return Bot
 
 atom :: PS Formula
@@ -447,7 +449,7 @@ rawAtom =
 
 strPrefix :: String -> String
 strPrefix [] = []
-strPrefix (x:xs) | isLetter x = x : strPrefix xs
+strPrefix (x:xs) | x `elem` (['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9'])  = x : strPrefix xs -- TODO match all possible variables!!!
                  | otherwise  = [] 
 
 matches :: [String] -> String -> [Term] -> Maybe [Term]
@@ -465,17 +467,19 @@ matchSugars :: [(String, [String])] -> String -> Maybe Formula
 matchSugars [] _ = Nothing
 matchSugars ((id,s):ss) raw = 
     case matches s raw [] of
-      Nothing -> trace (show s ++ " not matched") matchSugars ss raw
+      Nothing -> matchSugars ss raw -- trace (show s ++ " not matched")
       Just ts -> Just $ Atom id $ reverse ts
  
+ops = (try $ string " implies") <|> (try $ string " and") <|> (try $ string " iff") <|> (try $ string " or") <|> (try $ string "not") <|> (try $ string " contradictioncontradiction") 
+
 sugaredAtom =
-  do raw <- lookAhead $ manyTill (try anyChar) $ lookAhead $ (try $ string ".") <|> (try $ string " implies") <|> (try $ string " and") <|> (try $ string " iff") <|> (try $ string " or") <|> (try $ string "not")
+  do raw <- lookAhead $ manyTill (try anyChar) $ lookAhead $ (try $ string ".") <|> ops
      ss <- sugars <$> getState
      case matchSugars ss raw of
-        Nothing -> trace (raw ++ " not matched") return Bot
+        Nothing -> trace (raw ++ " not matched") return Bot 
         Just f -> do
-          ignore <- manyTill (try anyChar) $ lookAhead $ (try $ string ".") <|> (try $ string " implies") <|> (try $ string " and") <|> (try $ string " iff") <|> (try $ string " or") <|> (try $ string "not")
-          trace (raw ++ " matched! "++ show f) return f 
+          ignore <- manyTill (try anyChar) $ lookAhead $ (try $ string ".") <|> ops
+          trace (raw ++ " matched! "++ show f) return f
 
 term :: PS Term
 term = (try cons) <|> var 

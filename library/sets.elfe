@@ -1,5 +1,6 @@
+Include equality.
+
 Notation in: a ϵ A.
-Notation equal: x = y.
 
 Let A,B be set.
 
@@ -8,10 +9,14 @@ Definition equality: A = B iff for all x. x ϵ A iff x ϵ B.
 Notation sub: A ⊆ B.
 Definition subset: A ⊆ B iff for all x ϵ A. x ϵ B. 
 
-# Notation uni: A ∪ B.
-# Definition union: x ϵ (A ∪ B) iff x ϵ A or x ϵ B.
-
-# Notation intsec: A ∩ B.
-# Definition intersection: x ϵ (A ∩ B) iff x ϵ A and x ϵ B.
-
 Proposition: A = B iff A ⊆ B and B ⊆ A.
+
+# Notation union: A ∪ B.
+# Definition union: x ϵ (A ∪ B) iff x ϵ A or x ϵ B.
+# Proposition unionSet: A ∪ B is a set.
+
+# Notation intersection: A ∩ B.
+# Definition intersection: x ϵ (A ∩ B) iff x ϵ A and x ϵ B.
+# ⊆ ⊇ ⊈ ⊉   ⊊   ⊋
+
+

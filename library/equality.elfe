@@ -7,3 +7,6 @@ Definition symmetric: for all x. for all y. x = y implies y = x.
 Definition transitive: for all x. for all y. for all z.
     x = y and y = z implies x = z. 
 
+Notation unequal: x ≠ y.
+Definition notEqual: x ≠ y iff not x = y.
+

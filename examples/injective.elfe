@@ -1,22 +1,19 @@
-Use functions.
+Include functions.
 
-Let function(f,A,B).
-Let function(g,B,C).
+Let f: A -> B.
+Let g: B -> C.
 
-Lemma: injective(composition(f,g)) implies injective(f).
+# ![Vf]: ![VA]:(![VB] : ((sfunction(VF,VA,VB)) => (! [Vg] : (! [VC] : ((sfunction(Vg,VB,VC)) => 
+#     ((injective(composition(Vg,Vf))) 
+#        => (injective(VF))))))))
+
+Lemma: injective(composition(g,f)) implies f is injective.
 Proof:
-    Let f be arbitrary.
-    Let a be arbitrary.
-    Let b be arbitrary.
-    Assume function(f,a,b).
-    Let g be arbitrary.
-    Let c be arbitrary.
-    Assume function(g,b,c) and injective(composition(g,f)).
-    Let x1 be arbitrary.
-    Let x2 be arbitrary.
-    Let y be arbitrary.
+    Assume injective(composition(g,f)).
     Assume relapp(f,x1,y) and relapp(f,x2,y).
-    Take z such that relapp(composition(f,g),x1,z) and relapp(composition(f,g),x2,z).
-    Hence equal(x1,x2).
-    Hence injective(f).
+    Take z such that relapp(composition(g,f),x1,z) and relapp(composition(g,f),x2,z).
+    Hence sequal(x1,x2).
+    Hence f is injective.
 qed.
+
+

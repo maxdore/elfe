@@ -1,0 +1,6 @@
+Notation in: a ϵ A.
+Notation union: A ∪ B.
+
+Definition: relapp(blub).
+Definition: a ϵ (A ∪ B). # in(a,union(A,B))
+Definition: A ∪ B is set. # in(a,union(A,B))

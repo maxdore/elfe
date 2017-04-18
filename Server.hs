@@ -28,7 +28,7 @@ main = scotty 8000 $ do
   middleware $ staticPolicy (noDots >-> addBase "web")
   get "/api" $ do 
     input <- param "problem"
-    status <- lift $ case (runParser sections initParseState "" input) of
+    status <- lift $ case (runParser elfeParser initParseState "" input) of
         Left e  -> return $ NotParsed e
         Right r -> do
             res <- verify r

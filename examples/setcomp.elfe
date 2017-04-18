@@ -1,0 +1,17 @@
+Include sets.
+
+Let A,B be set.
+
+Lemma: comp(A ∪ B) = (comp(A) ∩ comp(B)).
+Proof:
+    Proof that comp(A ∪ B) ⊆ (comp(A) ∩ comp(B)):
+        Assume x ϵ comp(A ∪ B).
+        Then not x ϵ (A ∪ B).
+        Then not x ϵ A and not x ϵ B.
+        Then x ϵ comp(A) and x ϵ comp(B).
+        Hence x ϵ (comp(A) ∩ comp(B)).
+    qed.
+    Proof that (comp(A) ∩ comp(B)) ⊆ comp(A ∪ B):
+        # TODO
+    qed.
+qed.
