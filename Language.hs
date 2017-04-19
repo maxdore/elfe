@@ -25,8 +25,8 @@ instance Show Formula where
   show (Bot)         = "$false"
   show (Or l r)      = "(" ++ (show l) ++ ") | (" ++ (show r) ++ ")"
   show (And l r)     = "(" ++ (show l) ++ ") & (" ++ (show r) ++ ")"
-  show (Exists v f)  = "? [" ++ varPrefix ++ v ++ "] : (" ++ (show $ replaceVar f v (varPrefix++v)) ++ ")"
-  show (Forall v f)  = "! [" ++ varPrefix ++ v ++ "] : (" ++ (show $ replaceVar f v (varPrefix++v)) ++ ")"
+  show (Exists v f)  = "? [" ++ quantifiedPrefix ++ v ++ "] : (" ++ (show $ replaceVar f v (quantifiedPrefix++v)) ++ ")"
+  show (Forall v f)  = "! [" ++ quantifiedPrefix ++ v ++ "] : (" ++ (show $ replaceVar f v (quantifiedPrefix++v)) ++ ")"
 
 getLeft (Iff l r) = l
 getLeft (Forall v f) = getLeft f
@@ -34,7 +34,8 @@ getLeft (Forall v f) = getLeft f
 getRight (Iff l r) = r
 getRight (Forall v f) = getRight f
 
-varPrefix = "V"
+quantifiedPrefix = "V"
+boundPrefix = "b"
 
 safeVar :: Formula -> String -> Formula
 safeVar (Atom s terms) v = Atom s $ safeVar' terms v
@@ -49,7 +50,7 @@ safeVar f              v = f
 
 safeVar' :: [Term] -> String -> [Term]
 safeVar' [] _ = []
-safeVar' ((Var s):ts) v | s == v    = Var (varPrefix ++ v) : (safeVar' ts v) 
+safeVar' ((Var s):ts) v | s == v    = Var (quantifiedPrefix ++ v) : (safeVar' ts v) 
                         | otherwise = Var s : (safeVar' ts v) 
 safeVar' ((Cons s t):ts) v = (Cons s (safeVar' t v)) : (safeVar' ts v) 
 
@@ -106,8 +107,17 @@ universallyQuantify [] f = f
 universallyQuantify ((Var s):vs) f = Forall s $ universallyQuantify vs f
 
 
-getVarsOfAtom :: Formula -> [Term]
-getVarsOfAtom (Atom s ts) = concat $ map getVarsOfTerm ts
+
+getVarsOfFormula :: Formula -> [Term]
+getVarsOfFormula (Atom s ts)  = concat $ map getVarsOfTerm ts
+getVarsOfFormula (Impl l r)   = getVarsOfFormula l ++ getVarsOfFormula r  
+getVarsOfFormula (Iff l r)    = getVarsOfFormula l ++ getVarsOfFormula r  
+getVarsOfFormula (Or l r)     = getVarsOfFormula l ++ getVarsOfFormula r  
+getVarsOfFormula (And l r)    = getVarsOfFormula l ++ getVarsOfFormula r  
+getVarsOfFormula (Not f)      = getVarsOfFormula f  
+getVarsOfFormula (Exists s f) = getVarsOfFormula f  
+getVarsOfFormula (Forall s f) = getVarsOfFormula f  
+getVarsOfFormula _            = []             
 
 getVarsOfTerm :: Term -> [Term]
 getVarsOfTerm (Var s) = [(Var s)]
@@ -130,11 +140,20 @@ instance Show Statement where
   show (Statement id formula proof) = id ++ ": " ++ show formula ++ " -- " ++ show proof ++ "\n"
 
 
-stat2Conj :: [Statement] -> String
-stat2Conj [] = ""
-stat2Conj [(Statement id formula proof)] = "(" ++ show formula ++ ")"
-stat2Conj ((Statement id formula proof):xs) = "(" ++ show formula ++ ") & " ++ (stat2Conj xs)
+stat2Conj :: [Statement] -> Formula
+stat2Conj [(Statement _ f _)] = f
+stat2Conj ((Statement _ f _):xs) = f `And` (stat2Conj xs)
 
+formulas2Conj :: [Formula] -> Formula
+formulas2Conj [f] = f
+formulas2Conj (f:fs) = f `And` formulas2Conj fs
+
+
+strings2Vars :: [String] -> [Term]
+strings2Vars = map (\s -> (Var s))
+
+vars2Strings :: [Term] -> [String]
+vars2Strings = map (\(Var s) -> s)
 
 idPrefix :: String
 idPrefix = "s"
@@ -148,4 +167,4 @@ instance Show Proof where
   show ByContext = "ByContext"
   show (BySubcontext is) = "BySubcontext: " ++  (intercalate "" is)
   show (BySequence hs) = "Prove by seq:\n" ++ (concat $ map (\h -> "   " ++ show h) hs) ++ "   end seq"
-  show (BySplit cs) = "Prove by cases:\n" ++ (concat $ map (\c -> "   " ++ show c) cs)
+  show (BySplit cs) = "Prove by split:\n" ++ (concat $ map (\c -> "   " ++ show c) cs)

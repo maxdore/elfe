@@ -1,3 +1,6 @@
-fof(ssubset, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => ((ssub(VA,VB)) <=> (! [Vx] : (((sin(Vx,VA)) => (sin(Vx,VB))))))))))).
-fof(sequality, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => ((sequal(VA,VB)) <=> (! [Vx] : ((sin(Vx,VA)) <=> (sin(Vx,VB)))))))))).
-fof(s0, conjecture, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => ((sequal(VA,VB)) <=> ((ssub(VA,VB)) & (ssub(VB,VA))))))))).
+fof(scompSet, axiom, (! [VA] : ((set(VA)) => (set(comp(VA)))))).
+fof(scomp, axiom, (! [VA] : ((set(VA)) => ((in(x,comp(VA))) <=> (~(in(x,VA))))))).
+fof(sunionSet, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => (set(union(VA,VB)))))))).
+fof(s2, axiom, ((set(bA)) & (set(bB)))).
+fof(s8, axiom, (in(bx,comp(union(bA,bB))))).
+fof(s5, conjecture, (~(in(bx,union(bA,bB))))).

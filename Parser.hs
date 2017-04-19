@@ -117,10 +117,11 @@ insertPlaceholders (x:y:xs) | x /= "" && y /= "" = x : "" : insertPlaceholders (
 
 notation =
   do reserved "Notation"
-     id <- givenOrNewId
+     name <- eid
+     reserved ":"
      sugar <- manyTill anyChar $ char '.'
      spaces
-     updateState $ addSugar (id, insertPlaceholders $ map unpack $ split (`elem` (['a'..'z'] ++ ['A'..'Z'])) $ pack sugar)
+     updateState $ addSugar (name, insertPlaceholders $ map unpack $ split (`elem` (['a'..'z'] ++ ['A'..'Z'])) $ pack sugar)
      return []
 
 let' =
@@ -145,61 +146,88 @@ letBe =
      updateState $ addLets name vars
 
 
+definition :: PS [Statement]
 definition =
   do reserved "Definition"
      id <- givenOrNewId
      f  <- fof
+     cf <- letify f
      reserved "."
-     return [(Statement id f Assumed)]
+     return [(Statement id cf Assumed)]
 
+proposition :: PS [Statement]
 proposition = 
   do reserved "Proposition"
      id <- givenOrNewId
      f <- fof
+     cf <- letify f
      reserved "."
-     return [(Statement id f Assumed)]
+     return [(Statement id cf Assumed)]
 
+lemma :: PS [Statement]
 lemma =
   do reserved "Lemma:"
      goal  <- fof
-     reserved "."
      id <- newId
-     derivation <- (direct goal) <|> (contradiction goal)
-     return [(Statement id goal (BySequence derivation))]
+     -- let managment
+     cgoal <- letify goal
+     lets <- lets <$> getState
+     let bvs = map show $ concat $ map getVarsOfFormula lets
+     assumeId <- newId
+     let assumeLets = Statement assumeId (bindVars (formulas2Conj lets) bvs) Assumed
+     -- end
+     reserved "."
+     derivation <- (direct goal bvs) <|> (contradiction goal bvs)
+     return [(Statement id cgoal (BySequence (assumeLets:derivation)))]
 
 
 -- PROOFS
 
+direct :: Formula -> [String] -> PS [Statement]
+direct goal bvs = 
+  do reserved "Proof:"
+     derivation <- derive (bindVars goal bvs) bvs
+     qed
+     return derivation
+
+contradiction :: Formula -> [String] -> PS [Statement]
+contradiction goal bvs = 
+  do reserved "Proof by contradiction:"
+     derivation <- derive ((Not goal) `Impl` Bot) []
+     qed
+     return derivation
+
 qed = string "qed" <|> string "∎"
  
-direct :: Formula -> PS [Statement]
-direct goal = 
-  do reserved "Proof:"
-     derivation <- derive $ unfoldLets goal
-     qed
-     return derivation
 
-contradiction :: Formula -> PS [Statement]
-contradiction goal = 
-  do reserved "Proof by contradiction:"
-     derivation <- derive $ unfoldLets ((Not goal) `Impl` Bot)
-     qed
-     return derivation
+derive :: Formula -> [String] -> PS [Statement]
+derive goal bvs = try (splitGoal goal bvs) <|> try (unfold goal bvs) <|> try (enfold goal bvs) <|> try (finalGoal goal bvs)
 
 
+-- split
 
-unfoldLets :: Formula -> Formula
-unfoldLets f = f
+subProof :: [String] -> PS Statement
+subProof bvs =
+  do reserved "Proof that"
+     goal <- fof
+     reserved ":"
+     derivation <- derive goal bvs
+     id <- newId
+     return $ Statement id (bindVars goal bvs) (BySequence derivation)
 
-
-
-derive :: Formula -> PS [Statement]
-derive goal = try (unfold goal) <|> try (enfold goal) <|> try (finalGoal goal)
+splitGoal :: Formula -> [String] -> PS [Statement]
+splitGoal goal bvs = 
+  do id <- newId
+     soundnessId <- newId
+     subProofs <- many1 $ subProof bvs
+     let soundnessF = stat2Conj subProofs `Impl` goal
+     let soundness = Statement soundnessId (bindVars soundnessF bvs) ByContext
+     return [(Statement id goal (BySplit (soundness:subProofs)))]
 
 -- unfold the goal formula
 
-unfold :: Formula -> PS [Statement]
-unfold (Forall v f) = 
+unfold :: Formula -> [String] -> PS [Statement]
+unfold (Forall v f) bvs = 
   do reserved "Let"
      var <- many alphaNum
      spaces
@@ -207,19 +235,19 @@ unfold (Forall v f) =
      trace ("unfold forall to " ++ show f) try spaces
      updateState $ addFixedVar var
      lId <- newId
-     derivation <- derive $ replaceVar f v var
+     derivation <- derive (replaceVar f v var) bvs
      return derivation
 
-unfold (Exists v f) = 
+unfold (Exists v f) bvs = 
   do reserved "Take"
      var <- many alphaNum
      reserved "."
      trace ("unfold exists to " ++ show f) try spaces
      lId <- newId
-     derivation <- derive f
+     derivation <- derive f bvs
      return derivation
 
-unfold (Impl l r) =
+unfold (Impl l r) bvs =
   do reserved "Assume"
      l' <- fof
      if l /= l'
@@ -227,92 +255,93 @@ unfold (Impl l r) =
       else do
        reserved "."
        trace ("unfold implies " ++ show l) try spaces 
-       derivation <- derive r
+       derivation <- derive r bvs
        reserved "Hence"
        r' <- fof
        reserved "."
        lId <- newId
        rId <- newId
-       return $ (Statement lId l Assumed) : derivation ++ [(Statement rId r ByContext)]
+       return $ (Statement lId (bindVars l bvs) Assumed) : derivation ++ [(Statement rId (bindVars r bvs) ByContext)]
 
-unfold (Not (Impl l r)) = unfold (And l (Not r))
-unfold (Not (Forall v f)) = unfold (Exists v (Not f))
-unfold (Not (Exists v f)) = unfold (Forall v (Not f))
+unfold (Not (Impl l r)) bvs = unfold (And l (Not r)) bvs
+unfold (Not (Forall v f)) bvs = unfold (Exists v (Not f)) bvs
+unfold (Not (Exists v f)) bvs = unfold (Forall v (Not f)) bvs
 
-unfold _ = fail "Formula cannot be unfold anymore"
+unfold _ _ = fail "Formula cannot be unfold anymore"
 
 
 -- something else is proved
 
-enfold :: Formula -> PS [Statement]
-enfold oldGoal = 
-  do newGoal <- lookAhead enfoldGoal
-     derivation <- derive newGoal
+enfold :: Formula -> [String] -> PS [Statement]
+enfold oldGoal bvs = 
+  do newGoal <- lookAhead $ enfoldGoal bvs
+     let newVars =  nub (getVarsOfFormula newGoal) \\ strings2Vars bvs
+     derivation <- derive newGoal (bvs ++ (vars2Strings newVars))
      oldId <- newId
      soundnessId <- newId
      newId <- newId
-     trace ("Found enfold " ++ show newGoal) return [Statement oldId oldGoal $ 
+     trace ("Found enfold " ++ show newGoal ++ " | " ++ (show $ newVars)) return [Statement oldId (bindVars oldGoal bvs) $ 
           BySplit [
-            (Statement soundnessId (newGoal `Impl` oldGoal) ByContext),
-            (Statement newId newGoal $ BySequence derivation)
+            (Statement soundnessId (bindVars (universallyQuantify newVars newGoal `Impl` oldGoal) bvs) ByContext),
+            (Statement newId (bindVars newGoal (bvs++(vars2Strings newVars))) $ BySequence derivation)
           ]
         ]
 
-enfoldGoal = try enfoldImplies <|> try enfoldForall
+enfoldGoal bvs = try (enfoldImplies bvs) <|> try (enfoldForall bvs)
 
-enfoldImplies =
+enfoldImplies bvs =
   do reserved "Assume"
      l <- fof
      reserved "."
      trace ("Found left impl: " ++ show l) try spaces
-     _ <- finalGoal Top -- TODO Allow nested hence also in proof construction
+     _ <- finalGoal Top bvs -- TODO Allow nested hence also in proof construction
      reserved "Hence"
      r <- fof
      reserved "."
      trace ("Found implies creation " ++ show l ++ " impl " ++ show r) try spaces
      return (Impl l r)
 
-enfoldForall =
+enfoldForall bvs =
   do reserved "Let"
      var <- many alphaNum
      spaces
      reserved "be arbitrary."
      trace ("Found forall creation " ++ var) $ try spaces
-     f <- enfoldGoal
+     f <- enfoldGoal bvs
      return (Forall var f)
 
 
 -- the final goal is derived with a sequence
 
-finalGoal goal =
-  do derivation <- many statement
+finalGoal goal bvs =
+  do derivation <- many $ statement bvs
      trace ("final goal " ++ show goal) return derivation
 
 
 -- STATEMENTS 
 
 --statement :: ParsecT String u Identity Statement
-statement = then' <|> take' <|> fail "no derivation statement"
+statement bvs = then' bvs <|> take' bvs <|> trivial bvs <|> fail "no derivation statement"
 
 
 -- STATEMENT MARKERS
 
-then' =
+then' bvs =
   do reserved "Then"
      spaces
-     f <- level0
+     f <- fof
      by <- optionMaybe subContext
      reserved "."
      id <- newId
      case by of
-        Nothing -> return $ Statement id f ByContext 
-        Just ids -> return $ Statement id f $ BySubcontext ids
-take' = 
+        Nothing -> return $ Statement id (bindVars f bvs) ByContext 
+        Just ids -> return $ Statement id (bindVars f bvs) $ BySubcontext ids
+take' bvs = 
   do reserved "Take"
      vars <- var `sepBy` char ','
      spaces
      reserved "such that"
-     f <- level0
+     f <- fof
      by <- optionMaybe subContext
      reserved "."
      id <- newId
@@ -325,6 +354,13 @@ take' =
                       (Statement proofId (enfoldExists vars f) $ BySubcontext ids)
                     ]))
 
+trivial bvs =
+  do reserved "Trivial."
+     id <- newId
+     return $ Statement id Top Assumed
+
+
+-- TODO join with universallyQuantify
 enfoldExists :: [Term] -> Formula -> Formula
 enfoldExists [] f = f
 enfoldExists ((Var v):vs) f = Exists v (enfoldExists vs f)
@@ -337,15 +373,17 @@ subContext =
 
 -- FORMULA
 
-fof :: PS Formula
-fof = 
-  do f <- level0
-     lets <- lets <$> getState
-     let qF = insertLets f lets
-     return $ cleanFormula qF
+--letify :: Formula -> PS Formula
+letify f = 
+  do lets <- lets <$> getState
+     return $ cleanFormula $ insertLets f lets
+
+bindVars :: Formula -> [String] -> Formula
+bindVars f [] = f
+bindVars f (v:vs) = bindVars (replaceVar f v (boundPrefix++v)) vs
 
 -- We have different precedences
-level0 = level1 `chainl1` (try iff)
+fof = level1 `chainl1` (try iff)
 level1 = (forall <|> exists  <|> level2) `chainl1` (try implies)
 level2 = level3 `chainl1` (try and')
 level3 = (try parentheses <|> try not' <|> try atom <|> try bot) `chainl1` (try or')
@@ -355,7 +393,7 @@ parentheses = do
     spaces
     reservedOp "("
     spaces
-    f <- level0
+    f <- fof
     spaces
     reserved ")"
     spaces
@@ -372,15 +410,15 @@ v =
   do var <- eid 
      spaces
      reserved "."
-     f <- level0
+     f <- fof
      return (Forall var f)
 
 a = 
   do atom <- atom
      spaces
      reserved "."
-     f <- level0
-     return $ universallyQuantify (getVarsOfAtom atom) (atom `Impl` f) 
+     f <- fof
+     return $ universallyQuantify (getVarsOfFormula atom) (atom `Impl` f) 
 
 
 forall :: PS Formula
@@ -395,7 +433,7 @@ exists =
      var <- many alphaNum
      spaces
      reserved "."
-     sent <- level0
+     sent <- fof
      return (Exists var sent)
 
 implies :: PS (Formula -> Formula -> Formula)
@@ -422,7 +460,7 @@ or' =
 not' :: PS Formula
 not' = 
   do reserved "not"
-     f <- level0
+     f <- fof
      return (Not f)
 
 bot = 

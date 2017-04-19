@@ -46,7 +46,7 @@ verStat (Statement id f Assumed) context = trace ("Assume " ++ id ++ ": " ++ sho
 verStat (Statement id f ByContext) context = trace ("Prove  " ++ id ++ ": " ++ show f) checkStat (Statement id f ByContext) context 
 verStat (Statement id f (BySubcontext ids)) context = trace ("Prove  " ++ id ++ ": " ++ show f ++ " by " ++ concat ids) checkStat (Statement id f ByContext) $ subContext context ids
 verStat (Statement id f (BySequence sequ)) context = trace ("Check  " ++ id ++ ": " ++ show f) verSeq sequ (Context [] context) (return Correct) 
-verStat (Statement id f (BySplit cases)) context = trace ("Cases  " ++ id ++ ": " ++ show f) verifyCases cases context (return Correct)
+verStat (Statement id f (BySplit split)) context = trace ("Split  " ++ id ++ ": " ++ show f) verifySplit split context (return Correct)
 
 verSeq :: [Statement] -> Context -> IO ProofStatus -> IO ProofStatus
 verSeq [] _ status = status
@@ -58,12 +58,12 @@ verSeq (st:sts) (Context hs p) status = do
 checkStat :: Statement -> Context -> IO ProofStatus
 checkStat (Statement id formula p) context = prove (show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show formula ++ ")).\n") --return Correct
 
-verifyCases :: [Statement] -> Context -> IO ProofStatus -> IO ProofStatus
-verifyCases [] context status = status 
-verifyCases (c:cs) context status = do
+verifySplit :: [Statement] -> Context -> IO ProofStatus -> IO ProofStatus
+verifySplit [] context status = status 
+verifySplit (c:cs) context status = do
   r <- verStat c context
-  if r == Correct then verifyCases cs context status 
-  else verifyCases cs context (return Incorrect)
+  if r == Correct then verifySplit cs context status 
+  else verifySplit cs context (return Incorrect)
 
 
 -- BACKGROUND PROVER
@@ -101,4 +101,4 @@ runATP task (Prover command args provedMessage disprovedMessage unknownMessage) 
       then trace "PROVED" return Correct
     else if neg
       then trace ("DISPROVED\n" ++ task) return Incorrect
-    else trace ("UNKNOWN\n" ++ ofl) return Unknown
+    else trace ("UNKNOWN\n" ++ ofl ++ task) return Unknown

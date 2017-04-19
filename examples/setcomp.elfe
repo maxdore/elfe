@@ -2,16 +2,14 @@ Include sets.
 
 Let A,B be set.
 
-Lemma: comp(A ∪ B) = (comp(A) ∩ comp(B)).
+Lemma: equal(comp(union(A,B)),intersection(A,B)).
 Proof:
-    Proof that comp(A ∪ B) ⊆ (comp(A) ∩ comp(B)):
-        Assume x ϵ comp(A ∪ B).
-        Then not x ϵ (A ∪ B).
+    Proof that subset(comp(union(A,B)),intersection(A,B)):
+        Assume in(x,comp(union(A,B))).
+        Then not in(x,union(A,B)).
         Then not x ϵ A and not x ϵ B.
-        Then x ϵ comp(A) and x ϵ comp(B).
-        Hence x ϵ (comp(A) ∩ comp(B)).
-    qed.
-    Proof that (comp(A) ∩ comp(B)) ⊆ comp(A ∪ B):
-        # TODO
-    qed.
+        Then in(x,comp(A)) and in(x,comp(B)).
+        Hence in(x,intersection(A,B)).
+    Proof that subset(intersection(A,B),comp(union(A,B))):
+        Trivial.
 qed.
