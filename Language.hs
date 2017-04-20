@@ -87,7 +87,7 @@ cleanFormula f = cleanQuantifier f [] []
 -- Remove multiple quantified variables
 cleanQuantifier :: Formula -> [String] -> [String] -> Formula
 cleanQuantifier (Forall s f)   a e = if s `elem` a then (cleanQuantifier f a e) else (Forall s (cleanQuantifier f (s:a) e))
-cleanQuantifier (Exists s f)   a e = if s `elem` e then (cleanQuantifier f a e) else (Forall s (cleanQuantifier f a (s:e)))
+cleanQuantifier (Exists s f)   a e = if s `elem` e then (cleanQuantifier f a e) else (Exists s (cleanQuantifier f a (s:e)))
 cleanQuantifier (Impl l r)     a e = Impl (cleanQuantifier l a e) (cleanQuantifier r a e)
 cleanQuantifier (Iff l r)      a e = Iff (cleanQuantifier l a e) (cleanQuantifier r a e)
 cleanQuantifier (Or l r)       a e = Or (cleanQuantifier l a e) (cleanQuantifier r a e)
@@ -132,10 +132,10 @@ getVarsOfTerm (Cons _ ts) = concat $ map getVarsOfTerm ts
 
 insertLets :: Formula -> [Formula] -> Formula
 insertLets f [] = f
-insertLets f ((Atom s ts):as) =
+insertLets f ((Atom s ts):as) = 
   if f `contains` vars
     then universallyQuantify vars ((Atom s ts) `Impl` (insertLets f as))
-    else f
+    else insertLets f as
       where vars = concat $ map getVarsOfTerm ts
 
 

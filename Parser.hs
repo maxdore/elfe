@@ -383,7 +383,7 @@ subContext =
 
 -- FORMULA
 
---letify :: Formula -> PS Formula
+letify :: Formula -> PS Formula
 letify f = 
   do lets <- lets <$> getState
      return $ cleanFormula $ insertLets f lets
