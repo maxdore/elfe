@@ -140,7 +140,7 @@ letRaw =
 letBe =
   do vars <- var `sepBy` char ','
      try spaces
-     reserved "be"
+     try (string "be an") <|> try (string "be a") <|> try (string "be")
      try spaces
      name <- eid
      updateState $ addLets name vars
@@ -201,8 +201,11 @@ qed = string "qed" <|> string "∎"
  
 
 derive :: Formula -> [String] -> PS [Statement]
-derive goal bvs = try (splitGoal goal bvs) <|> try (unfold goal bvs) <|> try (enfold goal bvs) <|> try (finalGoal goal bvs)
-
+derive goal bvs =     try (trivial goal bvs) 
+                  <|> try (splitGoal goal bvs)
+                  <|> try (unfold goal bvs) 
+                  <|> try (enfold goal bvs) 
+                  <|> try (finalGoal goal bvs)
 
 -- split
 
@@ -223,6 +226,15 @@ splitGoal goal bvs =
      let soundnessF = stat2Conj subProofs `Impl` goal
      let soundness = Statement soundnessId (bindVars soundnessF bvs) ByContext
      return [(Statement id goal (BySplit (soundness:subProofs)))]
+
+
+-- trivial throws at ATP
+trivial :: Formula -> [String] -> PS [Statement]
+trivial goal bvs =
+  do reserved "Obvious."
+     id <- newId
+     return [(Statement id (bindVars goal bvs) ByContext)]
+
 
 -- unfold the goal formula
 
@@ -250,8 +262,8 @@ unfold (Exists v f) bvs =
 unfold (Impl l r) bvs =
   do reserved "Assume"
      l' <- fof
-     if l /= l'
-      then trace ("Assume did not work out") fail "narp"
+     if l /= (bindVars l' bvs)
+      then trace ("Assume did not work out, expected " ++ show l ++ ", got " ++ show l') fail "narp"
       else do
        reserved "."
        trace ("unfold implies " ++ show l) try spaces 
@@ -320,12 +332,13 @@ finalGoal goal bvs =
 
 -- STATEMENTS 
 
---statement :: ParsecT String u Identity Statement
-statement bvs = then' bvs <|> take' bvs <|> trivial bvs <|> fail "no derivation statement"
+statement :: [String] -> PS Statement
+statement bvs = then' bvs <|> take' bvs <|> fail "no derivation statement"
 
 
 -- STATEMENT MARKERS
 
+then' :: [String] -> PS Statement
 then' bvs =
   do reserved "Then"
      spaces
@@ -336,9 +349,11 @@ then' bvs =
      case by of
         Nothing -> return $ Statement id (bindVars f bvs) ByContext 
         Just ids -> return $ Statement id (bindVars f bvs) $ BySubcontext ids
+
+take' :: [String] -> PS Statement
 take' bvs = 
   do reserved "Take"
-     vars <- var `sepBy` char ','
+     vars <- var `sepBy` char ',' -- TODO bind them to bvs as well (only in conjecture, not in proof)
      spaces
      reserved "such that"
      f <- fof
@@ -347,17 +362,12 @@ take' bvs =
      id <- newId
      proofId <- newId
      case by of
-        Nothing  -> return (Statement id f (BySequence [
-                      (Statement proofId (enfoldExists vars f) ByContext)
+        Nothing  -> return (Statement id (bindVars f bvs) (BySequence [
+                      (Statement proofId (enfoldExists vars (bindVars f bvs)) ByContext)
                     ]))
-        Just ids -> return (Statement id f (BySequence [
-                      (Statement proofId (enfoldExists vars f) $ BySubcontext ids)
+        Just ids -> return (Statement id (bindVars f bvs) (BySequence [
+                      (Statement proofId (enfoldExists vars (bindVars f bvs)) $ BySubcontext ids)
                     ]))
-
-trivial bvs =
-  do reserved "Trivial."
-     id <- newId
-     return $ Statement id Top Assumed
 
 
 -- TODO join with universallyQuantify
@@ -455,7 +465,7 @@ or' =
   do spaces
      reserved "or"
      spaces
-     return And
+     return Or
 
 not' :: PS Formula
 not' = 

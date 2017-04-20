@@ -1,6 +1,7 @@
 Include equality.
 
 Let A,B be set.
+Let x be element.
 
 Notation in: a ϵ A.
 Definition equality: A = B iff for all x. x ϵ A iff x ϵ B. 
@@ -19,10 +20,18 @@ Definition intersection: in(x,intersection(A,B)) iff x ϵ A and x ϵ B.
 Proposition intersectionSet: set(intersection(A,B)).
 
 Notation comp: ∁(A).
-Definition comp: in(x,comp(A)) iff not x ϵ A.
+Definition comp: for all x. element(x) implies (in(x,comp(A)) iff not in(x,A)).
 Proposition compSet: set(comp(A)).
 
-
+# Lemma: equal(comp(comp(A)),A).
+# Proof: 
+#     Proof that subset(comp(comp(A)),A):
+#         Assume in(x,comp(comp(A))).
+#         Then not in(x,comp(A)).
+#         Then not not in(x,A).
+#         Hence in(x,A).
+#     Proof that subset(A,comp(comp(A))): Obvious.
+# qed.
 
 # Definition intersection: x ϵ (A ∩ B) iff x ϵ A and x ϵ B.
 # ⊆ ⊇ ⊈ ⊉   ⊊   ⊋

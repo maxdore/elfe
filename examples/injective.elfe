@@ -3,17 +3,16 @@ Include functions.
 Let f: A -> B.
 Let g: B -> C.
 
-# ![Vf]: ![VA]:(![VB] : ((sfunction(VF,VA,VB)) => (! [Vg] : (! [VC] : ((sfunction(Vg,VB,VC)) => 
-#     ((injective(composition(Vg,Vf))) 
-#        => (injective(VF))))))))
-
 Lemma: injective(composition(g,f)) implies f is injective.
 Proof:
     Assume injective(composition(g,f)).
     Assume relapp(f,x1,y) and relapp(f,x2,y).
     Take z such that relapp(composition(g,f),x1,z) and relapp(composition(g,f),x2,z).
-    Hence sequal(x1,x2).
+    Hence equal(x1,x2).
     Hence f is injective.
 qed.
 
 
+# ![Vf]: ![VA]:(![VB] : ((sfunction(VF,VA,VB)) => (! [Vg] : (! [VC] : ((sfunction(Vg,VB,VC)) => 
+#     ((injective(composition(Vg,Vf))) 
+#        => (injective(VF))))))))

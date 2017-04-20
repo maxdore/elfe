@@ -79,7 +79,7 @@ eprover = Prover "../prover/E/PROVER/eprover" ["--definitional-cnf=24", "-s", "-
 z3 = Prover "../prover/Z3/build/z3_wrapper.sh" [] ["% SZS status Theorem"] ["% SZS status CounterSatisfiable"] ["% SZS status GaveUp"]
 
 prove :: String -> IO ProofStatus
-prove s = runATP s z3
+prove s = runATP s eprover
   
 runATP :: String -> Prover -> IO ProofStatus
 runATP task (Prover command args provedMessage disprovedMessage unknownMessage) = do

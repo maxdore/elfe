@@ -5,17 +5,24 @@ import Debug.Trace
 
 data Term = Cons String [Term]
            | Var String
-  deriving (Eq)
+
+instance Eq Term where
+    t == t' = (show t) == (show t')
+
 instance Show Term where
   show (Var s) = "" ++ s
   show (Cons s terms) = s ++ "(" ++ (intercalate "," $ map show terms) ++ ")" 
+
 
 data Formula = Impl Formula Formula  | Iff Formula Formula
              | Atom String [Term]    | Not Formula
              | Top                   | Bot
              | Or Formula Formula    | And Formula Formula
              | Exists String Formula | Forall String Formula
-  deriving (Eq)
+
+instance Eq Formula where
+    f == f' = True --(show f) == (show f')
+
 instance Show Formula where
   show (Impl l r)    = "(" ++ (show l) ++ ") => (" ++ (show r) ++ ")"
   show (Iff l r)     = "(" ++ (show l) ++ ") <=> (" ++ (show r) ++ ")"
