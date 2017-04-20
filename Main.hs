@@ -16,7 +16,7 @@ main = do
                 let included = includeLibraries raw
                 --putStrLn included
                 problem <- parseString included
-                print problem
+                putStrLn $ "--------------------------PARSED PROBLEM--------------------------\n" ++ (show problem) ++ "\n---------------------------VERIFICATION---------------------------" 
                 res <- verify problem
                 putStrLn $ show res
     _ -> error "too many arguments - just give the file"

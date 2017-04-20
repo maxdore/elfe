@@ -152,6 +152,7 @@ stat2Conj [(Statement _ f _)] = f
 stat2Conj ((Statement _ f _):xs) = f `And` (stat2Conj xs)
 
 formulas2Conj :: [Formula] -> Formula
+formulas2Conj [] = Top -- TODO why tho?
 formulas2Conj [f] = f
 formulas2Conj (f:fs) = f `And` formulas2Conj fs
 

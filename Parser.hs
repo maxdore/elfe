@@ -93,12 +93,13 @@ newId = do
 
 elfeParser :: PS [Statement]
 elfeParser = do
-  secs <- many $   newContext
+  secs <- many1 $   newContext
                <|> notation
-               <|> let'
+               <|> assign
                <|> definition
-               <|> proposition
                <|> lemma
+               <|> proposition
+               <|> fail "No section could be applied"
   return $ foldr (++) [] secs
 
 
@@ -115,6 +116,7 @@ insertPlaceholders [x] = [x]
 insertPlaceholders (x:y:xs) | x /= "" && y /= "" = x : "" : insertPlaceholders (y : xs)
                             | otherwise          = x : (insertPlaceholders (y:xs))
 
+notation :: PS [Statement]
 notation =
   do reserved "Notation"
      name <- eid
@@ -124,7 +126,8 @@ notation =
      updateState $ addSugar (name, insertPlaceholders $ map unpack $ split (`elem` (['a'..'z'] ++ ['A'..'Z'])) $ pack sugar)
      return []
 
-let' =
+assign :: PS [Statement]
+assign =
   do reserved "Let"
      spaces
      (try letBe) <|> try letRaw
@@ -166,9 +169,10 @@ proposition =
 
 lemma :: PS [Statement]
 lemma =
-  do reserved "Lemma:"
+  do reserved "Lemma"
+     id <- givenOrNewId
      goal  <- fof
-     id <- newId
+     reserved "."
      -- let managment
      cgoal <- letify goal
      lets <- lets <$> getState
@@ -176,8 +180,7 @@ lemma =
      assumeId <- newId
      let assumeLets = Statement assumeId (bindVars (formulas2Conj lets) bvs) Assumed
      -- end
-     reserved "."
-     derivation <- (direct goal bvs) <|> (contradiction goal bvs)
+     derivation <- try (direct goal bvs) <|> try (contradiction goal bvs) <|> try (notProved goal bvs)
      return [(Statement id cgoal (BySequence (assumeLets:derivation)))]
 
 
@@ -187,25 +190,32 @@ direct :: Formula -> [String] -> PS [Statement]
 direct goal bvs = 
   do reserved "Proof:"
      derivation <- derive (bindVars goal bvs) bvs
-     qed
+     reserved "qed."
      return derivation
 
 contradiction :: Formula -> [String] -> PS [Statement]
 contradiction goal bvs = 
   do reserved "Proof by contradiction:"
      derivation <- derive ((Not goal) `Impl` Bot) []
-     qed
+     reserved "qed."
      return derivation
 
-qed = string "qed" <|> string "∎"
- 
+notProved :: Formula -> [String] -> PS [Statement]
+notProved goal bvs =
+  do reserved "Obvious."
+     id <- newId
+     return [(Statement id (bindVars goal bvs) ByContext)]
 
+
+-- PROOF TACTICS
+ 
 derive :: Formula -> [String] -> PS [Statement]
-derive goal bvs =     try (trivial goal bvs) 
+derive goal bvs =     try (notProved goal bvs) 
                   <|> try (splitGoal goal bvs)
                   <|> try (unfold goal bvs) 
                   <|> try (enfold goal bvs) 
                   <|> try (finalGoal goal bvs)
+
 
 -- split
 
@@ -227,13 +237,6 @@ splitGoal goal bvs =
      let soundness = Statement soundnessId (bindVars soundnessF bvs) ByContext
      return [(Statement id goal (BySplit (soundness:subProofs)))]
 
-
--- trivial throws at ATP
-trivial :: Formula -> [String] -> PS [Statement]
-trivial goal bvs =
-  do reserved "Obvious."
-     id <- newId
-     return [(Statement id (bindVars goal bvs) ByContext)]
 
 
 -- unfold the goal formula
