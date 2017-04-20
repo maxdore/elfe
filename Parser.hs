@@ -71,6 +71,10 @@ type PS = ParsecT String ParserState Identity
 
 -- ID MANAGMENT
 
+eid =
+  do s <- many1 alphaNum
+     return s
+
 givenOrNewId = undefId <|> defId
 
 undefId = 
@@ -419,25 +423,26 @@ iff =
      spaces
      return Iff
 
-v = 
+forall :: PS Formula
+forall =
+  do reserved "for all"
+     try forallRaw <|> forallAtom
+
+forallRaw :: PS Formula
+forallRaw = 
   do var <- eid 
      spaces
      reserved "."
      f <- fof
      return (Forall var f)
 
-a = 
+forallAtom :: PS Formula
+forallAtom = 
   do atom <- atom
      spaces
      reserved "."
      f <- fof
      return $ universallyQuantify (getVarsOfFormula atom) (atom `Impl` f) 
-
-
-forall :: PS Formula
-forall =
-  do reserved "for all"
-     try v <|> a
 
 exists :: PS Formula
 exists =
@@ -480,23 +485,69 @@ bot =
   do string "contradiction" <|> string "⊥"
      return Bot
 
-atom :: PS Formula
-atom = try is <|> try rawAtom <|> try sugaredAtom
 
-is = 
-  do name <- many alphaNum
+-- ATOM PARSING
+
+atom :: PS Formula
+atom = do
+  (name,terms) <- try functionIs <|> try function
+  return $ Atom name terms
+
+term :: PS Term
+term = (try cons) <|> var 
+
+cons :: PS Term
+cons = do 
+  (name,terms) <- try function  
+  return $ Cons name terms
+
+var :: PS Term
+var =
+  do var <- eid
+     trace ("Var found " ++ var) return (Var var)
+
+function :: PS (String, [Term])
+function = try functionRaw <|> try functionSugared
+
+
+functionRaw :: PS (String, [Term])
+functionRaw =
+  do name <- many alphaNum 
+     reservedOp "("
+     terms <- term `sepBy` (do {char ','; spaces})
+     reserved ")"
+     return (name,terms)
+
+functionIs :: PS (String, [Term])
+functionIs = 
+  do term <- term
      spaces
      reserved "is"
-     predicate <- many alphaNum
-     return (Atom predicate [Var name])
+     name <- many alphaNum
+     return (name, [term])
 
-rawAtom =
-  do predicate <- many alphaNum 
-     reservedOp "("
-     terms <- term `sepBy` (char ',')
-     reserved ")"
-     return (Atom predicate terms)
 
+
+ops =   (try $ string " implies") 
+    <|> (try $ string " and") 
+    <|> (try $ string " iff") 
+    <|> (try $ string " or") 
+    <|> (try $ string "not") 
+    <|> (try $ string " is") 
+    <|> (try $ string "(") 
+    <|> (try $ string ")") 
+    <|> (try $ string ",") 
+    <|> (try $ string ".") 
+
+functionSugared :: PS (String, [Term])
+functionSugared =
+  do raw <- lookAhead $ manyTill (try anyChar) $ lookAhead ops
+     ss <- sugars <$> getState
+     case matchSugars ss raw of
+        Nothing -> trace (raw ++ " not matched") fail "nope" -- return ("",[]) 
+        Just function -> do
+          ignore <- manyTill (try anyChar) $ lookAhead ops
+          trace (raw ++ " matched! ") return function
 
 strPrefix :: String -> String
 strPrefix [] = []
@@ -514,39 +565,13 @@ matches (c:cs) raw ts | c == ""   = if length (strPrefix raw) > 0
                                       then matches cs (drop (length c) raw) ts
                                       else Nothing
 
-matchSugars :: [(String, [String])] -> String -> Maybe Formula
+matchSugars :: [(String, [String])] -> String -> Maybe (String, [Term])
 matchSugars [] _ = Nothing
 matchSugars ((id,s):ss) raw = 
     case matches s raw [] of
       Nothing -> matchSugars ss raw -- trace (show s ++ " not matched")
-      Just ts -> Just $ Atom id $ reverse ts
+      Just ts -> Just (id, reverse ts)
  
-ops = (try $ string " implies") <|> (try $ string " and") <|> (try $ string " iff") <|> (try $ string " or") <|> (try $ string "not") <|> (try $ string " contradictioncontradiction") 
 
-sugaredAtom =
-  do raw <- lookAhead $ manyTill (try anyChar) $ lookAhead $ (try $ string ".") <|> ops
-     ss <- sugars <$> getState
-     case matchSugars ss raw of
-        Nothing -> trace (raw ++ " not matched") return Bot 
-        Just f -> do
-          ignore <- manyTill (try anyChar) $ lookAhead $ (try $ string ".") <|> ops
-          trace (raw ++ " matched! "++ show f) return f
 
-term :: PS Term
-term = (try cons) <|> var 
- 
-cons =
-  do predicate <- many alphaNum 
-     reservedOp "("
-     terms <- term `sepBy` (char ',')
-     reserved ")"
-     return (Cons predicate terms)
-
-eid =
-  do s <- many1 alphaNum
-     return s
-
-var =
-  do var <- eid
-     return (Var var)
 

@@ -1,16 +1,19 @@
-Definition def: blab(asd).
-Definition def: iahdslkajsdl(asd).
+Notation in: a ϵ A.
+Notation union: A ∪ B.
 
-Lemma blub: blub(asd). 
-Proof: Then blab(asd). qed.
+Definition: relapp(blub, kaj(ihsad)).
+Definition: comp(A ∪ B). 
+Definition: A ∪ B is set.
+# Definition: a ϵ (A ∪ B). 
 
-Lemma asdasd: asdasd(asd). 
-Proof: Then blab(asd). qed.
 
 
-# Notation in: a ϵ A.
-# Notation union: A ∪ B.
+
+# Definition def: blab(asd).
+# Definition def: iahdslkajsdl(asd).
 # 
-# Definition: relapp(blub).
-# Definition: a ϵ (A ∪ B). # in(a,union(A,B))
-# Definition: A ∪ B is set. # in(a,union(A,B))
+# Lemma blub: blub(asd). 
+# Proof: Then blab(asd). qed.
+# 
+# Lemma asdasd: asdasd(asd). 
+# Proof: Then blab(asd). qed.
