@@ -3,20 +3,24 @@ Include equality.
 Let A,B be set.
 Let x be element.
 
-Notation in: a ϵ A.
-Definition equality: A = B iff for all x. x ϵ A iff x ϵ B. 
+Notation in: a ∈ A.
+Notation notin: a ∉ A.
+
+Definition notin: a ∉ A iff not a ∈ A.
+
+Definition equality: A = B iff for all x. x ∈ A iff x ∈ B. 
 
 Notation subset: A ⊆ B.
-Definition subset: A ⊆ B iff for all x ϵ A. x ϵ B. 
+Definition subset: A ⊆ B iff for all x ∈ A. x ∈ B. 
 
 Proposition: A = B iff A ⊆ B and B ⊆ A.
 
 Notation union: A ∪ B.
-Definition union: in(x,union(A,B)) iff x ϵ A or x ϵ B.
+Definition union: in(x,union(A,B)) iff x ∈ A or x ∈ B.
 Proposition unionSet: set(union(A,B)).
 
 Notation intersection: A ∩ B.
-Definition intersection: in(x,intersection(A,B)) iff x ϵ A and x ϵ B.
+Definition intersection: in(x,intersection(A,B)) iff x ∈ A and x ∈ B.
 Proposition intersectionSet: set(intersection(A,B)).
 
 Notation comp: ∁(A).
@@ -33,7 +37,7 @@ Proof:
     Proof that subset(A,comp(comp(A))): Obvious.
 qed.
 
-# Definition intersection: x ϵ (A ∩ B) iff x ϵ A and x ϵ B.
+# Definition intersection: x ∈ (A ∩ B) iff x ∈ A and x ∈ B.
 # ⊆ ⊇ ⊈ ⊉   ⊊   ⊋
 
 

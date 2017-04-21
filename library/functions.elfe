@@ -3,14 +3,14 @@ Include sets.
 Notation function: f: A -> B.
 
 Definition function: for all f. for all A. for all B. 
-    f: A -> B iff for all x ϵ A. exists y. y ϵ B and 
+    f: A -> B iff for all x ∈ A. exists y. y ∈ B and 
         relapp(f,x,y) and 
-        (for all y2 ϵ B. y = y2 or not relapp(f,x,y2)).
+        (for all y2 ∈ B. y = y2 or not relapp(f,x,y2)).
 
 Let f: A -> B.
 Let g: B -> C.
 
-Definition composition: for all x. for all y. for all z. x ϵ A and y ϵ B and z ϵ C implies
+Definition composition: for all x. for all y. for all z. x ∈ A and y ∈ B and z ∈ C implies
         (function(composition(g,f),A,C)) and
         (relapp(composition(g,f),x,z) iff relapp(f,x,y) and relapp(g,y,z)).
 
@@ -24,6 +24,6 @@ Definition injective: f is injective iff
     for all x1. for all x2. for all y. relapp(f,x1,y) and relapp(f,x2,y) implies x1 = x2.
 
 Definition surjective: f is surjective iff
-    for all y ϵ B. exists x. x ϵ A and relapp(f,x,y).
+    for all y ∈ B. exists x. x ∈ A and relapp(f,x,y).
 
 # Notation comp: f ∘ g.

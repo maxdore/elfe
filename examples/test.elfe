@@ -1,10 +1,10 @@
-Notation in: a ϵ A.
+Notation in: a ∈ A.
 Notation union: A ∪ B.
 
+Definition: a ∈ (C ∪ B). 
 Definition: relapp(blub, kaj(ihsad)).
 Definition: comp(A ∪ B). 
 Definition: A ∪ B is set.
-# Definition: a ϵ (A ∪ B). 
 
 
 

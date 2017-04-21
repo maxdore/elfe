@@ -3,18 +3,19 @@ Include sets.
 Let A,B be set.
 Let x be an element.
 
-Lemma: equal(comp(union(A,B)),intersection(comp(A),comp(B))).
+Lemma: equal(comp(A ∪ B),intersection(comp(A),comp(B))).
 Proof:
-    Proof that subset(comp(union(A,B)),intersection(comp(A),comp(B))):
-        Assume in(x,comp(union(A,B))).
-        Then not in(x,union(A,B)).
-        Then (not in(x,A)) and (not in(x,B)).
+    Proof that subset(comp(A ∪ B),intersection(comp(A),comp(B))):
+        Assume in(x,comp(A ∪ B)).
+        Then not in(x,A ∪ B).
+        Then (not x ∈ A) and (not x ∈ B).
+        # Then x ∉ A and x ∉ B.
         Then in(x,comp(A)) and in(x,comp(B)).
         Hence in(x,intersection(comp(A),comp(B))).
-    Proof that subset(intersection(comp(A),comp(B)),comp(union(A,B))):
+    Proof that subset(intersection(comp(A),comp(B)),comp(A ∪ B)):
         Assume in(x,intersection(comp(A),comp(B))).
         Then in(x,comp(A)) and in(x,comp(B)).
-        Then (not in(x,A)) and (not in(x,B)).
-        Then not in(x,union(A,B)).
-        Hence in(x,comp(union(A,B))).
+        Then (not x ∈ A) and (not x ∈ B).
+        Then not in(x,A ∪ B).
+        Hence in(x,comp(A ∪ B)).
 qed.
