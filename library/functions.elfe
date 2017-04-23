@@ -10,15 +10,16 @@ Definition function: for all f. for all A. for all B.
 Let f: A -> B.
 Let g: B -> C.
 
+Notation composition: g∘f.
 Definition composition: for all x. for all y. for all z. x ∈ A and y ∈ B and z ∈ C implies
-        (function(composition(g,f),A,C)) and
-        (relapp(composition(g,f),x,z) iff relapp(f,x,y) and relapp(g,y,z)).
+        (function(g∘f,A,C)) and
+        ((relapp(f,x,y) and relapp(g,y,z)) implies relapp(g∘f,x,z)).
 
 Definition functionClosure:
     for all x. for all y. x = y implies exists z. relapp(f,x,z) and relapp(f,y,z).
 
 Proposition: for all c. for all d. for all e. relapp(f,c,e) and relapp(f,d,e) implies 
-            exists m. relapp(composition(g,f),c,m) and relapp(composition(g,f),d,m).
+            exists m. relapp(g∘f,c,m) and relapp(g∘f,d,m).
 
 Definition injective: f is injective iff
     for all x1. for all x2. for all y. relapp(f,x1,y) and relapp(f,x2,y) implies x1 = x2.
@@ -26,4 +27,3 @@ Definition injective: f is injective iff
 Definition surjective: f is surjective iff
     for all y ∈ B. exists x. x ∈ A and relapp(f,x,y).
 
-# Notation comp: f ∘ g.

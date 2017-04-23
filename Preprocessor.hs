@@ -4,8 +4,6 @@ import Data.List
 import Data.Maybe (listToMaybe)
 import System.IO.Unsafe (unsafePerformIO)
 
-import Parser (strPrefix)
-
 incMarker :: String
 incMarker = "Include "
 
@@ -25,3 +23,7 @@ findSubstring :: Eq a => [a] -> [a] -> Maybe Int
 findSubstring pat str = findIndex (isPrefixOf pat) (tails str) 
 
 
+strPrefix :: String -> String
+strPrefix [] = []
+strPrefix (x:xs) | x `elem` (['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9'])  = x : strPrefix xs -- TODO match all possible variables!!!
+                 | otherwise  = [] 

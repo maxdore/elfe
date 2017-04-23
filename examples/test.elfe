@@ -1,6 +1,9 @@
+Notation equal: x = y.
 Notation in: a ∈ A.
 Notation union: A ∪ B.
 
+
+Definition: comp(A ∪ B) = intersection(comp(A),comp(B))
 Definition: a ∈ (C ∪ B). 
 Definition: relapp(blub, kaj(ihsad)).
 Definition: comp(A ∪ B). 

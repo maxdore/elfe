@@ -3,16 +3,13 @@ Include functions.
 Let f: A -> B.
 Let g: B -> C.
 
-Lemma: injective(composition(g,f)) implies f is injective.
+Lemma: g∘f is injective implies f is injective.
 Proof:
-    Assume injective(composition(g,f)).
+    Assume g∘f is injective.
     Assume relapp(f,x1,y) and relapp(f,x2,y).
-    Take z such that relapp(composition(g,f),x1,z) and relapp(composition(g,f),x2,z).
-    Hence equal(x1,x2).
+    Take z such that relapp(g∘f,x1,z) and relapp(g∘f,x2,z).
+    Hence x1 = x2.
     Hence f is injective.
 qed.
 
 
-# ![Vf]: ![VA]:(![VB] : ((sfunction(VF,VA,VB)) => (! [Vg] : (! [VC] : ((sfunction(Vg,VB,VC)) => 
-#     ((injective(composition(Vg,Vf))) 
-#        => (injective(VF))))))))

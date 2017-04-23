@@ -3,9 +3,10 @@ module Parser where
 
 import System.IO
 import Control.Monad
+import Control.Monad.Trans (lift)
 import Data.List
-import Data.Text (split, pack, unpack)
-import Data.Char (isLetter)
+import Data.Text (split, pack, unpack, strip)
+import Data.Char (isLetter, isSpace)
 
 import Text.Parsec.Prim (ParsecT)
 import Text.ParserCombinators.Parsec
@@ -494,7 +495,18 @@ atom = do
   return $ Atom name terms
 
 term :: PS Term
-term = (try cons) <|> var 
+term = try termParentheses <|> try cons <|> var 
+
+termParentheses :: PS Term
+termParentheses = do
+    trace ("CHECK PARENS") spaces
+    reservedOp " ("
+    spaces
+    t <- term
+    spaces
+    reserved ")"
+    spaces
+    return t
 
 cons :: PS Term
 cons = do 
@@ -504,7 +516,7 @@ cons = do
 var :: PS Term
 var =
   do var <- eid
-     trace ("Var found " ++ var) return (Var var)
+     trace ("found var '" ++ var ++ "'") return (Var var)
 
 function :: PS (String, [Term])
 function = try functionRaw <|> try functionSugared
@@ -512,8 +524,9 @@ function = try functionRaw <|> try functionSugared
 
 functionRaw :: PS (String, [Term])
 functionRaw =
-  do name <- many alphaNum 
+  do name <- try $ many alphaNum 
      reservedOp "("
+     trace ("found raw function with name '" ++ name ++ "'") lookAhead $ try spaces
      terms <- term `sepBy` (do {char ','; spaces})
      reserved ")"
      return (name,terms)
@@ -541,37 +554,50 @@ ops =   (try $ string " implies")
 
 functionSugared :: PS (String, [Term])
 functionSugared =
-  do raw <- lookAhead $ manyTill (try anyChar) $ lookAhead ops
-     ss <- sugars <$> getState
-     case matchSugars ss raw of
-        Nothing -> trace (raw ++ " not matched") fail "nope" -- return ("",[]) 
-        Just function -> do
-          ignore <- manyTill (try anyChar) $ lookAhead ops
-          trace (raw ++ " matched! ") return function
+  do ss <- sugars <$> getState
+     matched <- foldl (<|>) (fail "") (map (\s -> try $ trySugar s) ss)
+     return matched
 
-strPrefix :: String -> String
-strPrefix [] = []
-strPrefix (x:xs) | x `elem` (['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9'])  = x : strPrefix xs -- TODO match all possible variables!!!
-                 | otherwise  = [] 
+trySugar :: (String,[String]) -> PS (String,[Term])
+trySugar (name, ps) = 
+  do trace ("trying sugar '" ++ name ++ "' with pattern " ++ show ps) try spaces
+     let termsM = foldl (++) [] (map (\p -> return $ try (matches p)) ps)
+     terms <- foldr (liftM2 (:)) (return []) termsM
+     trace ("sugar successful! " ++ concat (map show terms)) try spaces
+     return (name,filter (/= Var "BULLSHIT")terms)
 
-matches :: [String] -> String -> [Term] -> Maybe [Term]
-matches [] [] ts      = Just ts
-matches _  [] _       = Nothing
-matches [] _  _       = Nothing
-matches (c:cs) raw ts | c == ""   = if length (strPrefix raw) > 0
-                                      then matches cs (drop (length $ strPrefix raw) raw) ((Var $ strPrefix raw):ts)
-                                      else Nothing
-                      | otherwise = if c `isPrefixOf` raw 
-                                      then matches cs (drop (length c) raw) ts
-                                      else Nothing
+matches :: String -> PS Term
+matches p | p == "" = do term <- try var <|> try term
+                         trace ("found term '" ++ show term ++ "'") try spaces
+                         return term
+          | otherwise = do trace ("search for pattern '" ++ trim p ++ "'") try spaces
+                           reservedOp $ trim p
+                           trace ("found pattern '" ++ p ++ "'") try spaces
+                           return $ Var "BULLSHIT"
 
-matchSugars :: [(String, [String])] -> String -> Maybe (String, [Term])
-matchSugars [] _ = Nothing
-matchSugars ((id,s):ss) raw = 
-    case matches s raw [] of
-      Nothing -> matchSugars ss raw -- trace (show s ++ " not matched")
-      Just ts -> Just (id, reverse ts)
+trim :: String -> String
+trim = f . f
+   where f = reverse . dropWhile isSpace
+
+
+--matchSugars :: [(String, [String])] -> String -> PS (Maybe (String, [Term]))
+--matchSugars [] _ = return Nothing
+--matchSugars ((id,s):ss) raw = 
+--  do ts <- matches s raw []
+--     case ts of
+--       Nothing -> matchSugars ss raw
+--       Just ts -> return $ Just (id, reverse ts)
  
 
 
 
+--do x1 <- action1
+--   x2 <- action2
+--   action3 x1 x2
+
+--action1 >>= \ x1 -> action2 >>= \ x2 -> action3 x1 x2
+
+
+--do t1 <- matches p
+--   t2 <- matches p
+--   matches p >>= \ t1 
