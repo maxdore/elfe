@@ -1,5 +1,18 @@
-fof(sfunction, axiom, (! [Vf] : (! [VA] : (! [VB] : ((function(Vf,VA,VB)) <=> (! [Vx] : ((in(Vx,VA)) => (? [Vy] : (((in(Vy,VB)) & (relapp(Vf,Vx,Vy))) & (! [Vy2] : ((in(Vy2,VB)) => ((equal(Vy,Vy2)) | (~(relapp(Vf,Vx,Vy2))))))))))))))).
-fof(s18, axiom, ((function(bf,bA,bB)))).
-fof(s15, axiom, (! [Vf] : (! [VA] : (! [VB] : ((function(Vf,VA,VB)) => ((equal(funApp(Vf,x),funApp(Vf,y))) => (? [Vz] : ((relapp(Vf,x,Vz)) & (relapp(Vf,y,Vz)))))))))).
-fof(s23, axiom, (equal(funApp(bf,bx1),funApp(bf,bx2)))).
-fof(s20, conjecture, (? [Vy] : ((relapp(bf,bx1,Vy)) & (relapp(bf,bx2,Vy))))).
+fof(scompSet, axiom, (! [VA] : ((set(VA)) => (set(comp(VA)))))).
+fof(scomp, axiom, (! [VA] : ((set(VA)) => (! [Vx] : ((element(Vx)) => ((in(Vx,comp(VA))) <=> (~(in(Vx,VA))))))))).
+fof(sintersectionSet, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => (set(intersection(VA,VB)))))))).
+fof(sintersection, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => (! [Vx] : ((element(Vx)) => ((in(Vx,intersection(VA,VB))) <=> ((in(Vx,VA)) & (in(Vx,VB))))))))))).
+fof(sunionSet, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => (set(union(VA,VB)))))))).
+fof(sunion, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => (! [Vx] : ((element(Vx)) => ((in(Vx,union(VA,VB))) <=> ((in(Vx,VA)) | (in(Vx,VB))))))))))).
+fof(s0, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => ((equal(VA,VB)) <=> ((subset(VA,VB)) & (subset(VB,VA))))))))).
+fof(ssubset, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => (! [Vx] : ((element(Vx)) => ((subset(VA,VB)) <=> ((in(Vx,VA)) => (in(Vx,VB))))))))))).
+fof(sequality, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => (! [Vx] : ((element(Vx)) => ((equal(VA,VB)) <=> ((in(Vx,VA)) <=> (in(Vx,VB))))))))))).
+fof(snotin, axiom, (! [VA] : ((set(VA)) => ((notin(a,VA)) <=> (~(in(a,VA))))))).
+fof(sunequal, axiom, ((unequal(x,y)) <=> (~(equal(x,y))))).
+fof(stransitive, axiom, (! [Vx] : (! [Vy] : (! [Vz] : (((equal(Vx,Vy)) & (equal(Vy,Vz))) => (equal(Vx,Vz))))))).
+fof(ssymmetric, axiom, (! [Vx] : (! [Vy] : ((equal(Vx,Vy)) => (equal(Vy,Vx)))))).
+fof(sreflexive, axiom, (! [Vx] : (equal(Vx,Vx)))).
+fof(s2, axiom, ((set(bA)) & ((set(bB)) & (element(bx))))).
+fof(s5, axiom, (~(in(bx,comp(bA))))).
+fof(s7, axiom, (in(bx,comp(comp(bA))))).
+fof(s6, conjecture, (~(~(in(bx,bA))))).

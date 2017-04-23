@@ -7,6 +7,7 @@ import System.IO
 import System.IO.Error
 import Control.Concurrent
 import Control.Concurrent.Chan
+import Control.Monad
 
 import Debug.Trace
 
@@ -23,25 +24,15 @@ data Prover = Prover { name :: String
 eprover = Prover "E Prover" "../prover/E/PROVER/eprover" ["--cpu-limit=10", "-s", "--auto-schedule"] ["# SZS status Theorem"] ["# SZS status CounterSatisfiable"] ["uns"]
 z3 = Prover "Z3" "../prover/Z3/build/z3_wrapper.sh" [] ["% SZS status Theorem"] ["% SZS status CounterSatisfiable"] ["% SZS status GaveUp"]
 
+provers = [z3, eprover]
+
 prove :: String -> IO ProofStatus
 prove s = do
     done <- newEmptyMVar
-    z3Chan <- newChan
-    eproverChan <- newChan
-    eproverId <- forkIO $ runATP eproverChan s eprover done
-    z3Id <- forkIO $ runATP z3Chan s z3 done
+    threads <- mapM (\p -> newChan >>= \ c -> forkIO $ runATP c s p done) provers
     prover <- readMVar done
-    case prover of
-      "Z3" -> do
-          status <- readChan z3Chan
-          killThread z3Id
-          killThread eproverId
-          return status
-      "E Prover" -> do
-          status <- readChan eproverChan
-          killThread z3Id
-          killThread eproverId
-          return status
+    mapM killThread threads
+    trace (show threads) return Correct
 
 
 --runATP :: Chan ProofStatus -> String -> Prover -> IO ()
@@ -61,9 +52,7 @@ runATP channel task (Prover name command args provedMessage disprovedMessage unk
     hClose eh ; waitForProcess ph
 
     if pos
-      then do
-        trace ("PROVED by " ++ name) writeChan channel Correct
-        putMVar done name
+      then writeChan channel Correct >> putMVar done name
     else if neg
       then trace ("DISPROVED by " ++ name ++ "\n" ++ task) writeChan channel Incorrect
     else trace ("UNKNOWN by " ++ name ++ "\n" ++ ofl ++ task) writeChan channel Unknown
