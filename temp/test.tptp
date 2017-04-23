@@ -1,4 +1,3 @@
-p asd
 fof(sfunction, axiom, (! [Vf] : (! [VA] : (! [VB] : ((function(Vf,VA,VB)) <=> (! [Vx] : ((in(Vx,VA)) => (? [Vy] : (((in(Vy,VB)) & (relapp(Vf,Vx,Vy))) & (! [Vy2] : ((in(Vy2,VB)) => ((equal(Vy,Vy2)) | (~(relapp(Vf,Vx,Vy2))))))))))))))).
 fof(s18, axiom, ((function(bf,bA,bB)))).
 fof(s15, axiom, (! [Vf] : (! [VA] : (! [VB] : ((function(Vf,VA,VB)) => ((equal(funApp(Vf,x),funApp(Vf,y))) => (? [Vz] : ((relapp(Vf,x,Vz)) & (relapp(Vf,y,Vz)))))))))).

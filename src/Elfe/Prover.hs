@@ -5,25 +5,47 @@ import System.Process
 import System.Exit
 import System.IO
 import System.IO.Error
+import Control.Concurrent
+import Control.Concurrent.Chan
+
 import Debug.Trace
 
 import Elfe.Language
 
-data Prover = Prover { command :: String
+data Prover = Prover { name :: String
+                     , command :: String
                      , args :: [String]
                      , provedMessage :: [String]
                      , disprovedMessage :: [String]
                      , unknownMessage :: [String]
                      }
 
-eprover = Prover "../prover/E/PROVER/eprover" ["--definitional-cnf=24", "-s", "--print-statistics", "-R", "--print-version", "--proof-object", "--auto-schedule"] ["# SZS status Theorem"] ["# SZS status CounterSatisfiable"] ["uns"]
-z3 = Prover "../prover/Z3/build/z3_wrapper.sh" [] ["% SZS status Theorem"] ["% SZS status CounterSatisfiable"] ["% SZS status GaveUp"]
+eprover = Prover "E Prover" "../prover/E/PROVER/eprover" ["--cpu-limit=10", "-s", "--auto-schedule"] ["# SZS status Theorem"] ["# SZS status CounterSatisfiable"] ["uns"]
+z3 = Prover "Z3" "../prover/Z3/build/z3_wrapper.sh" [] ["% SZS status Theorem"] ["% SZS status CounterSatisfiable"] ["% SZS status GaveUp"]
 
 prove :: String -> IO ProofStatus
-prove s = runATP s z3
-  
-runATP :: String -> Prover -> IO ProofStatus
-runATP task (Prover command args provedMessage disprovedMessage unknownMessage) = do
+prove s = do
+    done <- newEmptyMVar
+    z3Chan <- newChan
+    eproverChan <- newChan
+    eproverId <- forkIO $ runATP eproverChan s eprover done
+    z3Id <- forkIO $ runATP z3Chan s z3 done
+    prover <- readMVar done
+    case prover of
+      "Z3" -> do
+          status <- readChan z3Chan
+          killThread z3Id
+          killThread eproverId
+          return status
+      "E Prover" -> do
+          status <- readChan eproverChan
+          killThread z3Id
+          killThread eproverId
+          return status
+
+
+--runATP :: Chan ProofStatus -> String -> Prover -> IO ()
+runATP channel task (Prover name command args provedMessage disprovedMessage unknownMessage) done = do
   let run = runInteractiveProcess command args Nothing Nothing
   do 
     (wh,rh,eh,ph) <- run
@@ -39,7 +61,9 @@ runATP task (Prover command args provedMessage disprovedMessage unknownMessage) 
     hClose eh ; waitForProcess ph
 
     if pos
-      then trace "PROVED" return Correct
+      then do
+        trace ("PROVED by " ++ name) writeChan channel Correct
+        putMVar done name
     else if neg
-      then trace ("DISPROVED\n" ++ task) return Incorrect
-    else trace ("UNKNOWN\n" ++ ofl ++ task) return Unknown
+      then trace ("DISPROVED by " ++ name ++ "\n" ++ task) writeChan channel Incorrect
+    else trace ("UNKNOWN by " ++ name ++ "\n" ++ ofl ++ task) writeChan channel Unknown

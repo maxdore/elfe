@@ -11,10 +11,8 @@ import Text.ParserCombinators.Parsec.Prim (runParser)
 import Text.ParserCombinators.Parsec.Error
 import GHC.Generics (Generic)
 
-import Language
-import Parser
-import Prover
-import Sequences
+
+import Elfe
 
 data ProblemStatus = NotParsed ParseError | Verified ProofStatus
   deriving (Show, Generic)
@@ -27,8 +25,9 @@ instance ToJSON ParseError where
 main = scotty 8000 $ do
   middleware $ staticPolicy (noDots >-> addBase "web")
   get "/api" $ do 
-    input <- param "problem"
-    status <- lift $ case (runParser elfeParser initParseState "" input) of
+    raw <- param "problem"
+    let included = includeLibraries raw
+    status <- lift $ case (runParser elfeParser initParseState "" included) of
         Left e  -> return $ NotParsed e
         Right r -> do
             res <- verify r
