@@ -6,7 +6,8 @@ Let g: B -> C.
 Lemma: g∘f is injective implies f is injective.
 Proof:
     Assume g∘f is injective.
-    Assume relapp(f,x1,y) and relapp(f,x2,y).
+    Assume equal(f{x1},f{x2}).
+    Take y such that relapp(f,x1,y) and relapp(f,x2,y).
     Take z such that relapp(g∘f,x1,z) and relapp(g∘f,x2,z).
     Hence x1 = x2.
     Hence f is injective.

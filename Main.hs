@@ -1,22 +1,24 @@
 import Control.Monad.Trans (lift)
 import System.Environment (getArgs)
 
-import Language
-import Preprocessor
-import Parser
-import Prover
-import Sequences
+import Elfe
 
+main :: IO ()
 main = do
   args <- getArgs;
   case args of
-    []    -> do res <- verSeq p (Context [] Empty) (return Correct) -- todo allow stdin 
-                putStrLn $ show res
+    []    -> do raw <- getContents
+                check raw
     [arg] -> do raw <- readFile arg
-                let included = includeLibraries raw
-                --putStrLn included
-                problem <- parseString included
-                putStrLn $ "--------------------------PARSING--------------------------\n" ++ (show problem) ++ "\n-------------------------VERIFYING-------------------------" 
-                res <- verify problem
-                putStrLn $ show res
+                check raw 
     _ -> error "too many arguments - just give the file"
+
+check :: String -> IO ()
+check raw = do
+    let included = includeLibraries raw
+    problem <- parseString included
+    putStrLn "--------------------------PARSING--------------------------"
+    putStrLn $ show problem
+    putStrLn "-------------------------VERIFYING-------------------------" 
+    res <- verify problem
+    putStrLn $ show res

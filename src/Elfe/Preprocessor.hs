@@ -1,4 +1,4 @@
-module Preprocessor where
+module Elfe.Preprocessor where
 
 import Data.List
 import Data.Maybe (listToMaybe)

@@ -1,5 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
-module Parser where
+module Elfe.Parser where
 
 import System.IO
 import Control.Monad
@@ -17,7 +16,7 @@ import Data.Functor.Identity (Identity)
 
 import Debug.Trace
 
-import Language
+import Elfe.Language
 
 languageDef =
   emptyDef { Token.commentStart    = "\"\"\""

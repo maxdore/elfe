@@ -10,6 +10,11 @@ Definition function: for all f. for all A. for all B.
 Let f: A -> B.
 Let g: B -> C.
 
+Notation funApp: f{x}.
+
+Proposition: equal(funApp(f,x),funApp(f,y)) implies exists z. (relapp(f,x,z) and relapp(f,y,z)).
+
+
 Notation composition: g∘f.
 Definition composition: for all x. for all y. for all z. x ∈ A and y ∈ B and z ∈ C implies
         (function(g∘f,A,C)) and

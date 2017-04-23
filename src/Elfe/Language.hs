@@ -1,7 +1,8 @@
-module Language where
+module Elfe.Language where
 
 import Data.List
 import Debug.Trace
+import GHC.Generics (Generic)
 
 data Term = Cons String [Term]
            | Var String
@@ -35,11 +36,25 @@ instance Show Formula where
   show (Exists v f)  = "? [" ++ quantifiedPrefix ++ v ++ "] : (" ++ (show $ replaceVar f v (quantifiedPrefix++v)) ++ ")"
   show (Forall v f)  = "! [" ++ quantifiedPrefix ++ v ++ "] : (" ++ (show $ replaceVar f v (quantifiedPrefix++v)) ++ ")"
 
-getLeft (Iff l r) = l
-getLeft (Forall v f) = getLeft f
 
-getRight (Iff l r) = r
-getRight (Forall v f) = getRight f
+data Context = Context [Statement] Context | Empty
+instance Show Context where
+  show (Context [] Empty) = ""
+  show (Context [] p) = show p
+  show (Context ((Statement id axiom proof):hs) p) = show (Context hs p) ++ "fof(" ++ id ++ ", axiom, (" ++ show axiom ++ ")).\n"
+
+restrContext :: [Statement] -> [String] -> [Statement]
+restrContext [] _ = []
+restrContext (s:sts) ids | getId s `elem` ids = s : restrContext sts ids
+                         | otherwise          = restrContext sts ids
+
+restrictContext :: Context -> [String] -> Context
+restrictContext (Context sts Empty) ids = Context (restrContext sts ids) Empty
+restrictContext (Context sts p) ids = Context sts $ restrictContext p ids
+
+data ProofStatus = Correct | Incorrect | Unknown
+  deriving (Eq, Show, Generic)
+
 
 quantifiedPrefix = "V"
 boundPrefix = "b"

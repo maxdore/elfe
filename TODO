@@ -1,0 +1,41 @@
+- concurrent provers
+- nested subproofs --> end marker necessary?
+- bind taken variable in take'
+- sat solver
+- unfolding of "Q x. P(x) -> R(x)" possible with "Assume P(x)".
+
+BUGS
+- formula Eq not working properly
+- nested atoms 
+- if final goal is directly given, the sequence does not necessarily belong to the goal (--> only allow direct derivations inside unfolding?)
+
+SANITY
+- no double includes of same library
+- check variables only quantified once
+- allow eid with alphanum and '. (only lower alpha as first??)
+
+LOWLEVEL PARSER FEATURES
+- exists atom(x). P  -->  exists x. atom(x) and P 
+- Q a,b,c. instead of Q a. Q b. Q c.
+
+FRONTEND
+- line-numbers correct also after preprocessing
+- ProofStatus per statement
+- mapping statement sequence -> orginal text
+- post request or /api
+
+
+SECOND ORDER FEATURES?
+improve functions notations
+
+
+PARAMETRIC DATATYPES -> proposition generator in preprocessor? or possible within parser? -> lookup second order to first order reductions
+(plus, zero) in Z is commutative group
+plus(A,zero) = A
+plus(A,minus(A)) = 0
+plus(A,plus(B,C)) = plus(plus(A,B),C)
+plus(A,B) = plus(B,A)
+
+PROOFS
+sqrt 2 irrational
+cantors theorem
