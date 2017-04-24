@@ -1,10 +1,10 @@
-- concurrent provers
 - nested subproofs --> end marker necessary?
 - bind taken variable in take'
 - sat solver
 - unfolding of "Q x. P(x) -> R(x)" possible with "Assume P(x)".
 
 BUGS
+- Z3 does not work in concurrent provers
 - formula Eq not working properly
 - nested atoms 
 - if final goal is directly given, the sequence does not necessarily belong to the goal (--> only allow direct derivations inside unfolding?)
@@ -39,3 +39,31 @@ plus(A,B) = plus(B,A)
 PROOFS
 sqrt 2 irrational
 cantors theorem
+arithmetic proof in ℤ ℚ ℝ ℙ
+
+
+
+
+<defined_predicate>    :== $distinct |
+                           $less | $lesseq | $greater | $greatereq |
+                           $is_int | $is_rat |
+                           $box_P | $box_i | $box_int | $box |
+                           $dia_P | $dia_i | $dia_int | $dia
+%----$distinct means that each of it's constant arguments are pairwise !=. It
+%----is part of the TFF syntax. It can be used only as a fact, not under any
+%----connective.
+<defined_infix_pred>   ::= <infix_equality> | <assignment>
+<infix_equality>       ::= =
+<infix_inequality>     ::= !=
+
+<constant>             ::= <functor>
+<functor>              ::= <atomic_word>
+<system_constant>      ::= <system_functor>
+<system_functor>       ::= <atomic_system_word>
+<defined_constant>     ::= <defined_functor>
+<defined_functor>      ::= <atomic_defined_word>
+<defined_functor>      :== $uminus | $sum | $difference | $product |
+                           $quotient | $quotient_e | $quotient_t | $quotient_f |
+                           $remainder_e | $remainder_t | $remainder_f |
+                           $floor | $ceiling | $truncate | $round |
+                           $to_int | $to_rat | $to_real

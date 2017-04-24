@@ -1,0 +1,2 @@
+fof(s6, axiom, ($sum(2,3) = 5)).
+fof(s7, conjecture, (! [X] : ((($is_int(X)) => (? [Y] : (=> $product(X,Y) = X)))))).

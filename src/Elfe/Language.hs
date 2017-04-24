@@ -12,6 +12,7 @@ instance Eq Term where
 
 instance Show Term where
   show (Var s) = "" ++ s
+  show (Cons s []) = s
   show (Cons s terms) = s ++ "(" ++ (intercalate "," $ map show terms) ++ ")" 
 
 

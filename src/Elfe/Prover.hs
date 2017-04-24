@@ -23,20 +23,24 @@ data Prover = Prover { name :: String
 
 eprover = Prover "E Prover" "../prover/E/PROVER/eprover" ["--cpu-limit=10", "-s", "--auto-schedule"] ["# SZS status Theorem"] ["# SZS status CounterSatisfiable"] ["uns"]
 z3 = Prover "Z3" "../prover/Z3/build/z3_wrapper.sh" [] ["% SZS status Theorem"] ["% SZS status CounterSatisfiable"] ["% SZS status GaveUp"]
+spass = Prover "SPASS" "../prover/SPASS/SPASS" ["-TPTP", "-Stdin"] ["SPASS beiseite: Proof found."] ["SPASS beiseite: Completion found."] ["SPASS beiseite: Ran out of time."]
+beagle = Prover "BEAGLE" "java -jar ~/bin/beagle/target/scala-2.11/beagle.jar" [] ["SPASS beiseite: Proof found."] ["SPASS beiseite: Completion found."] ["SPASS beiseite: Ran out of time."]
 
-provers = [z3, eprover]
+provers = [z3, eprover, spass]
 
 prove :: String -> IO ProofStatus
 prove s = do
     done <- newEmptyMVar
-    threads <- mapM (\p -> newChan >>= \ c -> forkIO $ runATP c s p done) provers
-    prover <- readMVar done
-    mapM killThread threads
-    trace (show threads) return Correct
-
+    chan <- newChan
+    threads <- mapM (\p -> forkIO $ runATP chan s p done) provers
+    timeoutThread <- forkIO $ timeout chan done
+    readMVar done
+    result <- readChan chan
+    mapM killThread $ threads++[timeoutThread]
+    return result
 
 --runATP :: Chan ProofStatus -> String -> Prover -> IO ()
-runATP channel task (Prover name command args provedMessage disprovedMessage unknownMessage) done = do
+runATP chan task (Prover name command args provedMessage disprovedMessage unknownMessage) done = do
   let run = runInteractiveProcess command args Nothing Nothing
   do 
     (wh,rh,eh,ph) <- run
@@ -52,7 +56,13 @@ runATP channel task (Prover name command args provedMessage disprovedMessage unk
     hClose eh ; waitForProcess ph
 
     if pos
-      then writeChan channel Correct >> putMVar done name
+      then trace ("PROVED by " ++ name) writeChan chan Correct >> putMVar done True
     else if neg
-      then trace ("DISPROVED by " ++ name ++ "\n" ++ task) writeChan channel Incorrect
-    else trace ("UNKNOWN by " ++ name ++ "\n" ++ ofl ++ task) writeChan channel Unknown
+      then trace ("DISPROVED by " ++ name ++ "\n" ++ task) writeChan chan Incorrect >> putMVar done True
+    else trace ("UNKNOWN by " ++ name ++ "\n" ++ ofl ++ task) return ()
+
+
+timeout chan done = do
+  threadDelay $ 10*1000000
+  trace ("TIMEOUT") writeChan chan Unknown >> putMVar done True
+  

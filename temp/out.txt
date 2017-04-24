@@ -1,0 +1,174 @@
+
+Usage: beagle [FLAG]... FILE
+flags:
+  -help 
+  This text
+
+  -version 
+  Show version number and exit
+
+  -t Integer
+  Timeout, in seconds. 0 means 7 days, default: 0
+
+  -auto 
+  Turn on automatic strategy selection. If on, beagle first tries to find a proof within the timelimit T/2,
+  where T is the Timeout in use, cf the -t flag. If the result is inconclusive after reaching this timelimit or before,
+  beagle spends the remaining time on finding a proof with the -genvars and -chaining flags on.
+  This flag is effective only when -genvars is not given at the command line.
+
+  -split [on|off|purebgc|nopurebgc]
+  Splitting: on: split whenever possible; off: never; purebgc: pure BG clauses only; nopurebgc: all but pure BG clauses, default: on
+
+  -rel Integer
+  Relevance filtering: only use clauses whose FG operators are transitively contained in the conjecture
+  FG operators, limiting the given number of steps for the transitive closure; -1 means no limit.
+  If the input file contains no conjecture formula this flag is ignored, default: -1
+
+  -chaining 
+  Turn on the chaining inference rule for inequations
+
+  -bgsimp Integer
+  Level of aggressivity of BG simplification. Valid values are:
+  0: no BG simplification at all. Only for test purposes
+  1: "cautious": (meant to be) complete. Essentially, evaluation of ground BG terms, safe unabstraction
+  2: "aggressive": artithmetic subterms are freely re-written, unsafe unabstraction of also FG terms
+  3: "ridiculous": extends "aggressive", no unabstraction at all
+, default: 2
+
+  -simpnew 
+  Turn on simplification of 'new' clauses by clauses in old and new clauses derived
+
+  -nodemod 
+  Turn off demodulation. Entails -nodefine. Useful only for debugging purposes
+
+  -nonlpp 
+  Do not add axioms for nonlinear multiplication
+
+  -keep 
+  Keep clauses over backtracking if possible
+
+  -iQE 
+  Try out the all new iQE solver on the input clauses, which must be BG. Just for debugging
+
+  -nodefine 
+  Disable the Define inference rule
+
+  -nobred 
+  Turn off backward reductions
+
+  -genvars 
+  BG sorted variables are taken as general variables, default is abstraction variables
+
+  -stdabst 
+  Use standard abstraction instead of weak abstraction
+
+  -hsp 
+  Use the hierarchic superposition calculus, i.e., -stdabst -bgsimp cautious -split 0
+
+  -include FILE
+  Include FILE. Relative file names are resolved wrt $TPTPHome
+
+  -lemmas FILE
+  Include FILE as a list of lemma clauses to be put into 'usable' straight away. Relative file names are resolved wrt $TPTPHome
+
+  -nopartinst 
+  Turn off partial instantiating superposition for finite sorts.
+
+  -ord [auto|LPO|KBO]
+  Ordering used to compare terms. Default is auto, which selects LPO for problems with arithmetics and KBO otherwise, default: auto
+
+  -negsel 
+  Selection function for clause literals. true: a negative literal is selected if there is one; false: some maximal literal is selected
+
+  -params [BG|FG]
+  Whether parameters are background or foreground operators, default: BG
+
+  -war Integer
+  Weight-Age ratio: a value of n means that n lightest or other (as per wgr) clauses are selected then one oldest clause. Use -1 to disable, default: 5
+
+  -wgr Integer
+  Weight-Goal ratio: a value of n means that n lightest or other (as per war) clauses are selected then one with a shortest derivation distance from the conjecture. Use -1 to disable, default: 9
+
+  -dewm Integer
+  Domain Element Weight Multiplier: how heavy domain elements weigh in clauses for selecting lightest clauses. Applies only to 'small' dom elements whose string representation is less than 3, default: 2
+
+  -wb Integer
+  Weight bound: maximum weight of clauses considered for derivations. 0 means no limit, default: 0
+
+  -cnfonly 
+  Stop after CNF conversion
+
+  -format [auto|smt|tff-ari|tff-int|tff-rat|tff-real|tff|cnf]
+  Format of input formulas. 'auto' selects 'smt' or 'tff-ari', depending on the extension of the input file name:
+  '.smt' or 'smt2' selects 'smt' (SMT-LIB format v2), otherwise 'tff-ari' (TPTP TFF format). 
+  'tff-ari'recognises any of 'tff-int', 'tff-rat' and 'tff-real', default: auto
+
+  -liasolver SOLVER
+  Use built-in SOLVER as the linear integer arithmetics background solver. One of 'cooper' or 'smt'. If given overrides -smtsolver flag
+
+  -smtsolver PATH
+  Full path to an external SMT solver executable to be used for linear rational/real arithmetics. Implicitly sets liasolver to 'smt' unless overridden by -liasolver
+
+  -cnf [standard|optimized]
+  which kind of CNF conversion to use, default: standard
+
+  -q 
+  Quiet
+
+  -d [off|inf|bg]
+  Debug: "inf" - prints current clause sets and inferences carried out; "bg": only useful for developers, default: off
+
+  -proof 
+  Write a refutation to STDOUT following a successful derivation
+
+  -lists 
+  Predefine the lists data type; only relevant for SMT-LIB input files
+
+  -arrays 
+  Predefine the array sort; only relevant for SMT-LIB input files
+
+  -longnames 
+  Display identifiers with their full names, i.e., including the sort information that is part of their names; usually only relevant for SMT-LIB input files
+
+  -test 
+  Ignore. Internal only for testing new code
+
+  -raw 
+  Display clauses in abstracted form ('raw')
+
+  -print [default|tff]
+  How to display clauses. In TFF mode clauses are output in TPTP-TFF format, but program output information remains, default: default
+
+  -tptp 
+  Absolute path to TPTP home to resolve relative include statements in TPTP files
+
+  -infer 
+  Do sort inference on operators which have $i sort. Useful for CNF or FOF input
+
+  -nomuc 
+  Do not search for a minimal unsatisfiable core for unsatisfiable sets of BG clauses
+
+  -lin 
+  Linear Strategy for Finite Beagle: Focus on repairing just one variable at a time
+
+  -me 
+  Use the Model Evolution calculus. Experimental and limited in functionality. In particular no equality.
+
+  -negassert 
+  In conjunction with -me, assert negative literals as well.
+
+  -inst 
+  Use clause instantiation when all else fails
+
+  -idx 
+  Use discrimination tree indexing for unit clauses in old
+
+  -x 
+  Try out experimental changes
+
+  -negconj 
+  Do not negate TFF conjecture clauses. Useful to prove counter-satisfiability.
+
+  -cooper-cache 
+  EXPERIMENTAL optimization to cooper: store successful evaluations of parameters between runs. Also prints a solution to the parameters at the end in case of saturation.
+
