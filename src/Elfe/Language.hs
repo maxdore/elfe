@@ -13,7 +13,7 @@ instance Eq Term where
 instance Show Term where
   show (Var s) = "" ++ s
   show (Cons s []) = s
-  show (Cons s terms) = s ++ "(" ++ (intercalate "," $ map show terms) ++ ")" 
+  show (Cons s terms) = functorToString s terms
 
 
 data Formula = Impl Formula Formula  | Iff Formula Formula
@@ -28,7 +28,7 @@ instance Eq Formula where
 instance Show Formula where
   show (Impl l r)    = "(" ++ (show l) ++ ") => (" ++ (show r) ++ ")"
   show (Iff l r)     = "(" ++ (show l) ++ ") <=> (" ++ (show r) ++ ")"
-  show (Atom n args) = n ++ "(" ++ (intercalate "," $ map show args) ++ ")"
+  show (Atom n terms) = functorToString n terms
   show (Not f)       = "~(" ++ (show f) ++ ")"
   show (Top)         = "$true"
   show (Bot)         = "$false"
@@ -36,6 +36,24 @@ instance Show Formula where
   show (And l r)     = "(" ++ (show l) ++ ") & (" ++ (show r) ++ ")"
   show (Exists v f)  = "? [" ++ quantifiedPrefix ++ v ++ "] : (" ++ (show $ replaceVar f v (quantifiedPrefix++v)) ++ ")"
   show (Forall v f)  = "! [" ++ quantifiedPrefix ++ v ++ "] : (" ++ (show $ replaceVar f v (quantifiedPrefix++v)) ++ ")"
+
+
+replacements = [ ("sum", "$sum")
+               , ("difference", "$difference")
+               , ("product", "$product")
+               , ("quotient", "$quotient")
+               ]
+
+replaceFunctors :: String -> [(String, String)] -> String
+replaceFunctors n [] = n
+replaceFunctors n (r:rs) = if fst r == n
+                             then snd r
+                             else replaceFunctors n rs
+
+functorToString :: String -> [Term] -> String
+functorToString n terms = if n == "equal"
+                            then (show $ terms !! 0) ++ "=" ++ (show $ terms !! 1)
+                            else (replaceFunctors n replacements) ++ "(" ++ (intercalate "," $ map show terms) ++ ")"
 
 
 data Context = Context [Statement] Context | Empty
@@ -53,7 +71,17 @@ restrictContext :: Context -> [String] -> Context
 restrictContext (Context sts Empty) ids = Context (restrContext sts ids) Empty
 restrictContext (Context sts p) ids = Context sts $ restrictContext p ids
 
-data ProofStatus = Correct | Incorrect | Unknown
+
+data ProverInfo = ProverName String
+  deriving (Eq, Show, Generic)
+
+data ProofStatus = Correct ProverInfo | Incorrect ProverInfo | Unknown
+  deriving (Eq, Show, Generic)
+
+data StatementStatus = StatementStatus { sid :: String
+                                       , status :: ProofStatus
+                                       , children :: [StatementStatus]
+                                       }
   deriving (Eq, Show, Generic)
 
 
@@ -168,7 +196,7 @@ stat2Conj [(Statement _ f _)] = f
 stat2Conj ((Statement _ f _):xs) = f `And` (stat2Conj xs)
 
 formulas2Conj :: [Formula] -> Formula
-formulas2Conj [] = Top -- TODO why tho?
+formulas2Conj [] = Top
 formulas2Conj [f] = f
 formulas2Conj (f:fs) = f `And` formulas2Conj fs
 

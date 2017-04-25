@@ -523,7 +523,7 @@ function = try functionRaw <|> try functionSugared
 
 functionRaw :: PS (String, [Term])
 functionRaw =
-  do name <- try $ many alphaNum 
+  do name <- try $ many1 alphaNum
      reservedOp "("
      trace ("found raw function with name '" ++ name ++ "'") lookAhead $ try spaces
      terms <- term `sepBy` (do {char ','; spaces})
@@ -540,20 +540,12 @@ functionIs =
 
 
 
-ops =   (try $ string " implies") 
-    <|> (try $ string " and") 
-    <|> (try $ string " iff") 
-    <|> (try $ string " or") 
-    <|> (try $ string "not") 
-    <|> (try $ string " is") 
-    <|> (try $ string "(") 
-    <|> (try $ string ")") 
-    <|> (try $ string ",") 
-    <|> (try $ string ".") 
+
 
 functionSugared :: PS (String, [Term])
 functionSugared =
-  do ss <- sugars <$> getState
+  do trace ("trying sugars") try spaces
+     ss <- sugars <$> getState
      matched <- foldl (<|>) (fail "") (map (\s -> try $ trySugar s) ss)
      return matched
 
@@ -561,12 +553,14 @@ trySugar :: (String,[String]) -> PS (String,[Term])
 trySugar (name, ps) = 
   do trace ("trying sugar '" ++ name ++ "' with pattern " ++ show ps) try spaces
      let termsM = foldl (++) [] (map (\p -> return $ try (matches p)) ps)
+     trace ("here ") try spaces
      terms <- foldr (liftM2 (:)) (return []) termsM
      trace ("sugar successful! " ++ concat (map show terms)) try spaces
-     return (name,filter (/= Var "BULLSHIT")terms)
+     return (name,filter (/= Var "BULLSHIT") terms)
 
 matches :: String -> PS Term
-matches p | p == "" = do term <- try var <|> try term
+matches p | p == "" = do seeNext 10
+                         term <- try var <|> try term
                          trace ("found term '" ++ show term ++ "'") try spaces
                          return term
           | otherwise = do trace ("search for pattern '" ++ trim p ++ "'") try spaces
@@ -578,6 +572,22 @@ trim :: String -> String
 trim = f . f
    where f = reverse . dropWhile isSpace
 
+seeNext :: Int -> ParsecT String u Identity ()
+seeNext n = do
+  s <- getParserState
+  let out = take n (stateInput s)
+  traceShowM out
+
+--ops =   (try $ string " implies") 
+--    <|> (try $ string " and") 
+--    <|> (try $ string " iff") 
+--    <|> (try $ string " or") 
+--    <|> (try $ string "not") 
+--    <|> (try $ string " is") 
+--    <|> (try $ string "(") 
+--    <|> (try $ string ")") 
+--    <|> (try $ string ",") 
+--    <|> (try $ string ".") 
 
 --matchSugars :: [(String, [String])] -> String -> PS (Maybe (String, [Term]))
 --matchSugars [] _ = return Nothing

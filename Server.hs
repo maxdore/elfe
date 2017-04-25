@@ -5,7 +5,6 @@ import qualified Data.Text as T
 import Data.Monoid (mconcat)
 import Data.Aeson (object, (.=), ToJSON, toJSON)
 import Control.Monad.Trans (lift)
-import Control.Monad (liftM)
 import Network.Wai.Middleware.Static
 import Text.ParserCombinators.Parsec.Prim (runParser)
 import Text.ParserCombinators.Parsec.Error
@@ -14,10 +13,12 @@ import GHC.Generics (Generic)
 
 import Elfe
 
-data ProblemStatus = NotParsed ParseError | Verified ProofStatus
+data ProblemStatus = NotParsed ParseError | Verified [StatementStatus]
   deriving (Show, Generic)
 
+instance ToJSON ProverInfo
 instance ToJSON ProofStatus
+instance ToJSON StatementStatus
 instance ToJSON ProblemStatus
 instance ToJSON ParseError where
     toJSON e = toJSON $ show e

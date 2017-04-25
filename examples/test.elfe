@@ -1,15 +1,15 @@
-Notation equal: x = y.
-Notation in: a ∈ A.
-Notation union: A ∪ B.
+Lemma: equal(2+3,5). Obvious.
 
-
-Definition: comp(A ∪ B) = intersection(comp(A),comp(B))
-Definition: a ∈ (C ∪ B). 
-Definition: relapp(blub, kaj(ihsad)).
-Definition: comp(A ∪ B). 
-Definition: A ∪ B is set.
-
-
+# Notation equal: x = y.
+# Notation in: a ∈ A.
+# Notation union: A ∪ B.
+# 
+# 
+# Definition: comp(A ∪ B) = intersection(comp(A),comp(B))
+# Definition: a ∈ (C ∪ B). 
+# Definition: relapp(blub, kaj(ihsad)).
+# Definition: comp(A ∪ B). 
+# Definition: A ∪ B is set.
 
 
 # Definition def: blab(asd).

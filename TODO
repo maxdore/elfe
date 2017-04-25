@@ -1,33 +1,30 @@
-- nested subproofs --> end marker necessary?
-- bind taken variable in take'
-- sat solver
-- unfolding of "Q x. P(x) -> R(x)" possible with "Assume P(x)".
-
 BUGS
 - Z3 does not work in concurrent provers
 - formula Eq not working properly
-- nested atoms 
+
+PARSER
+- nested atoms: make fully work, ignore spaces in patterns
+- unfolding of "Q x. P(x) -> R(x)" possible with "Assume P(x)".
+- bind taken variable in take'
+- nested subproofs --> end marker necessary?
+- exists atom(x). P  -->  exists x. atom(x) and P 
+- Q a,b,c. instead of Q a. Q b. Q c.
 - if final goal is directly given, the sequence does not necessarily belong to the goal (--> only allow direct derivations inside unfolding?)
+
+FRONTEND
+- mapping statement sequence -> orginal text
+- line-numbers correct also after preprocessing
+- post request for /api
+- shortcuts for special chars
 
 SANITY
 - no double includes of same library
+- case insensitive for markers, e.g., QED
 - check variables only quantified once
-- allow eid with alphanum and '. (only lower alpha as first??)
-
-LOWLEVEL PARSER FEATURES
-- exists atom(x). P  -->  exists x. atom(x) and P 
-- Q a,b,c. instead of Q a. Q b. Q c.
-
-FRONTEND
-- line-numbers correct also after preprocessing
-- ProofStatus per statement
-- mapping statement sequence -> orginal text
-- post request or /api
-
+- allow eid with alphanum and ' and only lower alpha as first character
 
 SECOND ORDER FEATURES?
 improve functions notations
-
 
 PARAMETRIC DATATYPES -> proposition generator in preprocessor? or possible within parser? -> lookup second order to first order reductions
 (plus, zero) in Z is commutative group
@@ -36,13 +33,14 @@ plus(A,minus(A)) = 0
 plus(A,plus(B,C)) = plus(plus(A,B),C)
 plus(A,B) = plus(B,A)
 
+IMPLEMENT VAMPIRE
+
 PROOFS
 sqrt 2 irrational
 cantors theorem
-arithmetic proof in ℤ ℚ ℝ ℙ
 
 
-
+TPTP SYNTAX FOR ARITHMETIC
 
 <defined_predicate>    :== $distinct |
                            $less | $lesseq | $greater | $greatereq |

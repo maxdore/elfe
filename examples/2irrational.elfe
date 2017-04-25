@@ -1,0 +1,19 @@
+Include arithmetic.
+
+Theorem Sqrt2Irrational.
+    sqrt(2) is irrational.
+Proof by contradiction.
+    Assume that sqrt(2) is rational.
+    Take x, y such that not x ⊓ y and sqrt(2) = x / y.
+    Then 2 = squared(x) / squared(y).
+    Then 2 * squared(y) = squared(x).
+    Then 2 | squared(x) and 2 | x.
+    Take k such that $is_int(k) and x = 2 * k.
+    Then we have 2 * squared(y) = (2 * k) * (2 * k).
+    Then we have 2 * squared(y) = 4 * squared(k).
+    Then we have squared(y) = 2 * squared(k).
+    Then 2 | squared(y) and 2 | y.
+    Hence x ⊓ y.
+    We have a contradiction.
+qed.
+

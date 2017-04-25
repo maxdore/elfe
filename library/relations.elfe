@@ -2,11 +2,11 @@ Let relation(R).
 
 Notation relapp: R[x,y].
 
-Definition symmetry: R is symmetric iff for all X. for all Y. element(X) and element(Y) and R[X,Y] implies R[Y,X].
+Definition symmetry: R is symmetric iff for all X. for all Y. element(X) and element(Y) and R[X,Y] implies R[Y,X] .
 
-Definition boundness: R is bound iff for all X. element(X) implies exists Y. element(Y) and R[X,Y].
+Definition boundness: R is bound iff for all X. element(X) implies exists Y. element(Y) and R[X,Y] .
 
-Definition transitivity: R is transitive iff for all X. for all Y. for all Z. element(X) and element(Y) and element(Z) and R[X,Y] and R[Y,Z] implies R[X,Z].
+Definition transitivity: R is transitive iff for all X. for all Y. for all Z. element(X) and element(Y) and element(Z) and R[X,Y] and R[Y,Z] implies R[X,Z] .
 
-Definition reflexivity: R is reflexive iff for all X. element(X) implies R[X,X].
+Definition reflexivity: R is reflexive iff for all X. element(X) implies R[X,X] .
 
