@@ -27,25 +27,25 @@ verifySplit (c:cs) context = do
   return $ status : remaining
 
 verStat :: Statement -> Context -> IO StatementStatus
-verStat (Statement id f Assumed) context = 
-    trace ("Assume " ++ id ++ ": " ++ show f) return $ StatementStatus id (Correct (ProverName "Assumed")) [] 
+verStat (Statement id f Assumed pos) context = 
+    trace ("Assume " ++ id ++ ": " ++ show f) return $ StatementStatus id (Correct (ProverName "Assumed")) [] pos
 
-verStat (Statement id f ByContext) context = do
-    status <- checkStat (Statement id f ByContext) context
-    trace ("Prove  " ++ id ++ ": " ++ show f) return $ StatementStatus id status []
+verStat (Statement id f ByContext pos) context = do
+    status <- checkStat (Statement id f ByContext pos) context
+    trace ("Prove  " ++ id ++ ": " ++ show f) return $ StatementStatus id status [] pos
 
-verStat (Statement id f (BySubcontext ids)) context = do
-    status <- checkStat (Statement id f ByContext) $ restrictContext context ids
-    trace ("Prove  " ++ id ++ ": " ++ show f ++ " by " ++ concat ids) return $ StatementStatus id status []
+verStat (Statement id f (BySubcontext ids) pos) context = do
+    status <- checkStat (Statement id f ByContext pos) $ restrictContext context ids
+    trace ("Prove  " ++ id ++ ": " ++ show f ++ " by " ++ concat ids) return $ StatementStatus id status [] pos
 
-verStat (Statement id f (BySequence sequ)) context = do
+verStat (Statement id f (BySequence sequ) pos) context = do
     sequStatus <- verSeq sequ (Context [] context) 
-    trace ("Check  " ++ id ++ ": " ++ show f) return $ StatementStatus id (Correct (ProverName "TODO")) sequStatus
+    trace ("Check  " ++ id ++ ": " ++ show f) return $ StatementStatus id (Correct (ProverName "TODO")) sequStatus pos
 
-verStat (Statement id f (BySplit split)) context = do
+verStat (Statement id f (BySplit split) pos) context = do
     splitStatus <- verifySplit split context 
-    trace ("Split  " ++ id ++ ": " ++ show f) return $ StatementStatus id (Correct (ProverName "TODO")) splitStatus
+    trace ("Split  " ++ id ++ ": " ++ show f) return $ StatementStatus id (Correct (ProverName "TODO")) splitStatus pos
 
 checkStat :: Statement -> Context -> IO ProofStatus
-checkStat (Statement id formula p) context = prove (show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show formula ++ ")).\n") --return Correct
+checkStat (Statement id formula p _) context = prove (show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show formula ++ ")).\n") --return Correct
 

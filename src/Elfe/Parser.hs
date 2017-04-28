@@ -43,6 +43,21 @@ parseString str = do
       Left e  -> return $ error $ show e
       Right r -> return r
 
+-- PARSER HELPERS
+
+seeNext :: Int -> ParsecT String u Identity ()
+seeNext n = do
+  s <- getParserState
+  let out = take n (stateInput s)
+  traceShowM out
+
+getPos = do
+  pos <- getPosition
+  let line = sourceLine pos
+  let col = sourceColumn pos
+  return $ Position (line,col)
+
+
 -- PARSER STATE
 
 data ParserState = ParserState { counter :: Int
@@ -160,7 +175,8 @@ definition =
      f  <- fof
      cf <- letify f
      reserved "."
-     return [(Statement id cf Assumed)]
+     pos <- getPos
+     return [(Statement id cf Assumed pos)]
 
 proposition :: PS [Statement]
 proposition = 
@@ -169,11 +185,13 @@ proposition =
      f <- fof
      cf <- letify f
      reserved "."
-     return [(Statement id cf Assumed)]
+     pos <- getPos
+     return [(Statement id cf Assumed pos)]
 
 lemma :: PS [Statement]
 lemma =
-  do reserved "Lemma"
+  do pos <- getPos
+     reserved "Lemma"
      id <- givenOrNewId
      goal  <- fof
      reserved "."
@@ -182,10 +200,10 @@ lemma =
      lets <- lets <$> getState
      let bvs = map show $ concat $ map getVarsOfFormula lets
      assumeId <- newId
-     let assumeLets = Statement assumeId (bindVars (formulas2Conj lets) bvs) Assumed
+     let assumeLets = Statement assumeId (bindVars (formulas2Conj lets) bvs) Assumed None
      -- end
      derivation <- try (direct goal bvs) <|> try (contradiction goal bvs) <|> try (notProved goal bvs)
-     return [(Statement id cgoal (BySequence (assumeLets:derivation)))]
+     return [(Statement id cgoal (BySequence (assumeLets:derivation)) pos)]
 
 
 -- PROOFS
@@ -206,9 +224,10 @@ contradiction goal bvs =
 
 notProved :: Formula -> [String] -> PS [Statement]
 notProved goal bvs =
-  do reserved "Obvious."
+  do pos <- getPos
+     reserved "Obvious."
      id <- newId
-     return [(Statement id (bindVars goal bvs) ByContext)]
+     return [(Statement id (bindVars goal bvs) ByContext pos)]
 
 
 -- PROOF TACTICS
@@ -225,12 +244,13 @@ derive goal bvs =     try (notProved goal bvs)
 
 subProof :: [String] -> PS Statement
 subProof bvs =
-  do reserved "Proof that"
+  do pos <- getPos
+     reserved "Proof that"
      goal <- fof
      reserved ":"
      derivation <- derive goal bvs
      id <- newId
-     return $ Statement id (bindVars goal bvs) (BySequence derivation)
+     return $ Statement id (bindVars goal bvs) (BySequence derivation) pos
 
 splitGoal :: Formula -> [String] -> PS [Statement]
 splitGoal goal bvs = 
@@ -238,8 +258,8 @@ splitGoal goal bvs =
      soundnessId <- newId
      subProofs <- many1 $ subProof bvs
      let soundnessF = stat2Conj subProofs `Impl` goal
-     let soundness = Statement soundnessId (bindVars soundnessF bvs) ByContext
-     return [(Statement id goal (BySplit (soundness:subProofs)))]
+     let soundness = Statement soundnessId (bindVars soundnessF bvs) ByContext None
+     return [(Statement id goal (BySplit (soundness:subProofs)) None)]
 
 
 
@@ -267,7 +287,8 @@ unfold (Exists v f) bvs =
      return derivation
 
 unfold (Impl l r) bvs =
-  do reserved "Assume"
+  do lPos <- getPos
+     reserved "Assume"
      l' <- fof
      if l /= (bindVars l' bvs)
       then trace ("Assume did not work out, expected " ++ show l ++ ", got " ++ show l') fail "narp"
@@ -275,12 +296,13 @@ unfold (Impl l r) bvs =
        reserved "."
        trace ("unfold implies " ++ show l) try spaces 
        derivation <- derive r bvs
+       rPos <- getPos
        reserved "Hence"
        r' <- fof
        reserved "."
        lId <- newId
        rId <- newId
-       return $ (Statement lId (bindVars l bvs) Assumed) : derivation ++ [(Statement rId (bindVars r bvs) ByContext)]
+       return $ (Statement lId (bindVars l bvs) Assumed lPos) : derivation ++ [(Statement rId (bindVars r bvs) ByContext rPos)]
 
 unfold (Not (Impl l r)) bvs = unfold (And l (Not r)) bvs
 unfold (Not (Forall v f)) bvs = unfold (Exists v (Not f)) bvs
@@ -299,11 +321,11 @@ enfold oldGoal bvs =
      oldId <- newId
      soundnessId <- newId
      newId <- newId
-     trace ("Found enfold " ++ show newGoal ++ " | " ++ (show $ newVars)) return [Statement oldId (bindVars oldGoal bvs) $ 
-          BySplit [
-            (Statement soundnessId (bindVars (universallyQuantify newVars newGoal `Impl` oldGoal) bvs) ByContext),
-            (Statement newId (bindVars newGoal (bvs++(vars2Strings newVars))) $ BySequence derivation)
-          ]
+     trace ("Found enfold " ++ show newGoal ++ " | " ++ (show $ newVars)) return [Statement oldId (bindVars oldGoal bvs)  
+          (BySplit [
+              (Statement soundnessId (bindVars (universallyQuantify newVars newGoal `Impl` oldGoal) bvs) ByContext None),
+              (Statement newId (bindVars newGoal (bvs++(vars2Strings newVars))) (BySequence derivation) None)
+          ]) None
         ]
 
 enfoldGoal bvs = try (enfoldImplies bvs) <|> try (enfoldForall bvs)
@@ -347,19 +369,21 @@ statement bvs = then' bvs <|> take' bvs <|> fail "no derivation statement"
 
 then' :: [String] -> PS Statement
 then' bvs =
-  do reserved "Then"
+  do pos <- getPos
+     reserved "Then"
      spaces
      f <- fof
      by <- optionMaybe subContext
      reserved "."
      id <- newId
      case by of
-        Nothing -> return $ Statement id (bindVars f bvs) ByContext 
-        Just ids -> return $ Statement id (bindVars f bvs) $ BySubcontext ids
+        Nothing -> return $ Statement id (bindVars f bvs) ByContext pos 
+        Just ids -> return $ Statement id (bindVars f bvs) (BySubcontext ids) pos
 
 take' :: [String] -> PS Statement
 take' bvs = 
-  do reserved "Take"
+  do pos <- getPos
+     reserved "Take"
      vars <- var `sepBy` char ',' -- TODO bind them to bvs as well (only in conjecture, not in proof)
      spaces
      reserved "such that"
@@ -370,11 +394,11 @@ take' bvs =
      proofId <- newId
      case by of
         Nothing  -> return (Statement id (bindVars f bvs) (BySequence [
-                      (Statement proofId (enfoldExists vars (bindVars f bvs)) ByContext)
-                    ]))
+                      (Statement proofId (enfoldExists vars (bindVars f bvs)) ByContext None)
+                    ]) pos)
         Just ids -> return (Statement id (bindVars f bvs) (BySequence [
-                      (Statement proofId (enfoldExists vars (bindVars f bvs)) $ BySubcontext ids)
-                    ]))
+                      (Statement proofId (enfoldExists vars (bindVars f bvs)) (BySubcontext ids) None)
+                    ]) pos)
 
 
 -- TODO join with universallyQuantify
@@ -431,7 +455,7 @@ forall =
 forallRaw :: PS Formula
 forallRaw = 
   do var <- eid 
-     spaces
+     try spaces
      reserved "."
      f <- fof
      return (Forall var f)
@@ -572,11 +596,6 @@ trim :: String -> String
 trim = f . f
    where f = reverse . dropWhile isSpace
 
-seeNext :: Int -> ParsecT String u Identity ()
-seeNext n = do
-  s <- getParserState
-  let out = take n (stateInput s)
-  traceShowM out
 
 --ops =   (try $ string " implies") 
 --    <|> (try $ string " and") 

@@ -1,5 +1,4 @@
 BUGS
-- Z3 does not work in concurrent provers
 - formula Eq not working properly
 
 PARSER

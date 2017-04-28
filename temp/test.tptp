@@ -1,0 +1,4 @@
+fof(sfunEquality, axiom, (! [Vf] : (! [VA] : (! [VB] : ((function(Vf,VA,VB)) => (! [Vx] : (! [Vy] : ((funApp(Vf,Vx)=funApp(Vf,Vy)) => (? [Vz] : ((relapp(Vf,Vx,Vz)) & (relapp(Vf,Vy,Vz)))))))))))).
+fof(s17, axiom, ((function(bf,bA,bB)) & (function(bg,bB,bC)))).
+fof(s22, axiom, (funApp(bf,bx)=funApp(bf,by))).
+fof(s19, conjecture, (? [Vy] : ((relapp(bf,bx1,by)) & (relapp(bf,bx2,by))))).

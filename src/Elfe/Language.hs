@@ -60,7 +60,7 @@ data Context = Context [Statement] Context | Empty
 instance Show Context where
   show (Context [] Empty) = ""
   show (Context [] p) = show p
-  show (Context ((Statement id axiom proof):hs) p) = show (Context hs p) ++ "fof(" ++ id ++ ", axiom, (" ++ show axiom ++ ")).\n"
+  show (Context ((Statement id axiom proof _):hs) p) = show (Context hs p) ++ "fof(" ++ id ++ ", axiom, (" ++ show axiom ++ ")).\n"
 
 restrContext :: [Statement] -> [String] -> [Statement]
 restrContext [] _ = []
@@ -71,6 +71,8 @@ restrictContext :: Context -> [String] -> Context
 restrictContext (Context sts Empty) ids = Context (restrContext sts ids) Empty
 restrictContext (Context sts p) ids = Context sts $ restrictContext p ids
 
+data Position = Position (Int, Int) | None
+  deriving (Eq, Show, Generic)
 
 data ProverInfo = ProverName String
   deriving (Eq, Show, Generic)
@@ -81,6 +83,7 @@ data ProofStatus = Correct ProverInfo | Incorrect ProverInfo | Unknown
 data StatementStatus = StatementStatus { sid :: String
                                        , status :: ProofStatus
                                        , children :: [StatementStatus]
+                                       , opos :: Position
                                        }
   deriving (Eq, Show, Generic)
 
@@ -182,18 +185,18 @@ insertLets f ((Atom s ts):as) =
     else insertLets f as
       where vars = concat $ map getVarsOfTerm ts
 
-
 data Statement = Statement { id :: String
                            , formula :: Formula
                            , proof :: Proof
+                           , pos :: Position
                            }
 instance Show Statement where
-  show (Statement id formula proof) = id ++ ": " ++ show formula ++ " -- " ++ show proof ++ "\n"
+  show (Statement id formula proof _) = id ++ ": " ++ show formula ++ " -- " ++ show proof ++ "\n"
 
 
 stat2Conj :: [Statement] -> Formula
-stat2Conj [(Statement _ f _)] = f
-stat2Conj ((Statement _ f _):xs) = f `And` (stat2Conj xs)
+stat2Conj [(Statement _ f _ _)] = f
+stat2Conj ((Statement _ f _ _):xs) = f `And` (stat2Conj xs)
 
 formulas2Conj :: [Formula] -> Formula
 formulas2Conj [] = Top
@@ -211,7 +214,7 @@ idPrefix :: String
 idPrefix = "s"
 
 getId :: Statement -> String
-getId (Statement id f p) = drop (length idPrefix) id
+getId (Statement id _ _ _) = drop (length idPrefix) id
 
 data Proof = Assumed | ByContext | BySubcontext [String] | BySequence [Statement] | BySplit [Statement]
 instance Show Proof where

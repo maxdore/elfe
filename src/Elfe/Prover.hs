@@ -5,6 +5,7 @@ import System.Process
 import System.Exit
 import System.IO
 import System.IO.Error
+import System.Directory (removeFile)
 import Control.Concurrent
 import Control.Concurrent.Chan
 import Control.Monad
@@ -22,14 +23,16 @@ data Prover = Prover { name :: String
                      }
 
 eprover = Prover "E Prover" "../prover/E/PROVER/eprover" ["--cpu-limit=10", "-s", "--auto-schedule"] ["# SZS status Theorem"] ["# SZS status CounterSatisfiable"] ["uns"]
-z3 = Prover "Z3" "../prover/Z3/build/z3_wrapper.sh" [] ["% SZS status Theorem"] ["% SZS status CounterSatisfiable"] ["% SZS status GaveUp"]
-spass = Prover "SPASS" "../prover/SPASS/SPASS" ["-TPTP", "-Stdin"] ["SPASS beiseite: Proof found."] ["SPASS beiseite: Completion found."] ["SPASS beiseite: Ran out of time."]
-beagle = Prover "BEAGLE" "java -jar ~/bin/beagle/target/scala-2.11/beagle.jar" [] [] [] []
+z3 = Prover "Z3" "../prover/Z3/build/z3_tptp" ["-t:10"] ["% SZS status Theorem"] ["% SZS status CounterSatisfiable"] ["% SZS status GaveUp"]
+spass = Prover "SPASS" "../prover/SPASS/SPASS" ["-TPTP"] ["SPASS beiseite: Proof found."] ["SPASS beiseite: Completion found."] ["SPASS beiseite: Ran out of time."]
+beagle = Prover "BEAGLE" "beagle" [] ["% SZS status CounterSatisfiable"] ["% SZS status Theorem"] ["Syntax error"]
 
 provers = [z3, eprover, spass]
+tptpFile = "task.tptp"
 
 prove :: String -> IO ProofStatus
 prove task = do
+    writeFile tptpFile task
     done <- newEmptyMVar
     chan <- newChan
     threads <- mapM (\p -> forkIO $ runATP chan task p done) provers
@@ -37,11 +40,12 @@ prove task = do
     readMVar done
     result <- readChan chan
     mapM killThread (timeoutThread:threads)
+    removeFile tptpFile
     return result
 
 runATP :: Chan ProofStatus -> String -> Prover -> MVar Bool -> IO ()
 runATP chan task (Prover name command args provedMsg disprovedMsg unknownMsg) done = do
-  let run = runInteractiveProcess command args Nothing Nothing
+  let run = runInteractiveProcess command (tptpFile:args) Nothing Nothing
   do 
     (wh,rh,eh,ph) <- run
     hPutStrLn wh task ; hClose wh
@@ -59,7 +63,7 @@ runATP chan task (Prover name command args provedMsg disprovedMsg unknownMsg) do
       then trace ("PROVED by " ++ name) writeChan chan (Correct (ProverName name)) >> putMVar done True
     else if neg
       then trace ("DISPROVED by " ++ name) writeChan chan (Incorrect (ProverName name)) -- >> putMVar done True
-    else trace ("UNKNOWN by " ++ name ++ ofl) return ()
+    else trace ("UNKNOWN by " ++ name ++ ofl ++ command ++ " " ++   show (args++[tptpFile])) return ()
 
 
 timeout :: String -> Chan ProofStatus -> MVar Bool -> IO ()
