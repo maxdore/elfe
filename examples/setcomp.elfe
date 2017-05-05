@@ -5,16 +5,18 @@ Let x be an element.
 
 Lemma: equal(comp(A ∪ B),intersection(comp(A),comp(B))).
 Proof:
-    Proof that subset(comp(A ∪ B),intersection(comp(A),comp(B))):
+    Proof subset(comp(A ∪ B),intersection(comp(A),comp(B))):
         Assume in(x,comp(A ∪ B)).
         Then not in(x,A ∪ B).
         Then (not x ∈ A) and (not x ∈ B).
         Then in(x,comp(A)) and in(x,comp(B)).
         Hence in(x,intersection(comp(A),comp(B))).
-    Proof that subset(intersection(comp(A),comp(B)),comp(A ∪ B)):
+    qed.
+    Proof subset(intersection(comp(A),comp(B)),comp(A ∪ B)):
         Assume in(x,intersection(comp(A),comp(B))).
         Then in(x,comp(A)) and in(x,comp(B)).
         Then (not x ∈ A) and (not x ∈ B).
         Then not in(x,A ∪ B).
         Hence in(x,comp(A ∪ B)).
+    qed.
 qed.

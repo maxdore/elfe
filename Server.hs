@@ -17,6 +17,7 @@ data ProblemStatus = NotParsed ParseError | Verified [StatementStatus]
   deriving (Show, Generic)
 
 instance ToJSON ProverInfo
+instance ToJSON Position
 instance ToJSON ProofStatus
 instance ToJSON StatementStatus
 instance ToJSON ProblemStatus

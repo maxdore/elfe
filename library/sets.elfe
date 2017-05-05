@@ -1,5 +1,3 @@
-Include equality.
-
 Let A,B be set.
 Let x be element.
 
@@ -28,13 +26,14 @@ Definition comp: in(x,comp(A)) iff not in(x,A).
 Proposition compSet: set(comp(A)).
 
 Lemma: equal(comp(comp(A)),A).
-Proof: 
-    Proof that subset(comp(comp(A)),A):
+Proof:
+    Proof subset(comp(comp(A)),A):
         Assume in(x,comp(comp(A))).
         Then not in(x,comp(A)).
         Then not not in(x,A).
         Hence in(x,A).
-    Proof that subset(A,comp(comp(A))): Obvious.
+    qed.
+    Proof subset(A,comp(comp(A))): Obvious. qed.
 qed.
 
 # Definition intersection: x ∈ (A ∩ B) iff x ∈ A and x ∈ B.

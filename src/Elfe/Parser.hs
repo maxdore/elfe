@@ -71,7 +71,7 @@ instance Show ParserState where
                                ++ "Named IDs: " ++ intercalate "," n ++ "\n"  
                                ++ "Fixed Vars: " ++ intercalate "," f ++ "\n"  
 
-initParseState                              = ParserState 0 [] [] [] []
+initParseState                              = ParserState 0 [] [] [("equal",["", " = ", ""])] []
 incCounter    (ParserState c nis fvs ss ls) = ParserState (c+1) nis fvs ss ls
 addNamedId n  (ParserState c nis fvs ss ls) = ParserState c (nis ++ [n]) fvs ss ls
 addFixedVar v (ParserState c nis fvs ss ls) = ParserState c nis (fvs ++ [v]) ss ls
@@ -135,6 +135,8 @@ insertPlaceholders [x] = [x]
 insertPlaceholders (x:y:xs) | x /= "" && y /= "" = x : "" : insertPlaceholders (y : xs)
                             | otherwise          = x : (insertPlaceholders (y:xs))
 
+-- meta
+
 notation :: PS [Statement]
 notation =
   do reserved "Notation"
@@ -167,6 +169,8 @@ letBe =
      name <- eid
      updateState $ addLets name vars
 
+
+-- sections
 
 definition :: PS [Statement]
 definition =
@@ -202,53 +206,46 @@ lemma =
      assumeId <- newId
      let assumeLets = Statement assumeId (bindVars (formulas2Conj lets) bvs) Assumed None
      -- end
-     derivation <- try (direct goal bvs) <|> try (contradiction goal bvs) <|> try (notProved goal bvs)
+     reserved "Proof:"
+     derivation <- derive (bindVars goal bvs) bvs
+     qed
      return [(Statement id cgoal (BySequence (assumeLets:derivation)) pos)]
 
 
--- PROOFS
+-- derivations
+ 
+derive :: Formula -> [String] -> PS [Statement]
+derive goal bvs =     try (obvious goal bvs) 
+                  <|> try (splitGoal goal bvs)
+                  <|> try (cases goal bvs)
+                  <|> try (unfold goal bvs) 
+                  <|> try (enfold goal bvs) 
+                  <|> try (finalGoal goal bvs)
+                  <|> fail "No derivation given"
 
-direct :: Formula -> [String] -> PS [Statement]
-direct goal bvs = 
-  do reserved "Proof:"
-     derivation <- derive (bindVars goal bvs) bvs
-     reserved "qed."
-     return derivation
+qed = do
+  reserved "qed."
 
-contradiction :: Formula -> [String] -> PS [Statement]
-contradiction goal bvs = 
-  do reserved "Proof by contradiction:"
-     derivation <- derive ((Not goal) `Impl` Bot) []
-     reserved "qed."
-     return derivation
+-- handwaving
 
-notProved :: Formula -> [String] -> PS [Statement]
-notProved goal bvs =
+obvious :: Formula -> [String] -> PS [Statement]
+obvious goal bvs =
   do pos <- getPos
      reserved "Obvious."
      id <- newId
      return [(Statement id (bindVars goal bvs) ByContext pos)]
-
-
--- PROOF TACTICS
- 
-derive :: Formula -> [String] -> PS [Statement]
-derive goal bvs =     try (notProved goal bvs) 
-                  <|> try (splitGoal goal bvs)
-                  <|> try (unfold goal bvs) 
-                  <|> try (enfold goal bvs) 
-                  <|> try (finalGoal goal bvs)
-
 
 -- split
 
 subProof :: [String] -> PS Statement
 subProof bvs =
   do pos <- getPos
-     reserved "Proof that"
+     reserved "Proof"
      goal <- fof
+     trace ("proof" ++ (show goal)) $ try spaces
      reserved ":"
      derivation <- derive goal bvs
+     qed
      id <- newId
      return $ Statement id (bindVars goal bvs) (BySequence derivation) pos
 
@@ -257,10 +254,38 @@ splitGoal goal bvs =
   do id <- newId
      soundnessId <- newId
      subProofs <- many1 $ subProof bvs
-     let soundnessF = stat2Conj subProofs `Impl` goal
+     let soundnessF = foldl And (head fs) (tail fs) `Impl` goal
+          where fs = map (\(Statement _ f _ _) -> f) subProofs
      let soundness = Statement soundnessId (bindVars soundnessF bvs) ByContext None
      return [(Statement id goal (BySplit (soundness:subProofs)) None)]
 
+-- cases
+
+caseDistinction :: Formula -> [String] -> PS Statement
+caseDistinction goal bvs =
+  do pos <- getPos
+     reserved "Case"
+     dist <- fof
+     reserved ":"
+     derivation <- derive goal bvs
+     qed
+     id <- newId
+     cid <- newId
+     gid <- newId
+     return $ Statement id (bindVars (dist `Impl` goal) bvs) (BySequence [
+        (Statement cid (bindVars dist bvs) Assumed None),
+        (Statement gid (bindVars goal bvs) (BySequence derivation) None)
+      ]) pos
+
+cases :: Formula -> [String] -> PS [Statement]
+cases goal bvs = 
+  do id <- newId
+     soundnessId <- newId
+     cases <- many1 $ caseDistinction goal bvs
+     let soundnessF = foldl And (head fs) (tail fs) `Impl` goal
+          where fs = map (\(Statement _ f _ _) -> f) cases
+     let soundness = Statement soundnessId (bindVars soundnessF bvs) ByContext None
+     return [(Statement id goal (BySplit (soundness:cases)) None)]
 
 
 -- unfold the goal formula
@@ -539,7 +564,7 @@ cons = do
 var :: PS Term
 var =
   do var <- eid
-     trace ("found var '" ++ var ++ "'") return (Var var)
+     return (Var var)
 
 function :: PS (String, [Term])
 function = try functionRaw <|> try functionSugared
@@ -549,7 +574,7 @@ functionRaw :: PS (String, [Term])
 functionRaw =
   do name <- try $ many1 alphaNum
      reservedOp "("
-     trace ("found raw function with name '" ++ name ++ "'") lookAhead $ try spaces
+     -- trace ("found raw function with name '" ++ name ++ "'") lookAhead $ try spaces
      terms <- term `sepBy` (do {char ','; spaces})
      reserved ")"
      return (name,terms)
@@ -568,28 +593,35 @@ functionIs =
 
 functionSugared :: PS (String, [Term])
 functionSugared =
-  do trace ("trying sugars") try spaces
+  do -- trace ("trying sugars") try spaces
+     try spaces
      ss <- sugars <$> getState
      matched <- foldl (<|>) (fail "") (map (\s -> try $ trySugar s) ss)
      return matched
 
 trySugar :: (String,[String]) -> PS (String,[Term])
 trySugar (name, ps) = 
-  do trace ("trying sugar '" ++ name ++ "' with pattern " ++ show ps) try spaces
+  do -- trace ("trying sugar '" ++ name ++ "' with pattern " ++ show ps) try spaces
+     try spaces
      let termsM = foldl (++) [] (map (\p -> return $ try (matches p)) ps)
-     trace ("here ") try spaces
+     -- trace ("here ") try spaces
+     try spaces
      terms <- foldr (liftM2 (:)) (return []) termsM
-     trace ("sugar successful! " ++ concat (map show terms)) try spaces
+     -- trace ("sugar successful! " ++ concat (map show terms)) try spaces
+     try spaces
      return (name,filter (/= Var "BULLSHIT") terms)
 
 matches :: String -> PS Term
-matches p | p == "" = do seeNext 10
+matches p | p == "" = do -- seeNext 10
                          term <- try var <|> try term
-                         trace ("found term '" ++ show term ++ "'") try spaces
+                         -- trace ("found term '" ++ show term ++ "'") try spaces
+                         try spaces
                          return term
-          | otherwise = do trace ("search for pattern '" ++ trim p ++ "'") try spaces
+          | otherwise = do -- trace ("search for pattern '" ++ trim p ++ "'") try spaces
+                           try spaces
                            reservedOp $ trim p
-                           trace ("found pattern '" ++ p ++ "'") try spaces
+                           -- trace ("found pattern '" ++ p ++ "'") try spaces
+                           try spaces
                            return $ Var "BULLSHIT"
 
 trim :: String -> String

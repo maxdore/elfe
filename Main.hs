@@ -1,11 +1,10 @@
-import Control.Monad.Trans (lift)
 import System.Environment (getArgs)
 
 import Elfe
 
 main :: IO ()
 main = do
-  args <- getArgs;
+  args <- getArgs
   case args of
     []    -> do raw <- getContents
                 check raw
@@ -16,9 +15,9 @@ main = do
 check :: String -> IO ()
 check raw = do
     let included = includeLibraries raw
-    problem <- parseString included
-    putStrLn "--------------------------PARSING--------------------------"
-    putStrLn $ show problem
+    putStrLn "\n--------------------------PARSING--------------------------"
+    sequ <- parseString included
+    putStrLn $ concat $ map (prettyStatement 0) sequ
     putStrLn "-------------------------VERIFYING-------------------------" 
-    res <- verify problem
+    res <- verify sequ
     putStrLn $ show res

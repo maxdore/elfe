@@ -1,0 +1,15 @@
+Include relations.
+
+Let relation(R).
+
+Lemma: R is transitive and R is symmetric implies R is reflexive.
+Proof:
+    Case R is empty: Obvious. qed.
+    Case R is nonempty:
+        Assume R is transitive and R is symmetric.
+        Take x,y such that element(x) and element(y) and R[x,y] .
+        Then R[y,x] by symmetry.
+        Then R[x,x] by transitivity.
+        Hence R is reflexive.
+    qed.
+qed.

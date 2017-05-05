@@ -2,6 +2,7 @@ BUGS
 - formula Eq not working properly
 
 PARSER
+- case distinctions
 - nested atoms: make fully work, ignore spaces in patterns
 - unfolding of "Q x. P(x) -> R(x)" possible with "Assume P(x)".
 - bind taken variable in take'

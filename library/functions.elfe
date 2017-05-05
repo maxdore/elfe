@@ -1,4 +1,5 @@
 Include sets.
+Include relations.
 
 Notation function: f: A -> B.
 
@@ -10,7 +11,7 @@ Definition function: for all f. for all A. for all B.
 Let f: A -> B.
 Let g: B -> C.
 
-Notation funApp: f(x).
+Notation funApp: f{x}.
 
 Proposition funEquality: for all x. for all y. equal(funApp(f,x),funApp(f,y)) iff exists z. (relapp(f,x,z) and relapp(f,y,z)).
 

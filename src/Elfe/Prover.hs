@@ -63,7 +63,7 @@ runATP chan task (Prover name command args provedMsg disprovedMsg unknownMsg) do
       then trace ("PROVED by " ++ name) writeChan chan (Correct (ProverName name)) >> putMVar done True
     else if neg
       then trace ("DISPROVED by " ++ name) writeChan chan (Incorrect (ProverName name)) -- >> putMVar done True
-    else trace ("UNKNOWN by " ++ name ++ ofl ++ command ++ " " ++   show (args++[tptpFile])) return ()
+    else trace ("UNKNOWN by " ++ name ++ "\n" ++ ofl ++ command ++ " " ++   show (args++[tptpFile])) return ()
 
 
 timeout :: String -> Chan ProofStatus -> MVar Bool -> IO ()

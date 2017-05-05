@@ -89,7 +89,7 @@ data StatementStatus = StatementStatus { sid :: String
 
 
 quantifiedPrefix = "V"
-boundPrefix = "b"
+boundPrefix = "c"
 
 safeVar :: Formula -> String -> Formula
 safeVar (Atom s terms) v = Atom s $ safeVar' terms v
@@ -185,18 +185,8 @@ insertLets f ((Atom s ts):as) =
     else insertLets f as
       where vars = concat $ map getVarsOfTerm ts
 
-data Statement = Statement { id :: String
-                           , formula :: Formula
-                           , proof :: Proof
-                           , pos :: Position
-                           }
-instance Show Statement where
-  show (Statement id formula proof _) = id ++ ": " ++ show formula ++ " -- " ++ show proof ++ "\n"
 
 
-stat2Conj :: [Statement] -> Formula
-stat2Conj [(Statement _ f _ _)] = f
-stat2Conj ((Statement _ f _ _):xs) = f `And` (stat2Conj xs)
 
 formulas2Conj :: [Formula] -> Formula
 formulas2Conj [] = Top
@@ -216,10 +206,21 @@ idPrefix = "s"
 getId :: Statement -> String
 getId (Statement id _ _ _) = drop (length idPrefix) id
 
+data Statement = Statement { id :: String
+                           , formula :: Formula
+                           , proof :: Proof
+                           , pos :: Position
+                           }
+
 data Proof = Assumed | ByContext | BySubcontext [String] | BySequence [Statement] | BySplit [Statement]
-instance Show Proof where
-  show Assumed = "Assumed"
-  show ByContext = "ByContext"
-  show (BySubcontext is) = "BySubcontext: " ++  (intercalate "" is)
-  show (BySequence hs) = "Prove by seq:\n" ++ (concat $ map (\h -> "   " ++ show h) hs) ++ "   end seq"
-  show (BySplit cs) = "Prove by split:\n" ++ (concat $ map (\c -> "   " ++ show c) cs)
+
+
+instance Show Statement where show = prettyStatement 0
+prettyStatement l (Statement id formula proof _) = (replicate (l*3) ' ') ++ id ++ ": " ++ show formula ++ " -- " ++ (prettyProof l proof)
+
+prettyProof l Assumed = "Assumed\n"
+prettyProof l ByContext = "ByContext\n"
+prettyProof l (BySubcontext ids) = "BySubcontext: " ++  (intercalate "," ids) ++ "\n"
+prettyProof l (BySequence hs) = "Prove by sequence:\n" ++ (concat $ map (prettyStatement (l+1)) hs)
+prettyProof l (BySplit cs) = "Prove by split:\n" ++ (concat $ map (prettyStatement (l+1)) cs)
+
