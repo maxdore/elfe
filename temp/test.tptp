@@ -1,14 +1,7 @@
-fof(sreflexivity, axiom, (! [VR] : ((relation(VR)) => ((reflexive(VR)) <=> (! [Vx] : ((element(Vx)) => (relapp(VR,Vx,Vx)))))))).
-fof(stransitivity, axiom, (! [VR] : ((relation(VR)) => ((transitive(VR)) <=> (! [Vx] : (! [Vy] : (! [VZ] : ((((((element(Vx)) & (element(Vy))) & (element(VZ))) & (relapp(VR,Vx,Vy))) & (relapp(VR,Vy,VZ))) => (relapp(VR,Vx,VZ)))))))))).
-fof(sboundness, axiom, (! [VR] : ((relation(VR)) => ((bound(VR)) <=> (! [Vx] : ((element(Vx)) => (? [Vy] : ((element(Vy)) & (relapp(VR,Vx,Vy)))))))))).
-fof(ssymmetry, axiom, (! [VR] : ((relation(VR)) => ((symmetric(VR)) <=> (! [Vx] : (! [Vy] : ((((element(Vx)) & (element(Vy))) & (relapp(VR,Vx,Vy))) => (relapp(VR,Vy,Vx))))))))).
-fof(sempty, axiom, (! [VR] : ((relation(VR)) => ((empty(VR)) <=> (~(nonempty(VR))))))).
-fof(snonempty, axiom, (! [VR] : ((relation(VR)) => ((nonempty(VR)) <=> (? [Vx] : (? [Vy] : (((element(Vx)) & (element(Vy))) & (relapp(VR,Vx,Vy))))))))).
-fof(s1, axiom, (relation(cR))).
-fof(s15, axiom, (nonempty(cR))).
-fof(s11, axiom, (relapp(cR,x,x))).
-fof(s10, axiom, (relapp(cR,y,x))).
-fof(s8, axiom, (((element(x)) & (element(y))) & (relapp(cR,x,y)))).
-fof(s12, axiom, ((transitive(cR)) & (symmetric(cR)))).
-fof(s13, conjecture, (reflexive(cR))).
-
+fof(ssquared, axiom, (! [Vx] : ((real(Vx)) => (squared(Vx)=times(Vx,Vx))))).
+fof(s2, axiom, (! [Vx] : ((real(Vx)) => (! [Vy] : ((real(Vy)) => (((minus(Vx)) & (minus(Vy))) => (positive(times(Vx,Vy))))))))).
+fof(spositive, axiom, (! [Vx] : ((real(Vx)) => ((positive(Vx)) <=> (negative(minus(Vx))))))).
+fof(s1, axiom, (! [Vx] : ((real(Vx)) => (! [Vy] : ((real(Vy)) => (times(Vx,Vy)=times(Vy,Vx))))))).
+fof(s0, axiom, (! [Vx] : ((real(Vx)) => (minus(minus(Vx))=Vx)))).
+fof(s4, axiom, ((real(cx)) & (real(cy)))).
+fof(s5, conjecture, ((negative(cx)) <=> (positive(minus(cx))))).

@@ -87,7 +87,7 @@ type PS = ParsecT String ParserState Identity
 -- ID MANAGMENT
 
 eid =
-  do s <- many1 alphaNum
+  do s <- many1 (satisfy (`elem` ['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9']) <?> "letter or digit")
      return s
 
 givenOrNewId = undefId <|> defId
@@ -208,7 +208,7 @@ lemma =
      -- end
      reserved "Proof:"
      derivation <- derive (bindVars goal bvs) bvs
-     qed
+     --qed
      return [(Statement id cgoal (BySequence (assumeLets:derivation)) pos)]
 
 
@@ -220,8 +220,8 @@ derive goal bvs =     try (obvious goal bvs)
                   <|> try (cases goal bvs)
                   <|> try (unfold goal bvs) 
                   <|> try (enfold goal bvs) 
-                  <|> try (finalGoal goal bvs)
-                  <|> fail "No derivation given"
+                  <|> try (extendContext goal bvs)
+                  <|> do {try spaces >> return []}
 
 qed = do
   reserved "qed."
@@ -316,18 +316,23 @@ unfold (Impl l r) bvs =
      reserved "Assume"
      l' <- fof
      if l /= (bindVars l' bvs)
-      then trace ("Assume did not work out, expected " ++ show l ++ ", got " ++ show l') fail "narp"
-      else do
-       reserved "."
-       trace ("unfold implies " ++ show l) try spaces 
-       derivation <- derive r bvs
-       rPos <- getPos
-       reserved "Hence"
-       r' <- fof
-       reserved "."
-       lId <- newId
-       rId <- newId
-       return $ (Statement lId (bindVars l bvs) Assumed lPos) : derivation ++ [(Statement rId (bindVars r bvs) ByContext rPos)]
+       then trace ("Assume did not work out, expected " ++ show l ++ ", got " ++ show l') fail "narp"
+       else do
+         reserved "."
+         lId <- newId
+         trace ("unfold implies " ++ show l) try spaces 
+         derivation <- derive r bvs
+         rPos <- getPos
+         reserved "Hence"
+         r' <- fof
+         reserved "."
+         nId <- newId
+         rId <- newId
+         return [
+          (Statement lId (bindVars l bvs) Assumed lPos),
+          (Statement nId (bindVars r bvs) (BySequence
+            (derivation ++ [(Statement rId (bindVars r bvs) ByContext rPos)])
+          ) None)]
 
 unfold (Not (Impl l r)) bvs = unfold (And l (Not r)) bvs
 unfold (Not (Forall v f)) bvs = unfold (Exists v (Not f)) bvs
@@ -360,11 +365,11 @@ enfoldImplies bvs =
      l <- fof
      reserved "."
      trace ("Found left impl: " ++ show l) try spaces
-     _ <- finalGoal Top bvs -- TODO Allow nested hence also in proof construction
+     _ <- derive Top bvs -- TODO what happens here?
      reserved "Hence"
      r <- fof
      reserved "."
-     trace ("Found implies creation " ++ show l ++ " impl " ++ show r) try spaces
+     trace ("Found implies creation " ++ show l ++ " => " ++ show r) try spaces
      return (Impl l r)
 
 enfoldForall bvs =
@@ -377,17 +382,15 @@ enfoldForall bvs =
      return (Forall var f)
 
 
--- the final goal is derived with a sequence
+-- User gives cornerstones to proof
 
-finalGoal goal bvs =
-  do derivation <- many $ statement bvs
-     trace ("final goal " ++ show goal) return derivation
+extendContext :: Formula -> [String] -> PS [Statement]
+extendContext goal bvs =
+  do derivedStatement <- then' bvs <|> take' bvs
+     actualDerivation <- derive goal bvs
+     id <- newId
+     return [(Statement id (bindVars goal bvs) (BySequence (derivedStatement:actualDerivation)) None)]
 
-
--- STATEMENTS 
-
-statement :: [String] -> PS Statement
-statement bvs = then' bvs <|> take' bvs <|> fail "no derivation statement"
 
 
 -- STATEMENT MARKERS
@@ -425,11 +428,6 @@ take' bvs =
                       (Statement proofId (enfoldExists vars (bindVars f bvs)) (BySubcontext ids) None)
                     ]) pos)
 
-
--- TODO join with universallyQuantify
-enfoldExists :: [Term] -> Formula -> Formula
-enfoldExists [] f = f
-enfoldExists ((Var v):vs) f = Exists v (enfoldExists vs f)
 
 subContext = 
   do reserved "by"

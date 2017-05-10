@@ -1,4 +1,0 @@
-Notation equal: x = y.
-Notation unequal: x ≠ y.
-Definition unequal: x ≠ y iff not x = y.
-

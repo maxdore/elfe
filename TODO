@@ -1,6 +1,8 @@
 BUGS
 - formula Eq not working properly
 
+Note construction - extend the context with arbitrary derivation
+
 PARSER
 - case distinctions
 - nested atoms: make fully work, ignore spaces in patterns

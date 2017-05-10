@@ -1,0 +1,28 @@
+Notation minus: -x.
+Notation times: x * y.
+Notation squared: x².
+
+Let x,y be real.
+
+Proposition: equal(minus(minus(x)),x).
+
+Proposition: equal(x * y,y * x).
+
+Definition positive: x is positive iff negative(minus(x)).
+
+Proposition: minus(x) and minus(y) implies positive(x * y). 
+
+Definition squared: equal(squared(x),x * x).
+
+Lemma: minus(x) is negative iff x is positive.
+Proof: Obvious. qed.
+
+# Lemma: x² is positive.
+# Proof:
+#     Case x is positive:
+#         Obvious.
+#     qed.
+#     Case x is negative:
+#         Obvious.
+#     qed.
+# qed.

@@ -160,6 +160,9 @@ universallyQuantify :: [Term] -> Formula -> Formula
 universallyQuantify [] f = f 
 universallyQuantify ((Var s):vs) f = Forall s $ universallyQuantify vs f
 
+enfoldExists :: [Term] -> Formula -> Formula
+enfoldExists [] f = f
+enfoldExists ((Var v):vs) f = Exists v (enfoldExists vs f)
 
 
 getVarsOfFormula :: Formula -> [Term]

@@ -1,5 +1,3 @@
-Notation equal: x = y.
-
 Notation sum: x + y.
 Notation difference: x - y.
 Notation product: x * y.
@@ -19,7 +17,7 @@ Definition rational: x ∈ ℚ iff exists a. exists b. a ∈ ℤ and b ∈ ℤ a
 Definition irrational: x is irrational iff not x ∈ ℚ .
 
 
-Lemma: equal(8 / 2, 4). Obvious.
+Lemma: equal(8 / 2, 4). Proof: Obvious. qed.
 
 
 Notation real: x ∈ ℝ.
