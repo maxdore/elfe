@@ -6,6 +6,7 @@ import GHC.Generics (Generic)
 
 data Term = Cons String [Term]
            | Var String
+  deriving (Generic)
 
 instance Eq Term where
     t == t' = (show t) == (show t')
@@ -21,6 +22,7 @@ data Formula = Impl Formula Formula  | Iff Formula Formula
              | Top                   | Bot
              | Or Formula Formula    | And Formula Formula
              | Exists String Formula | Forall String Formula
+  deriving (Generic)
 
 instance Eq Formula where
     f == f' = True --(show f) == (show f')
@@ -74,13 +76,14 @@ restrictContext (Context sts p) ids = Context sts $ restrictContext p ids
 data Position = Position (Int, Int) | None
   deriving (Eq, Show, Generic)
 
-data ProverInfo = ProverName String
+data ProverInfo = ProverName String String | NotProven
   deriving (Eq, Show, Generic)
 
 data ProofStatus = Correct ProverInfo | Incorrect ProverInfo | Unknown
   deriving (Eq, Show, Generic)
 
 data StatementStatus = StatementStatus { sid :: String
+                                       , sformula :: Formula
                                        , status :: ProofStatus
                                        , children :: [StatementStatus]
                                        , opos :: Position
@@ -219,7 +222,7 @@ data Proof = Assumed | ByContext | BySubcontext [String] | BySequence [Statement
 
 
 instance Show Statement where show = prettyStatement 0
-prettyStatement l (Statement id formula proof _) = (replicate (l*3) ' ') ++ id ++ ": " ++ show formula ++ " -- " ++ (prettyProof l proof)
+prettyStatement l (Statement id formula proof _) = (concat $ map (\_ -> "|  ") (replicate l ' ')) ++ id ++ ": " ++ show formula ++ " -- " ++ (prettyProof l proof)
 
 prettyProof l Assumed = "Assumed\n"
 prettyProof l ByContext = "ByContext\n"

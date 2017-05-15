@@ -1,0 +1,7 @@
+Let A,B,C be element.
+
+Lemma: A = B and B = C implies A = C.
+Proof:
+    Assume A = B and B = C.
+    Hence A = C.
+qed.

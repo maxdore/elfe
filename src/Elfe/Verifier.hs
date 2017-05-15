@@ -27,25 +27,35 @@ verifySplit (c:cs) context = do
   return $ status : remaining
 
 verStat :: Statement -> Context -> IO StatementStatus
-verStat (Statement id f Assumed pos) context = 
-    trace ("Assume " ++ id ++ ": " ++ show f) return $ StatementStatus id (Correct (ProverName "Assumed")) [] pos
-
+verStat (Statement id f Assumed pos) context = do
+    traceM ("Assume " ++ id ++ ": " ++ show f)
+    return $ StatementStatus id f (Correct (NotProven)) [] pos
 verStat (Statement id f ByContext pos) context = do
+    traceM ("Prove  " ++ id ++ ": " ++ show f)
     status <- checkStat (Statement id f ByContext pos) context
-    trace ("Prove  " ++ id ++ ": " ++ show f) return $ StatementStatus id status [] pos
-
+    return $ StatementStatus id f status [] pos
 verStat (Statement id f (BySubcontext ids) pos) context = do
+    traceM ("Prove  " ++ id ++ ": " ++ show f ++ " by " ++ concat ids)
     status <- checkStat (Statement id f ByContext pos) $ restrictContext context ids
-    trace ("Prove  " ++ id ++ ": " ++ show f ++ " by " ++ concat ids) return $ StatementStatus id status [] pos
-
+    return $ StatementStatus id f status [] pos
 verStat (Statement id f (BySequence sequ) pos) context = do
+    traceM ("Check  " ++ id ++ ": " ++ show f)
     sequStatus <- verSeq sequ (Context [] context) 
-    trace ("Check  " ++ id ++ ": " ++ show f) return $ StatementStatus id (Correct (ProverName "TODO")) sequStatus pos
-
+    return $ StatementStatus id f (foldStatus sequStatus) sequStatus pos
 verStat (Statement id f (BySplit split) pos) context = do
+    traceM ("Split  " ++ id ++ ": " ++ show f) 
     splitStatus <- verifySplit split context 
-    trace ("Split  " ++ id ++ ": " ++ show f) return $ StatementStatus id (Correct (ProverName "TODO")) splitStatus pos
+    return $ StatementStatus id f (foldStatus splitStatus) splitStatus pos
 
 checkStat :: Statement -> Context -> IO ProofStatus
-checkStat (Statement id formula p _) context = prove (show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show formula ++ ")).\n") --return Correct
+checkStat (Statement id formula p _) context = prove (show context ++ "fof(" ++ id ++ ", conjecture, (" ++ show formula ++ ")).\n") 
 
+foldStatus :: [StatementStatus] -> ProofStatus
+foldStatus [] = Correct NotProven
+foldStatus ((StatementStatus _ _ s _ _):sts) = if isCorrect s
+                        then foldStatus sts
+                        else Incorrect NotProven
+
+isCorrect :: ProofStatus -> Bool
+isCorrect (Correct _) = True
+isCorrect _ = False

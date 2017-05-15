@@ -1,9 +1,3 @@
 fof(s1, axiom, (relation(cR))).
 fof(s5, axiom, (element(cx))).
 fof(s3, conjecture, (? [Vy] : ((element(Vy)) & (relapp(cR,cx,Vy))))).
-
-
-Saturated clause set:
-¬relapp(bR, bx, Vy_1) ∨ ¬element(Vy_1)
-relation(bR)
-element(bx)

@@ -1,6 +1,7 @@
 .prover {
     font-family: 'Droid Sans Mono', monospace;
     font-size: 15px;
+    position: relative;
 }
 
 .input {
@@ -10,13 +11,16 @@
     height: 800px;
     border-radius: 4px 0 0 4px;
     resize: none;
+    z-index: 10;
+    position: relative;
+    background: transparent;
 }
 
 .output {
     float: left;
     width: 30%;
     height: 800px;
-
+    white-space: pre;
 }
 
 .output .inner {
@@ -26,4 +30,15 @@
     border: 1px solid #d1d1d1;
     border-left: 0;
     border-radius: 0 4px 4px 0;
+}
+
+
+#test {
+    width: 70%;
+    height: 25px;
+    background-color: red;
+    position: absolute;
+    top: 225px;
+    left: 1px;
+    z-index: 1;
 }

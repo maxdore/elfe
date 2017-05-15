@@ -33,7 +33,7 @@ Proof:
         Then not not in(x,A).
         Hence in(x,A).
     qed.
-    Proof subset(A,comp(comp(A))): Obvious. qed.
+    Proof subset(A,comp(comp(A))): qed.
 qed.
 
 # Definition intersection: x ∈ (A ∩ B) iff x ∈ A and x ∈ B.

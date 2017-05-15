@@ -20,10 +20,10 @@ Definition composition: for all x. for all y. for all z. x ∈ A and y ∈ B and
         (function(g∘f,A,C)) and
         ((relapp(f,x,y) and relapp(g,y,z)) implies relapp(g∘f,x,z)).
 
-Definition functionClosure:
-    for all x. for all y. x = y implies exists z. relapp(f,x,z) and relapp(f,y,z).
+Proposition functionClosure:
+    for all x ∈ A. for all y ∈ A. x = y implies exists z. z ∈ B and relapp(f,x,z) and relapp(f,y,z).
 
-Proposition: for all c. for all d. for all e. relapp(f,c,e) and relapp(f,d,e) implies 
+Proposition compositionClosure: for all c. for all d. for all e. relapp(f,c,e) and relapp(f,d,e) implies 
             exists m. relapp(g∘f,c,m) and relapp(g∘f,d,m).
 
 Definition injective: f is injective iff

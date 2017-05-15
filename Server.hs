@@ -1,9 +1,6 @@
-{-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
 import Network.HTTP.Types
 import Web.Scotty
-import qualified Data.Text as T
-import Data.Monoid (mconcat)
-import Data.Aeson (object, (.=), ToJSON, toJSON)
+import Data.Aeson (ToJSON, toJSON)
 import Control.Monad.Trans (lift)
 import Network.Wai.Middleware.Static
 import Text.ParserCombinators.Parsec.Prim (runParser)
@@ -16,6 +13,10 @@ import Elfe
 data ProblemStatus = NotParsed ParseError | Verified [StatementStatus]
   deriving (Show, Generic)
 
+instance ToJSON Term where
+  toJSON t = toJSON $ show t
+instance ToJSON Formula where
+  toJSON f = toJSON $ show f
 instance ToJSON ProverInfo
 instance ToJSON Position
 instance ToJSON ProofStatus

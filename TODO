@@ -5,9 +5,11 @@ Note construction - extend the context with arbitrary derivation
 
 PARSER
 - case distinctions
+- FIX constructions
+- R is transitive, reflexive, ...
 - nested atoms: make fully work, ignore spaces in patterns
 - unfolding of "Q x. P(x) -> R(x)" possible with "Assume P(x)".
-- bind taken variable in take'
+- bind taken variable in take' and disallow usage in final goal!
 - nested subproofs --> end marker necessary?
 - exists atom(x). P  -->  exists x. atom(x) and P 
 - Q a,b,c. instead of Q a. Q b. Q c.

@@ -20,8 +20,11 @@
         <h2>ELFE Prover</h2>
 
         <div class="prover">
-            <textarea class="input" v-model="input" v-on:keydown="inputChanged"></textarea>
+            <textarea class="input" id="input" v-model="input" @keydown="inputChanged" @click="cursorChanged"></textarea>
             <div class="output"><div class="inner">{{ output }}</div></div>
+            <div class="status">{{ row }}, {{ col }}</div>
+
+            <div id="test"></div>
         </div>
     </div>
 

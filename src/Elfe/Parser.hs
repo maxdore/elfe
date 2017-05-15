@@ -208,32 +208,27 @@ lemma =
      -- end
      reserved "Proof:"
      derivation <- derive (bindVars goal bvs) bvs
-     --qed
+     qed
      return [(Statement id cgoal (BySequence (assumeLets:derivation)) pos)]
 
 
 -- derivations
  
 derive :: Formula -> [String] -> PS [Statement]
-derive goal bvs =     try (obvious goal bvs) 
-                  <|> try (splitGoal goal bvs)
+derive goal bvs =     try (splitGoal goal bvs)
                   <|> try (cases goal bvs)
                   <|> try (unfold goal bvs) 
                   <|> try (enfold goal bvs) 
                   <|> try (extendContext goal bvs)
-                  <|> do {try spaces >> return []}
+                  <|> finalProof goal bvs
 
 qed = do
   reserved "qed."
 
--- handwaving
 
-obvious :: Formula -> [String] -> PS [Statement]
-obvious goal bvs =
-  do pos <- getPos
-     reserved "Obvious."
-     id <- newId
-     return [(Statement id (bindVars goal bvs) ByContext pos)]
+finalProof goal bvs = 
+  do id <- newId
+     return [Statement id (bindVars goal bvs) ByContext None]
 
 -- split
 
@@ -328,11 +323,7 @@ unfold (Impl l r) bvs =
          reserved "."
          nId <- newId
          rId <- newId
-         return [
-          (Statement lId (bindVars l bvs) Assumed lPos),
-          (Statement nId (bindVars r bvs) (BySequence
-            (derivation ++ [(Statement rId (bindVars r bvs) ByContext rPos)])
-          ) None)]
+         return $ (Statement lId (bindVars l bvs) Assumed lPos) : derivation
 
 unfold (Not (Impl l r)) bvs = unfold (And l (Not r)) bvs
 unfold (Not (Forall v f)) bvs = unfold (Exists v (Not f)) bvs
@@ -422,11 +413,11 @@ take' bvs =
      proofId <- newId
      case by of
         Nothing  -> return (Statement id (bindVars f bvs) (BySequence [
-                      (Statement proofId (enfoldExists vars (bindVars f bvs)) ByContext None)
-                    ]) pos)
+                      (Statement proofId (enfoldExists vars (bindVars f bvs)) ByContext pos)
+                    ]) None)
         Just ids -> return (Statement id (bindVars f bvs) (BySequence [
-                      (Statement proofId (enfoldExists vars (bindVars f bvs)) (BySubcontext ids) None)
-                    ]) pos)
+                      (Statement proofId (enfoldExists vars (bindVars f bvs)) (BySubcontext ids) pos)
+                    ]) None)
 
 
 subContext = 
