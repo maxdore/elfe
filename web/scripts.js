@@ -1,12 +1,12 @@
 window.onload = function () {
-    new Vue({
+    var v = new Vue({
         el: '.prover',
         data: {
             input: `Notation relapp: R[x,y].
 
 Let relation(R).
 
-Lemma: transitive(R) and symmetric(R) and bound(R) implies R is reflexive.
+Lemma: transitive(R) and symmetric(R) implies R is reflexive.
 Proof:
     Assume transitive(R) and symmetric(R) and bound(R).
     Assume x is element.
@@ -23,10 +23,17 @@ qed.`,
             col: 0
         },
         methods: {
+            initEditor: function(){
+                for (var i = 1; i <= 20; i++) {
+                    $('.linewrapper').append('<div class="line" id="line' + i + '"><div class="number">' + i + '</div></div>');
+                }
+            },
             cursorChanged: function(){
                 pos = $('#input').prop('selectionStart');
                 textUntilPos = this.input.substr(0, pos);
                 this.row = textUntilPos.split("\n").length;
+                $('.line').removeClass('active');
+                $('#line'+this.row).addClass('active');
                 this.col = textUntilPos.substr(textUntilPos.lastIndexOf("\n")).length;
                 this.findResultToPos();
             },
@@ -46,42 +53,74 @@ qed.`,
                 this.$http.get('/api', {params: {problem: this.input}}).then(response => {
                         this.result = response.body.contents;
                         console.log(this.result);
+                        $('.line').removeClass('correct');
+                        $('.line').removeClass('error');
+
                         if (response.body.tag == "NotParsed") {
-                            this.output = "Parsing error:\n" + response.body.contents;
+                            this.output = "Parsing error:\n" + this.result;
+                            if (/^\d+$/.test(this.result.substr(6,2))) {
+                                var line = this.result.substr(6,2);
+                            } else {
+                                var line = this.result.substr(6,1);
+                            }
+                            $('#line'+line).addClass('error');
+
                         } else {
-                            this.output = "???";
+                            this.output = "Verified";
+                            this.result.map(this.updateLines);
                         }
                     }, response => {
                         this.output = response.body;
                 });
             },
             findResultToPos: function(){
-                this.result.map(this.objectInPos);
+                if (this.result.length > 0) {
+                    this.result.map(this.objectInPos);
+                }
             },
             objectInPos: function(obj){
                 if (obj.opos.tag != "None") {
-                    row = obj.opos.contents[0];
-                    col = obj.opos.contents[1];
+                    var row = obj.opos.contents[0];
+                    var col = obj.opos.contents[1];
                     if (row == this.row) {
                         console.log(obj);
-                        this.output = obj.sformula + "\n";
                         if (obj.status.tag == "Correct") {
                             this.output = obj.status.tag;
+                            this.output += "\n\nRaw formula: " + obj.sformula;
                         }
                         else if (obj.status.tag == "Incorrect") {
-                            this.output += "Disproved by " 
+                            this.output = "Disproved by " 
                                             + obj.status.contents.contents[0]
-                                            + ".\n Countermodel: \n"
+                                            + ".\nCountermodel: \n"
                                             + obj.status.contents.contents[1];
+                            this.output += "\nRaw formula: " + obj.sformula;
                         }
                     }
                 }
                 if (obj.children.length > 0) {
                     obj.children.map(this.objectInPos);
                 }
+            },
+            updateLines: function(obj){
+                $('.line').addClass('correct');
+                if (obj.opos.tag != "None") {
+                    var row = obj.opos.contents[0];
+                    var col = obj.opos.contents[1];
+                    if (obj.status.tag == "Correct") {
+                        $('#line'+row).removeClass('error');
+                    }
+                    else if (obj.status.tag == "Incorrect") {
+                        $('#line'+row).removeClass('correct');
+                        $('#line'+row).addClass('error');
+                    }
+                }
+                if (obj.children.length > 0) {
+                    obj.children.map(this.updateLines);
+                }
             }
         }
-    })
+    });
+    v.initEditor();
 }
 
 $(document).delegate('.input', 'keydown', function(e) {
@@ -102,3 +141,5 @@ $(document).delegate('.input', 'keydown', function(e) {
     $(this).get(0).selectionEnd = start + 4;
   }
 });
+
+

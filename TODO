@@ -1,23 +1,15 @@
 BUGS
 - formula Eq not working properly
 
-Note construction - extend the context with arbitrary derivation
-
 PARSER
-- case distinctions
-- FIX constructions
-- R is transitive, reflexive, ...
 - nested atoms: make fully work, ignore spaces in patterns
-- unfolding of "Q x. P(x) -> R(x)" possible with "Assume P(x)".
 - bind taken variable in take' and disallow usage in final goal!
-- nested subproofs --> end marker necessary?
+- FIX constructions
 - exists atom(x). P  -->  exists x. atom(x) and P 
 - Q a,b,c. instead of Q a. Q b. Q c.
-- if final goal is directly given, the sequence does not necessarily belong to the goal (--> only allow direct derivations inside unfolding?)
+- R is transitive, reflexive, ...
 
 FRONTEND
-- mapping statement sequence -> orginal text
-- line-numbers correct also after preprocessing
 - post request for /api
 - shortcuts for special chars
 
@@ -25,47 +17,8 @@ SANITY
 - no double includes of same library
 - case insensitive for markers, e.g., QED
 - check variables only quantified once
+- no free variables!
 - allow eid with alphanum and ' and only lower alpha as first character
-
-SECOND ORDER FEATURES?
-improve functions notations
-
-PARAMETRIC DATATYPES -> proposition generator in preprocessor? or possible within parser? -> lookup second order to first order reductions
-(plus, zero) in Z is commutative group
-plus(A,zero) = A
-plus(A,minus(A)) = 0
-plus(A,plus(B,C)) = plus(plus(A,B),C)
-plus(A,B) = plus(B,A)
 
 IMPLEMENT VAMPIRE
 
-PROOFS
-sqrt 2 irrational
-cantors theorem
-
-
-TPTP SYNTAX FOR ARITHMETIC
-
-<defined_predicate>    :== $distinct |
-                           $less | $lesseq | $greater | $greatereq |
-                           $is_int | $is_rat |
-                           $box_P | $box_i | $box_int | $box |
-                           $dia_P | $dia_i | $dia_int | $dia
-%----$distinct means that each of it's constant arguments are pairwise !=. It
-%----is part of the TFF syntax. It can be used only as a fact, not under any
-%----connective.
-<defined_infix_pred>   ::= <infix_equality> | <assignment>
-<infix_equality>       ::= =
-<infix_inequality>     ::= !=
-
-<constant>             ::= <functor>
-<functor>              ::= <atomic_word>
-<system_constant>      ::= <system_functor>
-<system_functor>       ::= <atomic_system_word>
-<defined_constant>     ::= <defined_functor>
-<defined_functor>      ::= <atomic_defined_word>
-<defined_functor>      :== $uminus | $sum | $difference | $product |
-                           $quotient | $quotient_e | $quotient_t | $quotient_f |
-                           $remainder_e | $remainder_t | $remainder_f |
-                           $floor | $ceiling | $truncate | $round |
-                           $to_int | $to_rat | $to_real

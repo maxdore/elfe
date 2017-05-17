@@ -11,6 +11,7 @@ import Text.Parsec.Prim (ParsecT)
 import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Expr
 import Text.ParserCombinators.Parsec.Language
+import Text.Parsec.Pos (SourcePos)
 import qualified Text.ParserCombinators.Parsec.Token as Token
 import Data.Functor.Identity (Identity)
 
@@ -39,7 +40,8 @@ reservedOp = Token.reservedOp lexer
 
 parseString :: String -> IO [Statement]
 parseString str = do 
-    case runParser elfeParser initParseState "" str of
+    let state = runParser elfeParser initParseState "" str
+    case state of
       Left e  -> return $ error $ show e
       Right r -> return r
 
@@ -125,6 +127,9 @@ elfeParser = do
 
 newContext = do
   reserved "!!!NEWCONTEXT!!!"
+  try spaces
+  pos <- getPosition
+  setPosition $ setSourceLine pos 3
   updateState clearLets
   return [] 
 
@@ -329,7 +334,7 @@ unfold (Not (Impl l r)) bvs = unfold (And l (Not r)) bvs
 unfold (Not (Forall v f)) bvs = unfold (Exists v (Not f)) bvs
 unfold (Not (Exists v f)) bvs = unfold (Forall v (Not f)) bvs
 
-unfold _ _ = fail "Formula cannot be unfold anymore"
+unfold _ _ = fail "No proving method given"
 
 
 -- something else is proved

@@ -21,10 +21,10 @@
 
         <div class="prover">
             <textarea class="input" id="input" v-model="input" @keydown="inputChanged" @click="cursorChanged"></textarea>
-            <div class="output"><div class="inner">{{ output }}</div></div>
-            <div class="status">{{ row }}, {{ col }}</div>
+            <div class="output">{{ output }}</div>
+            <div class="pos">Line {{ row }}, Col {{ col }}</div>
 
-            <div id="test"></div>
+            <div class="linewrapper"></div>
         </div>
     </div>
 

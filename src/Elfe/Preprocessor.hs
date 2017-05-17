@@ -16,7 +16,7 @@ insertLibrary :: String -> Int -> String
 insertLibrary t i = inserted
     where lname = strPrefix $ drop (i + length incMarker) t
           lcontent = unsafePerformIO $ readFile $ "library/" ++ lname ++ ".elfe"
-          inserted = take i t ++ lcontent ++ "\n!!!NEWCONTEXT!!!" ++ drop (i + length incMarker + length lname + 1) t
+          inserted = take i t ++ lcontent ++ "\n!!!NEWCONTEXT!!!\n" ++ drop (i + length incMarker + length lname + 1) t
 
 
 findSubstring :: Eq a => [a] -> [a] -> Maybe Int
