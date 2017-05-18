@@ -1,11 +1,11 @@
-Lemma: equal(2+3,5). Obvious.
+Notation union: A ∪ B.
+
+Definition: blub(A ∪ B).
 
 # Notation equal: x = y.
 # Notation in: a ∈ A.
-# Notation union: A ∪ B.
-# 
-# 
-# Definition: comp(A ∪ B) = intersection(comp(A),comp(B))
+
+# Definition: comp(A ∪ B) = intersection(comp(A),comp(B)).
 # Definition: a ∈ (C ∪ B). 
 # Definition: relapp(blub, kaj(ihsad)).
 # Definition: comp(A ∪ B). 

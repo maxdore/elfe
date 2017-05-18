@@ -162,7 +162,7 @@ assign =
 
 letRaw =
   do f <- atom
-     trace ("found let " ++ show f) try spaces
+     traceM ("found let " ++ show f)
      updateState $ addLet f
 
 
@@ -242,7 +242,7 @@ subProof bvs =
   do pos <- getPos
      reserved "Proof"
      goal <- fof
-     trace ("proof" ++ (show goal)) $ try spaces
+     traceM ("proof" ++ (show goal)) 
      reserved ":"
      derivation <- derive goal bvs
      qed
@@ -296,7 +296,7 @@ unfold (Forall v f) bvs =
      var <- many alphaNum
      spaces
      reserved "be arbitrary."
-     trace ("unfold forall to " ++ show f) try spaces
+     traceM ("unfold forall to " ++ show f)
      updateState $ addFixedVar var
      lId <- newId
      derivation <- derive (replaceVar f v var) bvs
@@ -306,7 +306,7 @@ unfold (Exists v f) bvs =
   do reserved "Take"
      var <- many alphaNum
      reserved "."
-     trace ("unfold exists to " ++ show f) try spaces
+     traceM ("unfold exists to " ++ show f)
      lId <- newId
      derivation <- derive f bvs
      return derivation
@@ -320,7 +320,7 @@ unfold (Impl l r) bvs =
        else do
          reserved "."
          lId <- newId
-         trace ("unfold implies " ++ show l) try spaces 
+         traceM ("unfold implies " ++ show l) 
          derivation <- derive r bvs
          rPos <- getPos
          reserved "Hence"
@@ -360,12 +360,12 @@ enfoldImplies bvs =
   do reserved "Assume"
      l <- fof
      reserved "."
-     trace ("Found left impl: " ++ show l) try spaces
+     traceM ("Found left impl: " ++ show l)
      _ <- derive Top bvs -- TODO what happens here?
      reserved "Hence"
      r <- fof
      reserved "."
-     trace ("Found implies creation " ++ show l ++ " => " ++ show r) try spaces
+     traceM ("Found implies creation " ++ show l ++ " => " ++ show r)
      return (Impl l r)
 
 enfoldForall bvs =
@@ -373,7 +373,7 @@ enfoldForall bvs =
      var <- many alphaNum
      spaces
      reserved "be arbitrary."
-     trace ("Found forall creation " ++ var) $ try spaces
+     traceM ("Found forall creation " ++ var)
      f <- enfoldGoal bvs
      return (Forall var f)
 
@@ -533,46 +533,22 @@ bot =
 
 atom :: PS Formula
 atom = do
-  (name,terms) <- try functionIs <|> try function
+  (name,terms) <- try functionIs <|> try (function False)
   return $ Atom name terms
 
-term :: PS Term
-term = try termParentheses <|> try cons <|> var 
+function :: Bool -> PS (String, [Term])
+function inSugar = try functionRaw <|> try (functionSugared inSugar)
 
-termParentheses :: PS Term
-termParentheses = do
-    trace ("CHECK PARENS") spaces
-    reservedOp " ("
-    spaces
-    t <- term
-    spaces
-    reserved ")"
-    spaces
-    return t
-
-cons :: PS Term
-cons = do 
-  (name,terms) <- try function  
-  return $ Cons name terms
-
-var :: PS Term
-var =
-  do var <- eid
-     return (Var var)
-
-function :: PS (String, [Term])
-function = try functionRaw <|> try functionSugared
-
-
-functionRaw :: PS (String, [Term])
+functionRaw  :: PS (String, [Term])
 functionRaw =
   do name <- try $ many1 alphaNum
      reservedOp "("
-     -- trace ("found raw function with name '" ++ name ++ "'") lookAhead $ try spaces
+     traceM ("found raw function with name '" ++ name ++ "'")
      terms <- term `sepBy` (do {char ','; spaces})
      reserved ")"
      return (name,terms)
 
+-- TODO limit to meaningful terms
 functionIs :: PS (String, [Term])
 functionIs = 
   do term <- term
@@ -581,77 +557,76 @@ functionIs =
      name <- many alphaNum
      return (name, [term])
 
+term :: PS Term
+term = try (cons False) <|> var 
+
+cons :: Bool -> PS Term
+cons inSugar = do 
+  traceM ("looking for cons, inSugar: " ++ show inSugar)
+  (name,terms) <- try (function inSugar)
+  traceM ("found cons " ++ name ++ " with terms " ++ concat (map (\x -> show x ++ ", ") terms))
+  return $ Cons name terms
+
+var :: PS Term
+var =
+  do var <- eid
+     return (Var var)
+
+termParentheses :: PS Term
+termParentheses = do
+    traceM ("CHECK PARENS")
+    reservedOp " ("
+    spaces
+    t <- term
+    spaces
+    reserved ")"
+    spaces
+    return t
 
 
 
 
-functionSugared :: PS (String, [Term])
-functionSugared =
-  do -- trace ("trying sugars") try spaces
+functionSugared :: Bool -> PS (String, [Term])
+functionSugared inSugar =
+  do traceM ("trying sugars")
      try spaces
      ss <- sugars <$> getState
-     matched <- foldl (<|>) (fail "") (map (\s -> try $ trySugar s) ss)
+     matched <- foldl (<|>) (fail "") (map (\s -> try $ trySugar s inSugar) ss)
      return matched
 
-trySugar :: (String,[String]) -> PS (String,[Term])
-trySugar (name, ps) = 
-  do -- trace ("trying sugar '" ++ name ++ "' with pattern " ++ show ps) try spaces
+trySugar :: (String,[String]) -> Bool -> PS (String,[Term])
+trySugar (name, ps) inSugar = 
+  do traceM ("trying sugar '" ++ name ++ "' with pattern " ++ show ps)
      try spaces
-     let termsM = foldl (++) [] (map (\p -> return $ try (matches p)) ps)
-     -- trace ("here ") try spaces
-     try spaces
+     let termsM = foldl (++) [] (map (\p -> return $ try (matches p inSugar)) ps)
+     traceM ("matched terms ")
      terms <- foldr (liftM2 (:)) (return []) termsM
-     -- trace ("sugar successful! " ++ concat (map show terms)) try spaces
-     try spaces
+     traceM ("sugar successful! " ++ concat (map show terms))
      return (name,filter (/= Var "BULLSHIT") terms)
 
-matches :: String -> PS Term
-matches p | p == "" = do -- seeNext 10
-                         term <- try var <|> try term
-                         -- trace ("found term '" ++ show term ++ "'") try spaces
+matches :: String -> Bool -> PS Term
+matches p inSugar | p == "" = 
+                      do seeNext 10
+                         if inSugar
+                           then do 
+                             term <- try var <|> try (cons True)
+                             traceM ("found term '" ++ show term ++ "'")
+                             try spaces
+                             return term
+                           else do
+                             term <- try (cons True)
+                             traceM ("found term '" ++ show term ++ "'")
+                             try spaces
+                             return term
+                  | otherwise = 
+                      do traceM ("search for pattern '" ++ trim p ++ "'")
                          try spaces
-                         return term
-          | otherwise = do -- trace ("search for pattern '" ++ trim p ++ "'") try spaces
-                           try spaces
-                           reservedOp $ trim p
-                           -- trace ("found pattern '" ++ p ++ "'") try spaces
-                           try spaces
-                           return $ Var "BULLSHIT"
+                         reservedOp $ trim p
+                         traceM ("found pattern '" ++ p ++ "'")
+                         try spaces
+                         return $ Var "BULLSHIT"
 
 trim :: String -> String
 trim = f . f
    where f = reverse . dropWhile isSpace
 
-
---ops =   (try $ string " implies") 
---    <|> (try $ string " and") 
---    <|> (try $ string " iff") 
---    <|> (try $ string " or") 
---    <|> (try $ string "not") 
---    <|> (try $ string " is") 
---    <|> (try $ string "(") 
---    <|> (try $ string ")") 
---    <|> (try $ string ",") 
---    <|> (try $ string ".") 
-
---matchSugars :: [(String, [String])] -> String -> PS (Maybe (String, [Term]))
---matchSugars [] _ = return Nothing
---matchSugars ((id,s):ss) raw = 
---  do ts <- matches s raw []
---     case ts of
---       Nothing -> matchSugars ss raw
---       Just ts -> return $ Just (id, reverse ts)
- 
-
-
-
---do x1 <- action1
---   x2 <- action2
---   action3 x1 x2
-
---action1 >>= \ x1 -> action2 >>= \ x2 -> action3 x1 x2
-
-
---do t1 <- matches p
---   t2 <- matches p
---   matches p >>= \ t1 

@@ -8,10 +8,13 @@ PARSER
 - exists atom(x). P  -->  exists x. atom(x) and P 
 - Q a,b,c. instead of Q a. Q b. Q c.
 - R is transitive, reflexive, ...
+- comments not correctly, top level errors do not lead to parsing errors
 
 FRONTEND
 - post request for /api
 - shortcuts for special chars
+- include found proofs
+- print formulas like beagle
 
 SANITY
 - no double includes of same library
