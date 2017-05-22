@@ -14,26 +14,25 @@ Definition subset: A ⊆ B iff for all x ∈ A. x ∈ B.
 Proposition: A = B iff A ⊆ B and B ⊆ A.
 
 Notation union: A ∪ B.
-Definition union: in(x,union(A,B)) iff x ∈ A or x ∈ B.
-Proposition unionSet: set(union(A,B)).
+Definition union: x ∈ (A ∪ B) iff x ∈ A or x ∈ B.
+Proposition unionSet: A ∪ B is set.
 
 Notation intersection: A ∩ B.
-Definition intersection: in(x,intersection(A,B)) iff x ∈ A and x ∈ B.
-Proposition intersectionSet: set(intersection(A,B)).
+Definition intersection: x ∈ (A ∩ B) iff x ∈ A and x ∈ B.
+Proposition intersectionSet: A ∩ B is set.
 
-Notation comp: ∁(A).
-Definition comp: in(x,comp(A)) iff not in(x,A).
-Proposition compSet: set(comp(A)).
+Notation comp: A⁻.
+Definition comp: x ∈ (A⁻) iff not x ∈ A.
+Proposition compSet: A⁻ is set.
 
-Lemma: equal(comp(comp(A)),A).
+Lemma: ((A⁻)⁻) = A.
 Proof:
-    Proof subset(comp(comp(A)),A):
-        Assume in(x,comp(comp(A))).
-        Then not in(x,comp(A)).
-        Then not not in(x,A).
-        Hence in(x,A).
+    Proof ((A⁻)⁻) ⊆ A:
+        Assume x ∈ ((A⁻)⁻).
+        Then not x ∈ (A⁻).
+        Hence x ∈ A.
     qed.
-    Proof subset(A,comp(comp(A))): qed.
+    Proof A ⊆ ((A⁻)⁻): qed.
 qed.
 
 # Definition intersection: x ∈ (A ∩ B) iff x ∈ A and x ∈ B.

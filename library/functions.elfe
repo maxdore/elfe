@@ -32,3 +32,4 @@ Definition injective: f is injective iff
 Definition surjective: f is surjective iff
     for all y ∈ B. exists x. x ∈ A and relapp(f,x,y).
 
+Definition bijective: f is bijective iff f is injective and f is surjective.

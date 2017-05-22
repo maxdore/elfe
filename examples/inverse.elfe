@@ -1,0 +1,15 @@
+Let f: A -> B.
+Let i: X -> X.
+
+Definition identity: i is identity iff for all x ∈ X. f{x} = x.
+
+Notation inverse: f⁻¹.
+
+Definition inverse: (f⁻¹): B -> C and for all x. f{x} = y implies f{y} = x
+
+Lemma: f bijective implies f⁻¹∘f is identity.
+Proof: 
+    Assume x ∈ A.
+    Then f{x} = y and (f⁻¹){y} = x.
+    Hence ((f⁻¹)∘f){x} = x.
+qed.

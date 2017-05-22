@@ -446,7 +446,7 @@ bindVars f (v:vs) = bindVars (replaceVar f v (boundPrefix++v)) vs
 fof = level1 `chainl1` (try iff)
 level1 = (forall <|> exists  <|> level2) `chainl1` (try implies)
 level2 = level3 `chainl1` (try and')
-level3 = (try parentheses <|> try not' <|> try atom <|> try bot) `chainl1` (try or')
+level3 = (try atom <|> try parentheses <|> try not' <|> try bot) `chainl1` (try or')
 
 parentheses :: PS Formula
 parentheses = do
@@ -533,95 +533,89 @@ bot =
 
 atom :: PS Formula
 atom = do
+  seeNext 10
   (name,terms) <- try functionIs <|> try (function False)
   return $ Atom name terms
 
 function :: Bool -> PS (String, [Term])
-function inSugar = try functionRaw <|> try (functionSugared inSugar)
+function False = do
+    traceM ("Trying function, wrapped sugar is false")
+    try functionSugared <|> try functionRaw
+function True = do
+    traceM ("Trying function, wrapped sugar is true")
+    try functionWrapSugared <|> try functionRaw
 
 functionRaw  :: PS (String, [Term])
 functionRaw =
   do name <- try $ many1 alphaNum
      reservedOp "("
      traceM ("found raw function with name '" ++ name ++ "'")
-     terms <- term `sepBy` (do {char ','; spaces})
+     terms <- (term False) `sepBy` (do {char ','; spaces})
      reserved ")"
      return (name,terms)
 
 -- TODO limit to meaningful terms
 functionIs :: PS (String, [Term])
 functionIs = 
-  do term <- term
+  do term <- term False
      spaces
      reserved "is"
      name <- many alphaNum
      return (name, [term])
 
-term :: PS Term
-term = try (cons False) <|> var 
+term :: Bool -> PS Term
+term sugarWrap = try (cons sugarWrap) <|> var 
 
 cons :: Bool -> PS Term
-cons inSugar = do 
-  traceM ("looking for cons, inSugar: " ++ show inSugar)
-  (name,terms) <- try (function inSugar)
+cons sugarWrap = do 
+  traceM ("looking for cons")
+  (name,terms) <- try (function sugarWrap)
   traceM ("found cons " ++ name ++ " with terms " ++ concat (map (\x -> show x ++ ", ") terms))
   return $ Cons name terms
 
 var :: PS Term
 var =
   do var <- eid
+     traceM $ "found var " ++ var
      return (Var var)
 
-termParentheses :: PS Term
-termParentheses = do
-    traceM ("CHECK PARENS")
-    reservedOp " ("
-    spaces
-    t <- term
-    spaces
+
+
+functionWrapSugared :: PS (String, [Term])
+functionWrapSugared = do
+    traceM ("TRYING WRAPPED SUGAR")
+    reservedOp "("
+    s <- functionSugared
     reserved ")"
-    spaces
-    return t
+    traceM ("WRAPPED SUGAR WORKED")
+    return s
 
-
-
-
-functionSugared :: Bool -> PS (String, [Term])
-functionSugared inSugar =
+functionSugared :: PS (String, [Term])
+functionSugared =
   do traceM ("trying sugars")
-     try spaces
      ss <- sugars <$> getState
-     matched <- foldl (<|>) (fail "") (map (\s -> try $ trySugar s inSugar) ss)
+     matched <- foldl (<|>) (fail "") (map (\s -> try $ applySugar s) ss)
      return matched
 
-trySugar :: (String,[String]) -> Bool -> PS (String,[Term])
-trySugar (name, ps) inSugar = 
-  do traceM ("trying sugar '" ++ name ++ "' with pattern " ++ show ps)
-     try spaces
-     let termsM = foldl (++) [] (map (\p -> return $ try (matches p inSugar)) ps)
+applySugar :: (String,[String]) -> PS (String,[Term])
+applySugar (name, ps) = 
+  do seeNext 10
+     traceM ("trying sugar '" ++ name ++ "' with pattern " ++ show ps)
+     let termsM = foldl (++) [] (map (\p -> return $ try (matches p)) ps)
      traceM ("matched terms ")
      terms <- foldr (liftM2 (:)) (return []) termsM
      traceM ("sugar successful! " ++ concat (map show terms))
      return (name,filter (/= Var "BULLSHIT") terms)
 
-matches :: String -> Bool -> PS Term
-matches p inSugar | p == "" = 
-                      do seeNext 10
-                         if inSugar
-                           then do 
-                             term <- try var <|> try (cons True)
-                             traceM ("found term '" ++ show term ++ "'")
-                             try spaces
-                             return term
-                           else do
-                             term <- try (cons True)
-                             traceM ("found term '" ++ show term ++ "'")
-                             try spaces
-                             return term
-                  | otherwise = 
-                      do traceM ("search for pattern '" ++ trim p ++ "'")
+matches :: String -> PS Term
+matches p | p == "" = do seeNext 10
+                         term <- try (term True)
+                         traceM ("found term '" ++ show term ++ "'")
+                         return term
+          | otherwise = do 
+                         traceM ("search for pattern '" ++ trim p ++ "'")
                          try spaces
-                         reservedOp $ trim p
+                         reserved $ trim p
                          traceM ("found pattern '" ++ p ++ "'")
                          try spaces
                          return $ Var "BULLSHIT"
