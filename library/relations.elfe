@@ -10,7 +10,7 @@ Definition symmetry: R is symmetric iff for all x. for all y. element(x) and ele
 
 Definition boundness: R is bound iff for all x. element(x) implies exists y. element(y) and R[x,y].
 
-Definition transitivity: R is transitive iff for all x. for all y. for all Z. element(x) and element(y) and element(Z) and R[x,y] and R[y,Z] implies R[x,Z].
+Definition transitivity: R is transitive iff for all x. for all y. for all z. element(x) and element(y) and element(z) and R[x,y] and R[y,z] implies R[x,z].
 
 Definition reflexivity: R is reflexive iff for all x. element(x) implies R[x,x].
 

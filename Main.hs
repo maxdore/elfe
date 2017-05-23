@@ -20,4 +20,4 @@ check raw = do
     putStrLn $ concat $ map (prettyStatement 0) sequ
     putStrLn "-------------------------VERIFYING-------------------------" 
     res <- verify sequ
-    putStrLn $ show res
+    putStrLn "--------------------------FINISHED-------------------------" 

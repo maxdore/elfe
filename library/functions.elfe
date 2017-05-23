@@ -17,7 +17,7 @@ Proposition funEquality: for all x. for all y. equal(funApp(f,x),funApp(f,y)) if
 
 Notation composition: g∘f.
 Definition composition: for all x. for all y. for all z. x ∈ A and y ∈ B and z ∈ C implies
-        (function(g∘f,A,C)) and
+        (g∘f): A -> C and
         ((relapp(f,x,y) and relapp(g,y,z)) implies relapp(g∘f,x,z)).
 
 Proposition functionClosure:

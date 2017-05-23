@@ -162,7 +162,7 @@ assign =
 
 letRaw =
   do f <- atom
-     traceM ("found let " ++ show f)
+     --traceM ("found let " ++ show f)
      updateState $ addLet f
 
 
@@ -242,7 +242,7 @@ subProof bvs =
   do pos <- getPos
      reserved "Proof"
      goal <- fof
-     traceM ("proof" ++ (show goal)) 
+     --traceM ("proof" ++ (show goal)) 
      reserved ":"
      derivation <- derive goal bvs
      qed
@@ -296,7 +296,7 @@ unfold (Forall v f) bvs =
      var <- many alphaNum
      spaces
      reserved "be arbitrary."
-     traceM ("unfold forall to " ++ show f)
+     --traceM ("unfold forall to " ++ show f)
      updateState $ addFixedVar var
      lId <- newId
      derivation <- derive (replaceVar f v var) bvs
@@ -306,7 +306,7 @@ unfold (Exists v f) bvs =
   do reserved "Take"
      var <- many alphaNum
      reserved "."
-     traceM ("unfold exists to " ++ show f)
+     --traceM ("unfold exists to " ++ show f)
      lId <- newId
      derivation <- derive f bvs
      return derivation
@@ -320,7 +320,7 @@ unfold (Impl l r) bvs =
        else do
          reserved "."
          lId <- newId
-         traceM ("unfold implies " ++ show l) 
+         --traceM ("unfold implies " ++ show l) 
          derivation <- derive r bvs
          rPos <- getPos
          reserved "Hence"
@@ -360,12 +360,12 @@ enfoldImplies bvs =
   do reserved "Assume"
      l <- fof
      reserved "."
-     traceM ("Found left impl: " ++ show l)
+     --traceM ("Found left impl: " ++ show l)
      _ <- derive Top bvs -- TODO what happens here?
      reserved "Hence"
      r <- fof
      reserved "."
-     traceM ("Found implies creation " ++ show l ++ " => " ++ show r)
+     --traceM ("Found implies creation " ++ show l ++ " => " ++ show r)
      return (Impl l r)
 
 enfoldForall bvs =
@@ -373,7 +373,7 @@ enfoldForall bvs =
      var <- many alphaNum
      spaces
      reserved "be arbitrary."
-     traceM ("Found forall creation " ++ var)
+     --traceM ("Found forall creation " ++ var)
      f <- enfoldGoal bvs
      return (Forall var f)
 
@@ -533,23 +533,23 @@ bot =
 
 atom :: PS Formula
 atom = do
-  seeNext 10
+  --seeNext 10
   (name,terms) <- try functionIs <|> try (function False)
   return $ Atom name terms
 
 function :: Bool -> PS (String, [Term])
 function False = do
-    traceM ("Trying function, wrapped sugar is false")
+    --traceM ("Trying function, wrapped sugar is false")
     try functionSugared <|> try functionRaw
 function True = do
-    traceM ("Trying function, wrapped sugar is true")
+    --traceM ("Trying function, wrapped sugar is true")
     try functionWrapSugared <|> try functionRaw
 
 functionRaw  :: PS (String, [Term])
 functionRaw =
   do name <- try $ many1 alphaNum
      reservedOp "("
-     traceM ("found raw function with name '" ++ name ++ "'")
+     --traceM ("found raw function with name '" ++ name ++ "'")
      terms <- (term False) `sepBy` (do {char ','; spaces})
      reserved ")"
      return (name,terms)
@@ -568,55 +568,55 @@ term sugarWrap = try (cons sugarWrap) <|> var
 
 cons :: Bool -> PS Term
 cons sugarWrap = do 
-  traceM ("looking for cons")
+  --traceM ("looking for cons")
   (name,terms) <- try (function sugarWrap)
-  traceM ("found cons " ++ name ++ " with terms " ++ concat (map (\x -> show x ++ ", ") terms))
+  --traceM ("found cons " ++ name ++ " with terms " ++ concat (map (\x -> show x ++ ", ") terms))
   return $ Cons name terms
 
 var :: PS Term
 var =
   do var <- eid
-     traceM $ "found var " ++ var
+     --traceM $ "found var " ++ var
      return (Var var)
 
 
 
 functionWrapSugared :: PS (String, [Term])
 functionWrapSugared = do
-    traceM ("TRYING WRAPPED SUGAR")
+    --traceM ("TRYING WRAPPED SUGAR")
     reservedOp "("
     s <- functionSugared
     reserved ")"
-    traceM ("WRAPPED SUGAR WORKED")
+    --traceM ("WRAPPED SUGAR WORKED")
     return s
 
 functionSugared :: PS (String, [Term])
 functionSugared =
-  do traceM ("trying sugars")
+  do --traceM ("trying sugars")
      ss <- sugars <$> getState
      matched <- foldl (<|>) (fail "") (map (\s -> try $ applySugar s) ss)
      return matched
 
 applySugar :: (String,[String]) -> PS (String,[Term])
 applySugar (name, ps) = 
-  do seeNext 10
-     traceM ("trying sugar '" ++ name ++ "' with pattern " ++ show ps)
+  do --seeNext 10
+     --traceM ("trying sugar '" ++ name ++ "' with pattern " ++ show ps)
      let termsM = foldl (++) [] (map (\p -> return $ try (matches p)) ps)
-     traceM ("matched terms ")
+     --traceM ("matched terms ")
      terms <- foldr (liftM2 (:)) (return []) termsM
-     traceM ("sugar successful! " ++ concat (map show terms))
+     --traceM ("sugar successful! " ++ concat (map show terms))
      return (name,filter (/= Var "BULLSHIT") terms)
 
 matches :: String -> PS Term
-matches p | p == "" = do seeNext 10
+matches p | p == "" = do --seeNext 10
                          term <- try (term True)
-                         traceM ("found term '" ++ show term ++ "'")
+                         --traceM ("found term '" ++ show term ++ "'")
                          return term
           | otherwise = do 
-                         traceM ("search for pattern '" ++ trim p ++ "'")
+                         --traceM ("search for pattern '" ++ trim p ++ "'")
                          try spaces
-                         reserved $ trim p
-                         traceM ("found pattern '" ++ p ++ "'")
+                         string $ trim p
+                         --traceM ("found pattern '" ++ p ++ "'")
                          try spaces
                          return $ Var "BULLSHIT"
 

@@ -3,20 +3,20 @@ Include sets.
 Let A,B be set.
 Let x be an element.
 
-Lemma: ((A ∪ B)⁻) = ((A⁻) ∩ (B⁻)).
+Lemma: ((A ∪ B)†) = ((A†) ∩ (B†)).
 Proof:
-    Proof ((A ∪ B)⁻) ⊆ ((A⁻) ∩ (B⁻)):
-        Assume x ∈ ((A ∪ B)⁻).
+    Proof ((A ∪ B)†) ⊆ ((A†) ∩ (B†)):
+        Assume x ∈ ((A ∪ B)†).
         Then not x ∈ (A ∪ B).
         Then not x ∈ A and not x ∈ B.
-        Then x ∈ (A⁻) and x ∈ (B⁻).
-        Hence x ∈ ((A⁻) ∩ (B⁻)).
+        Then x ∈ (A†) and x ∈ (B†).
+        Hence x ∈ ((A†) ∩ (B†)).
     qed.
-    Proof ((A⁻) ∩ (B⁻)) ⊆ ((A ∪ B)⁻):
-        Assume x ∈ ((A⁻) ∩ (B⁻)).
-        Then x ∈ (A⁻) and x ∈ (B⁻).
+    Proof ((A†) ∩ (B†)) ⊆ ((A ∪ B)†):
+        Assume x ∈ ((A†) ∩ (B†)).
+        Then x ∈ (A†) and x ∈ (B†).
         Then not x ∈ A and not x ∈ B.
         Then not x ∈ (A ∪ B).
-        Hence x ∈ ((A ∪ B)⁻).
+        Hence x ∈ ((A ∪ B)†).
     qed.
 qed.

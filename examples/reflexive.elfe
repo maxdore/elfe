@@ -8,7 +8,7 @@ Proof:
     Assume x is element.
     Take y such that element(y) and R[x,y] by boundness.
     Then R[y,x] by symmetry.
-    Hence R[x,x] .
+    Hence R[x,x].
     Hence R is reflexive.
 qed.
 

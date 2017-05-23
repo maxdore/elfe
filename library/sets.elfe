@@ -21,18 +21,18 @@ Notation intersection: A ∩ B.
 Definition intersection: x ∈ (A ∩ B) iff x ∈ A and x ∈ B.
 Proposition intersectionSet: A ∩ B is set.
 
-Notation comp: A⁻.
-Definition comp: x ∈ (A⁻) iff not x ∈ A.
-Proposition compSet: A⁻ is set.
+Notation comp: A†.
+Definition comp: x ∈ (A†) iff not x ∈ A.
+Proposition compSet: A† is set.
 
-Lemma: ((A⁻)⁻) = A.
+Lemma: ((A†)†) = A.
 Proof:
-    Proof ((A⁻)⁻) ⊆ A:
-        Assume x ∈ ((A⁻)⁻).
-        Then not x ∈ (A⁻).
+    Proof ((A†)†) ⊆ A:
+        Assume x ∈ ((A†)†).
+        Then not x ∈ (A†).
         Hence x ∈ A.
     qed.
-    Proof A ⊆ ((A⁻)⁻): qed.
+    Proof A ⊆ ((A†)†): qed.
 qed.
 
 # Definition intersection: x ∈ (A ∩ B) iff x ∈ A and x ∈ B.
