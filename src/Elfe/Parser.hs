@@ -584,9 +584,9 @@ var =
 functionWrapSugared :: PS (String, [Term])
 functionWrapSugared = do
     --traceM ("TRYING WRAPPED SUGAR")
-    reservedOp "("
+    string "(" -- maybe reservedOp
     s <- functionSugared
-    reserved ")"
+    string ")"
     --traceM ("WRAPPED SUGAR WORKED")
     return s
 

@@ -13,23 +13,31 @@ Let g: B -> C.
 
 Notation funApp: f{x}.
 
-Proposition funEquality: for all x. for all y. equal(funApp(f,x),funApp(f,y)) iff exists z. (relapp(f,x,z) and relapp(f,y,z)).
+Proposition funEquality: for all x. for all y. (f{x}) = (f{y}) iff exists z. (f[x,z] and f[y,z]).
 
 Notation composition: g∘f.
 Definition composition: for all x. for all y. for all z. x ∈ A and y ∈ B and z ∈ C implies
         (g∘f): A -> C and
-        ((relapp(f,x,y) and relapp(g,y,z)) implies relapp(g∘f,x,z)).
+        ((f[x,y] and g[y,z]) implies (g∘f)[x,z]).
+
+Let x ∈ A.
+Let y ∈ B.
+Let z ∈ C.
+Lemma: (f[x,y] and g[y,z]) implies (g∘f)[x,z].
+Proof: qed.
 
 Proposition functionClosure:
-    for all x ∈ A. for all y ∈ A. x = y implies exists z. z ∈ B and relapp(f,x,z) and relapp(f,y,z).
+    for all x ∈ A. for all y ∈ A. x = y implies exists z. z ∈ B and f[x,z] and f[y,z].
 
-Proposition compositionClosure: for all c. for all d. for all e. relapp(f,c,e) and relapp(f,d,e) implies 
-            exists m. relapp(g∘f,c,m) and relapp(g∘f,d,m).
+Proposition compositionClosure: for all c. for all d. for all e. f[c,e] and f[d,e] implies 
+            exists m. (g∘f)[c,m] and (g∘f)[d,m].
 
 Definition injective: f is injective iff
-    for all x1. for all x2. for all y. relapp(f,x1,y) and relapp(f,x2,y) implies x1 = x2.
+    for all x1. for all x2. for all y. f[x1,y] and f[x2,y] implies x1 = x2.
 
 Definition surjective: f is surjective iff
-    for all y ∈ B. exists x. x ∈ A and relapp(f,x,y).
+    for all y ∈ B. exists x. x ∈ A and f[x,y].
 
 Definition bijective: f is bijective iff f is injective and f is surjective.
+
+

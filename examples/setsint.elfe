@@ -1,0 +1,22 @@
+Include sets.
+
+Let A,B,C be set.
+Let x be an element.
+
+Lemma: (A ∩ (B ∪ C)) = ((A ∩ B) ∪ (A ∩ C)).
+Proof:
+    Proof (A ∩ (B ∪ C)) ⊆ ((A ∩ B) ∪ (A ∩ C)):
+        Assume x ∈ (A ∩ (B ∪ C)).
+        Then x ∈ A and x ∈ (B ∪ C).
+        Then x ∈ B or x ∈ C.
+        Then x ∈ (A ∩ B) or x ∈ (A ∩ C).
+        Hence x ∈ ((A ∩ B) ∪ (A ∩ C)).
+    qed.
+    Proof ((A ∩ B) ∪ (A ∩ C)) ⊆ (A ∩ (B ∪ C)):
+        Assume x ∈ ((A ∩ B) ∪ (A ∩ C)).
+        Then x ∈ (A ∩ B) or x ∈ (A ∩ C).
+        Then (x ∈ A and x ∈ B) or (x ∈ A and x ∈ C).
+        Then x ∈ A and (x ∈ B or x ∈ C).
+        Hence x ∈ (A ∩ (B ∪ C)).
+    qed.
+qed.

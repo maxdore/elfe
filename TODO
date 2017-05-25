@@ -9,6 +9,7 @@ PARSER
 - Q a,b,c. instead of Q a. Q b. Q c.
 - R is transitive, reflexive, ...
 - comments not correctly, top level errors do not lead to parsing errors
+- by also in hence
 
 FRONTEND
 - post request for /api

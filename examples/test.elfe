@@ -1,33 +1,29 @@
-Include functions. 
+Notation comp: Aᑦ.
+Definition: ((Aᑦ)ᑦ) = A.
 
-Definition inverse: blub(asd) and (for all x. blaub(asd)).
+Notation inverse: f⁻¹.
+Notation composition: g∘f.
 
+Definition: g∘f is identity.
 
+Definition: (f⁻¹)∘f is identity.
 
+Notation relapp: R[x,y].
+Definition: R[a,b].
 
-# Notation inverse: f⁻¹.
-# Notation composition: g∘f.
-# 
-# Definition: g∘f is identity.
-# 
-# Definition: (f⁻¹)∘f is identity.
-# 
-# Notation relapp: R[x,y].
-# Definition: R[a,b].
-# 
-# Notation comp: A⁻.
-# Notation union: A ∪ B.
-# Notation in: a ∈ A.
-# 
-# Definition: (A ∪ B)⁻.
-# 
-# Definition: a ∈ (C ∪ B).
-# Definition: comp(A ∪ B) = intersection(comp(A),comp(B)).
-# 
-# Definition: relapp(blub, kaj(ihsad)).
-# Definition: comp(A ∪ B). 
-# Definition: A ∪ B is set.
-# Definition: blub(A ∪ B).
+Notation comp: A⁻.
+Notation union: A ∪ B.
+Notation in: a ∈ A.
+
+Definition: (A ∪ B)⁻.
+
+Definition: a ∈ (C ∪ B).
+Definition: comp(A ∪ B) = intersection(comp(A),comp(B)).
+
+Definition: relapp(blub, kaj(ihsad)).
+Definition: comp(A ∪ B). 
+Definition: A ∪ B is set.
+Definition: blub(A ∪ B).
 
 
 # Definition def: blab(asd).
