@@ -1,0 +1,11 @@
+Include relations.
+
+Let R be relation.
+Let x,y be element.
+
+Lemma: R ∪ (R⁻¹) is symmetric.
+Proof:
+    Assume R[x,y].
+    Hence R[y,x].
+qed.
+

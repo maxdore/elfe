@@ -1,0 +1,23 @@
+Include relations.
+
+Let R be relation.
+Let x,y be element.
+
+Lemma: ((R⁻¹)ᑦ) = ((Rᑦ)⁻¹).
+Proof:
+    Proof ((R⁻¹)ᑦ)[x,y] implies ((Rᑦ)⁻¹)[x,y]: 
+        Assume ((R⁻¹)ᑦ)[x,y].
+        Then not (R⁻¹)[x,y].
+        Then not R[y,x].
+        Then (Rᑦ)[y,x].
+        Hence ((Rᑦ)⁻¹)[x,y].
+    qed.
+    Proof ((Rᑦ)⁻¹)[x,y] implies ((R⁻¹)ᑦ)[x,y]: 
+        Assume ((Rᑦ)⁻¹)[x,y].
+        Then (Rᑦ)[y,x].
+        Then not R[y,x].
+        Then not (R⁻¹)[y,x].
+        Hence ((R⁻¹)ᑦ)[x,y].
+    qed.
+qed.
+

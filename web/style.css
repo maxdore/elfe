@@ -2,6 +2,21 @@
     font-family: 'Droid Sans Mono', monospace;
     font-size: 15px;
     position: relative;
+    overflow: hidden;
+}
+
+.bar {
+    background-color: #eee;
+    height: 35px;
+    border-radius: 4px 4px 0 0;
+    z-index: 2;
+    position: relative;
+}
+
+.bar .verify {
+    position: absolute;
+    top: 0;
+    right: 0;
 }
 
 .input {
@@ -9,12 +24,12 @@
     height: 500px;
     width: 100%;
     padding-left: 4%;
-    border-radius: 4px 4px 0 0;
     resize: none;
     z-index: 10;
     position: relative;
     background: transparent;
     margin: 0;
+    border-radius: 0;
 }
 
 .output {
@@ -25,19 +40,21 @@
     border: 1px solid #d1d1d1;
     border-top: 0;
     border-radius: 0 0 4px 4px;
+    z-index: 2;
+    position: relative;
 }
 
 .pos {
     position: absolute;
     right: 10px;
-    top: 470px;
+    top: 505px;
     color: #bbb;
     z-index: 2;
 }
 
 .linewrapper {
     position: absolute;
-    top: 5px;
+    top: 41px;
     left: 1px;
     width: 100%;
 }

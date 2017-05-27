@@ -1,0 +1,20 @@
+Include functions.
+
+Let f: A -> B.
+Let g: B -> C.
+
+Lemma: g∘f is surjective implies g is surjective.
+Proof:
+    Assume g∘f is surjective.
+    Assume z ∈ C.
+    Take x such that (g∘f)[x,z].
+    Take y such that g[y,z].
+    Hence exists y. y ∈ B and g[y,z].
+    Hence g is surjective.
+qed.
+
+
+    #Assume (f{x1}) = (f{x2}).
+    #Then ((g∘f){x1}) = ((g∘f){x2}).
+    #Hence x1 = x2.
+

@@ -1,0 +1,23 @@
+Include relations.
+
+Let R,S be relation.
+Let x,y be element.
+
+Lemma: R ⊆ S and S is symmetric implies (R ∪ (R⁻¹)) ⊆ S.
+Proof:
+    Assume R ⊆ S and S is symmetric.
+    Assume (R ∪ (R⁻¹))[x,y].
+    Then R[x,y] or (R⁻¹)[x,y].
+    Case R[x,y]:
+        Then S[x,y].
+    qed.
+    Case (R⁻¹)[x,y]:
+        Then R[y,x].
+        Then S[y,x].
+        Then S[x,y].
+    qed.
+    Hence S[x,y].
+    Hence (R ∪ (R⁻¹)) ⊆ S.
+qed.
+
+

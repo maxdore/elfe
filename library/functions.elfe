@@ -20,12 +20,6 @@ Definition composition: for all x. for all y. for all z. x ∈ A and y ∈ B and
         (g∘f): A -> C and
         ((f[x,y] and g[y,z]) implies (g∘f)[x,z]).
 
-Let x ∈ A.
-Let y ∈ B.
-Let z ∈ C.
-Lemma: (f[x,y] and g[y,z]) implies (g∘f)[x,z].
-Proof: qed.
-
 Proposition functionClosure:
     for all x ∈ A. for all y ∈ A. x = y implies exists z. z ∈ B and f[x,z] and f[y,z].
 
@@ -39,5 +33,4 @@ Definition surjective: f is surjective iff
     for all y ∈ B. exists x. x ∈ A and f[x,y].
 
 Definition bijective: f is bijective iff f is injective and f is surjective.
-
 

@@ -17,18 +17,40 @@ Proof:
 qed.`,
             output: "",
             result: {},
-            submitted: true,
+            autoSubmit: false,
+            loading: false,
             unchangedSince: new Date(),
             row: 0,
-            col: 0
+            col: 0,
+            specialKeys: [
+                // '∈',
+                // '∩',
+                // '∪',
+                // '⊆',
+                // 'ᑦ',
+                // '->',
+                // '∘',
+                // '⁻¹',
+                // '[',
+                // ']',
+                // '{',
+                // '}',
+            ]
         },
         methods: {
             initEditor: function(){
+                console.log(this.specialKeys);
                 for (var i = 1; i <= 20; i++) {
                     $('.linewrapper').append('<div class="line" id="line' + i + '"><div class="number">' + i + '</div></div>');
                 }
             },
             cursorChanged: function(){
+                numRows = this.input.split("\n").length;
+                $('.linewrapper').html('');
+                for (var i = 1; i <= numRows; i++) {
+                    $('.linewrapper').append('<div class="line" id="line' + i + '"><div class="number">' + i + '</div></div>');
+                }
+
                 pos = $('#input').prop('selectionStart');
                 textUntilPos = this.input.substr(0, pos);
                 this.row = textUntilPos.split("\n").length;
@@ -37,19 +59,14 @@ qed.`,
                 this.col = textUntilPos.substr(textUntilPos.lastIndexOf("\n")).length;
                 this.findResultToPos();
             },
-            inputChanged: function(){
-                this.submitted = false;
-                this.unchangedSince = new Date(); 
-                setTimeout(this.submit, 1000);
+            scrollChanged: function(){
+                o = $("#input").prop('scrollTop');
+                $('.linewrapper').css('top', 42 - o);
             },
             submit: function(){
-                var now = new Date();
-                if (this.submitted || (now.getTime() - this.unchangedSince.getTime()) < 1000) {
-                    return;
-                }
-                this.submitted = true;
                 console.log("called now");
                 this.output = "Loading...";
+                this.loading = true;
                 this.$http.get('/api', {params: {problem: this.input}}).then(response => {
                         this.result = response.body.contents;
                         console.log(this.result);
@@ -69,8 +86,10 @@ qed.`,
                             this.output = "Verified";
                             this.result.map(this.updateLines);
                         }
+                        this.loading = false;
                     }, response => {
                         this.output = response.body;
+                        this.loading = false;
                 });
             },
             findResultToPos: function(){
@@ -140,6 +159,10 @@ $(document).delegate('.input', 'keydown', function(e) {
     $(this).get(0).selectionStart =
     $(this).get(0).selectionEnd = start + 4;
   }
+  if (keyCode == 13 && e.ctrlKey) {
+    $('#verifyButton').click();
+  }
+
 });
 
 

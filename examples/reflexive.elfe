@@ -1,8 +1,8 @@
 Include relations.
 
-Let relation(R).
+Let R be relation.
 
-Lemma: transitive(R) and symmetric(R) and bound(R) implies R is reflexive.
+Lemma: for all b. transitive(R) and symmetric(R) and bound(R) implies R is reflexive.
 Proof:
     Assume transitive(R) and symmetric(R) and bound(R).
     Assume x is element.

@@ -228,7 +228,7 @@ derive goal bvs =     try (splitGoal goal bvs)
                   <|> finalProof goal bvs
 
 qed = do
-  reserved "qed."
+  reserved "qed." <|> reserved "Qed."
 
 
 finalProof goal bvs = 
@@ -292,10 +292,10 @@ cases goal bvs =
 
 unfold :: Formula -> [String] -> PS [Statement]
 unfold (Forall v f) bvs = 
-  do reserved "Let"
+  do reserved "Fix"
      var <- many alphaNum
      spaces
-     reserved "be arbitrary."
+     reserved "."
      --traceM ("unfold forall to " ++ show f)
      updateState $ addFixedVar var
      lId <- newId
@@ -382,16 +382,16 @@ enfoldForall bvs =
 
 extendContext :: Formula -> [String] -> PS [Statement]
 extendContext goal bvs =
-  do derivedStatement <- then' bvs <|> take' bvs
-     actualDerivation <- derive goal bvs
+  do (derivedStatement,nbvs) <- then' bvs <|> take' bvs
+     actualDerivation <- derive goal nbvs
      id <- newId
-     return [(Statement id (bindVars goal bvs) (BySequence (derivedStatement:actualDerivation)) None)]
+     return [(Statement id (bindVars goal nbvs) (BySequence (derivedStatement:actualDerivation)) None)]
 
 
 
 -- STATEMENT MARKERS
 
-then' :: [String] -> PS Statement
+then' :: [String] -> PS (Statement, [String])
 then' bvs =
   do pos <- getPos
      reserved "Then"
@@ -401,10 +401,10 @@ then' bvs =
      reserved "."
      id <- newId
      case by of
-        Nothing -> return $ Statement id (bindVars f bvs) ByContext pos 
-        Just ids -> return $ Statement id (bindVars f bvs) (BySubcontext ids) pos
+        Nothing -> return (Statement id (bindVars f bvs) ByContext pos, bvs )
+        Just ids -> return (Statement id (bindVars f bvs) (BySubcontext ids) pos, bvs)
 
-take' :: [String] -> PS Statement
+take' :: [String] -> PS (Statement, [String])
 take' bvs = 
   do pos <- getPos
      reserved "Take"
@@ -417,12 +417,12 @@ take' bvs =
      id <- newId
      proofId <- newId
      case by of
-        Nothing  -> return (Statement id (bindVars f bvs) (BySequence [
-                      (Statement proofId (enfoldExists vars (bindVars f bvs)) ByContext pos)
-                    ]) None)
-        Just ids -> return (Statement id (bindVars f bvs) (BySequence [
-                      (Statement proofId (enfoldExists vars (bindVars f bvs)) (BySubcontext ids) pos)
-                    ]) None)
+        Nothing  -> return ((Statement id (bindVars f (bvs++vars2Strings vars)) (BySequence [
+                              (Statement proofId (enfoldExists vars (bindVars f (bvs))) ByContext pos)
+                            ]) None), bvs ++ vars2Strings vars)
+        Just ids -> return ((Statement id (bindVars f (bvs++vars2Strings vars)) (BySequence [
+                              (Statement proofId (enfoldExists vars (bindVars f (bvs))) (BySubcontext ids) pos)
+                            ]) None), bvs ++ vars2Strings vars)
 
 
 subContext = 
@@ -490,12 +490,23 @@ forallAtom =
 exists :: PS Formula
 exists =
   do reserved "exists"
-     spaces
-     var <- many alphaNum
+     try existsRaw <|> existsAtom
+
+existsRaw :: PS Formula
+existsRaw =
+  do var <- eid
      spaces
      reserved "."
-     sent <- fof
-     return (Exists var sent)
+     f <- fof
+     return (Exists var f)
+
+existsAtom :: PS Formula
+existsAtom = 
+  do atom <- atom
+     spaces
+     reserved "."
+     f <- fof
+     return $ enfoldExists (getVarsOfFormula atom) (atom `And` f) 
 
 implies :: PS (Formula -> Formula -> Formula)
 implies =
