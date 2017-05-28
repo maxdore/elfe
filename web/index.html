@@ -21,13 +21,22 @@
 
         <div class="prover">
             <div class="bar">
-                <div v-for="key in specialKeys">
-                    {{key}}
-                </div>
+                <a class="specialKey" @click="insertKey('∈')">∈</a>
+                <a class="specialKey" @click="insertKey('∩')">∩</a>
+                <a class="specialKey" @click="insertKey('∪')">∪</a>
+                <a class="specialKey" @click="insertKey('⊆')">⊆</a>
+                <a class="specialKey" @click="insertKey('ᑦ')">ᑦ</a>
+                <a class="specialKey" @click="insertKey('->')">-></a>
+                <a class="specialKey" @click="insertKey('∘')">∘</a>
+                <a class="specialKey" @click="insertKey('⁻¹')">⁻¹</a>
+                <a class="specialKey" @click="insertKey('[')">[</a>
+                <a class="specialKey" @click="insertKey(']')">]</a>
+                <a class="specialKey" @click="insertKey('{')">{</a>
+                <a class="specialKey" @click="insertKey('}')">}</a>
 
                 <button id="verifyButton" class="verify" @click="submit" :disabled="loading">{{ loading ? 'Loading...' : 'Verify (ctrl+Enter)' }}</button>
             </div>
-            <textarea class="input" id="input" v-model="input" @keyup="cursorChanged" @click="cursorChanged" @scroll="scrollChanged"></textarea>
+            <textarea class="input" id="input" v-model="input" @keyup="cursorChanged" @click="cursorChanged" @scroll="scrollChanged" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
             <div class="output">{{ output }}</div>
             <div class="pos">Line {{ row }}, Col {{ col }}</div>
 

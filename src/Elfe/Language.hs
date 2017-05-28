@@ -169,14 +169,14 @@ enfoldExists ((Var v):vs) f = Exists v (enfoldExists vs f)
 
 
 getVarsOfFormula :: Formula -> [Term]
-getVarsOfFormula (Atom s ts)  = concat $ map getVarsOfTerm ts
-getVarsOfFormula (Impl l r)   = getVarsOfFormula l ++ getVarsOfFormula r  
-getVarsOfFormula (Iff l r)    = getVarsOfFormula l ++ getVarsOfFormula r  
-getVarsOfFormula (Or l r)     = getVarsOfFormula l ++ getVarsOfFormula r  
-getVarsOfFormula (And l r)    = getVarsOfFormula l ++ getVarsOfFormula r  
-getVarsOfFormula (Not f)      = getVarsOfFormula f  
-getVarsOfFormula (Exists s f) = getVarsOfFormula f  
-getVarsOfFormula (Forall s f) = getVarsOfFormula f  
+getVarsOfFormula (Atom s ts)  = nub $ concat $ map getVarsOfTerm ts
+getVarsOfFormula (Impl l r)   = nub $ getVarsOfFormula l ++ getVarsOfFormula r  
+getVarsOfFormula (Iff l r)    = nub $ getVarsOfFormula l ++ getVarsOfFormula r  
+getVarsOfFormula (Or l r)     = nub $ getVarsOfFormula l ++ getVarsOfFormula r  
+getVarsOfFormula (And l r)    = nub $ getVarsOfFormula l ++ getVarsOfFormula r  
+getVarsOfFormula (Not f)      = nub $ getVarsOfFormula f  
+getVarsOfFormula (Exists s f) = nub $ getVarsOfFormula f  
+getVarsOfFormula (Forall s f) = nub $ getVarsOfFormula f  
 getVarsOfFormula _            = []             
 
 getVarsOfTerm :: Term -> [Term]

@@ -1,0 +1,14 @@
+Include functions.
+
+Let A be set.
+
+Lemma: for all f. f: A -> (A℘) implies not f is surjective.
+Proof: 
+    Fix A.
+    Assume A is set.
+    Assume exists f. f: A -> (A℘) and f is surjective.
+    Then in(,A℘)
+    Then exists x ∈ A. f{x} = B.
+    Hence contradiction.
+    Hence not exists f. f: A -> (A℘) and f is surjective.
+qed.

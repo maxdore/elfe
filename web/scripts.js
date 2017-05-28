@@ -22,24 +22,9 @@ qed.`,
             unchangedSince: new Date(),
             row: 0,
             col: 0,
-            specialKeys: [
-                // '∈',
-                // '∩',
-                // '∪',
-                // '⊆',
-                // 'ᑦ',
-                // '->',
-                // '∘',
-                // '⁻¹',
-                // '[',
-                // ']',
-                // '{',
-                // '}',
-            ]
         },
         methods: {
             initEditor: function(){
-                console.log(this.specialKeys);
                 for (var i = 1; i <= 20; i++) {
                     $('.linewrapper').append('<div class="line" id="line' + i + '"><div class="number">' + i + '</div></div>');
                 }
@@ -88,7 +73,8 @@ qed.`,
                         }
                         this.loading = false;
                     }, response => {
-                        this.output = response.body;
+                        this.output = "There was an error!\n";
+                        this.output += response.body;
                         this.loading = false;
                 });
             },
@@ -136,6 +122,13 @@ qed.`,
                 if (obj.children.length > 0) {
                     obj.children.map(this.updateLines);
                 }
+            },
+            insertKey: function(key) {
+                pos = $('#input').prop('selectionStart');
+                this.input = this.input.slice(0, pos) + key + this.input.slice(pos);
+                $('#input').prop('selectionStart', 10);
+                $('#input').prop('selectionEnd', 15);
+                $('#input').focus();
             }
         }
     });

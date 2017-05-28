@@ -22,4 +22,6 @@ Notation comp: Aᑦ.
 Definition comp: x ∈ (Aᑦ) iff not x ∈ A.
 Proposition compSet: Aᑦ is set.
 
-
+Notation powerset: A℘.
+Definition powerset: B ∈ (A℘) iff B ⊆ A.
+Proposition powersetSet: A℘ is set.

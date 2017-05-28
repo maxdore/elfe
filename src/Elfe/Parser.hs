@@ -297,9 +297,8 @@ unfold (Forall v f) bvs =
      spaces
      reserved "."
      --traceM ("unfold forall to " ++ show f)
-     updateState $ addFixedVar var
      lId <- newId
-     derivation <- derive (replaceVar f v var) bvs
+     derivation <- derive (replaceVar f v var) (var:bvs)
      return derivation
 
 unfold (Exists v f) bvs = 
