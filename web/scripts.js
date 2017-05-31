@@ -47,7 +47,6 @@ qed.`,
                             }
                             this.errorLines.push(line);
                         } else {
-                            this.output = "Verified";
                             this.result.map(this.updateLines);
                         }
                         this.renderLines();
@@ -70,8 +69,7 @@ qed.`,
                     if (row == this.row) {
                         console.log(obj);
                         if (obj.status.tag == "Correct") {
-                            this.output = obj.status.tag;
-                            this.output += "\n\nRaw formula: " + obj.sformula;
+                            this.output = "Raw: " + obj.sformula;
                         }
                         else if (obj.status.tag == "Incorrect") {
                             this.output = "Disproved by " 
@@ -113,7 +111,7 @@ qed.`,
                     $('#line'+this.errorLines[i]).addClass('error');
                 }
 
-                pos = $('#input').prop('selectionStart');
+                pos = $('#input').get(0).selectionStart;
                 textUntilPos = this.input.substr(0, pos);
                 this.row = textUntilPos.split("\n").length;
                 $('.line').removeClass('active');

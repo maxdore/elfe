@@ -232,8 +232,9 @@ qed = do
 
 
 finalProof goal bvs = 
-  do id <- newId
-     return [Statement id (bindVars goal bvs) ByContext None]
+  do pos <- getPos
+     id <- newId
+     return [Statement id (bindVars goal bvs) ByContext pos]
 
 -- split
 

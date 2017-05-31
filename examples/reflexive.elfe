@@ -2,7 +2,7 @@ Include relations.
 
 Let R be relation.
 
-Lemma: for all b. transitive(R) and symmetric(R) and bound(R) implies R is reflexive.
+Lemma: transitive(R) and symmetric(R) and bound(R) implies R is reflexive.
 Proof:
     Assume transitive(R) and symmetric(R) and bound(R).
     Assume x is element.
