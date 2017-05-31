@@ -36,7 +36,7 @@
 
                 <button id="verifyButton" class="verify" @click="submit" :disabled="loading">{{ loading ? 'Loading...' : 'Verify (ctrl+Enter)' }}</button>
             </div>
-            <textarea class="input" id="input" v-model="input" @keyup="cursorChanged" @click="cursorChanged" @scroll="scrollChanged" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+            <textarea class="input" id="input" v-model="input" @keyup="renderLines" @click="renderLines" @scroll="renderLinesPos" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
             <div class="output">
                 <img v-show="loading" class="loading" src="loading.gif" >
                 <span v-show="!loading">{{ output }}</span>
