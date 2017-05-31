@@ -1,29 +1,14 @@
-fof(sinverse, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => (! [Vf] : ((function(Vf,VA,VB)) => ((function(inverse(Vf),VB,VA)) & (! [Vx] : ((in(Vx,VA)) => ((relapp(Vf,Vx,y)) => (relapp(inverse(Vf),y,Vx))))))))))))).
-fof(sidentity, axiom, (! [VI] : ((set(VI)) => (! [Vi] : ((function(Vi,VI,VI)) => ((identity(Vi)) <=> (! [Vx] : ((in(Vx,VI)) => (relapp(Vi,Vx,Vx)))))))))).
-fof(sbijective, axiom, (! [Vf] : (! [VA] : (! [VB] : ((function(Vf,VA,VB)) => ((bijective(Vf)) <=> ((injective(Vf)) & (surjective(Vf))))))))).
-fof(ssurjective, axiom, (! [Vf] : (! [VA] : (! [VB] : ((function(Vf,VA,VB)) => (! [Vg] : (! [VC] : ((function(Vg,VB,VC)) => (! [Vx] : ((in(Vx,VA)) => (! [Vy] : ((in(Vy,VB)) => ((surjective(Vf)) <=> ((in(Vy,VB)) => (? [Vx] : ((in(Vx,VA)) & (relapp(Vf,Vx,Vy)))))))))))))))))).
-fof(sinjective, axiom, (! [Vf] : (! [VA] : (! [VB] : ((function(Vf,VA,VB)) => (! [Vy] : ((in(Vy,VB)) => ((injective(Vf)) <=> (! [Vx1] : (! [Vx2] : (((relapp(Vf,Vx1,Vy)) & (relapp(Vf,Vx2,Vy))) => (Vx1=Vx2)))))))))))).
-fof(scompositionClosure, axiom, (! [Vf] : (! [VA] : (! [VB] : ((function(Vf,VA,VB)) => (! [Vg] : (! [VC] : ((function(Vg,VB,VC)) => (! [Vc] : (! [Vd] : (! [Ve] : (((relapp(Vf,Vc,Ve)) & (relapp(Vf,Vd,Ve))) => (? [Vm] : ((relapp(composition(Vg,Vf),Vc,Vm)) & (relapp(composition(Vg,Vf),Vd,Vm)))))))))))))))).
-fof(sfunctionClosure, axiom, (! [Vf] : (! [VA] : (! [VB] : ((function(Vf,VA,VB)) => (! [Vg] : (! [VC] : ((function(Vg,VB,VC)) => (! [Vx] : ((in(Vx,VA)) => (! [Vy] : ((in(Vy,VB)) => (! [Vz] : ((in(Vz,VC)) => ((in(Vx,VA)) => ((in(Vy,VA)) => ((Vx=Vy) => (? [Vz] : (((in(Vz,VB)) & (relapp(Vf,Vx,Vz))) & (relapp(Vf,Vy,Vz))))))))))))))))))))).
-fof(s1, axiom, (! [Vf] : (! [VA] : (! [VB] : ((function(Vf,VA,VB)) => (! [Vg] : (! [VC] : ((function(Vg,VB,VC)) => (! [Vx] : ((in(Vx,VA)) => (! [Vy] : ((in(Vy,VB)) => (! [Vz] : ((in(Vz,VC)) => (((relapp(Vf,Vx,Vy)) & (relapp(Vg,Vy,Vz))) => (relapp(composition(Vg,Vf),Vx,Vz))))))))))))))))).
-fof(scomposition, axiom, (! [Vf] : (! [VA] : (! [VB] : ((function(Vf,VA,VB)) => (! [Vg] : (! [VC] : ((function(Vg,VB,VC)) => (! [Vx] : (! [Vy] : (! [Vz] : ((((in(Vx,VA)) & (in(Vy,VB))) & (in(Vz,VC))) => ((function(composition(Vg,Vf),VA,VC)) & (((relapp(Vf,Vx,Vy)) & (relapp(Vg,Vy,Vz))) => (relapp(composition(Vg,Vf),Vx,Vz)))))))))))))))).
-fof(sfunEquality, axiom, (! [Vf] : (! [VA] : (! [VB] : ((function(Vf,VA,VB)) => (! [Vx] : (! [Vy] : ((funApp(Vf,Vx)=funApp(Vf,Vy)) <=> (? [Vz] : ((relapp(Vf,Vx,Vz)) & (relapp(Vf,Vy,Vz)))))))))))).
+fof(ssurjective, axiom, (! [Vf] : (! [VA] : (! [VB] : ((function(Vf,VA,VB)) =>  (((((surjective(Vf)) <=> (! [Vy] : ((in(Vy,VB)) => (? [Vx] : ((in(Vx,VA)) & (relapp(Vf,Vx,Vy))))))))))))))).
 fof(sfunction, axiom, (! [Vf] : (! [VA] : (! [VB] : ((function(Vf,VA,VB)) <=> (! [Vx] : ((in(Vx,VA)) => (? [Vy] : (((in(Vy,VB)) & (relapp(Vf,Vx,Vy))) & (! [Vy2] : ((in(Vy2,VB)) => ((Vy=Vy2) | (~(relapp(Vf,Vx,Vy2))))))))))))))).
-fof(sreflexivity, axiom, (! [VR] : ((relation(VR)) => ((reflexive(VR)) <=> (! [Vx] : ((element(Vx)) => (relapp(VR,Vx,Vx)))))))).
-fof(stransitivity, axiom, (! [VR] : ((relation(VR)) => ((transitive(VR)) <=> (! [Vx] : (! [Vy] : (! [Vz] : ((((((element(Vx)) & (element(Vy))) & (element(Vz))) & (relapp(VR,Vx,Vy))) & (relapp(VR,Vy,Vz))) => (relapp(VR,Vx,Vz)))))))))).
-fof(sboundness, axiom, (! [VR] : ((relation(VR)) => ((bound(VR)) <=> (! [Vx] : ((element(Vx)) => (? [Vy] : ((element(Vy)) & (relapp(VR,Vx,Vy)))))))))).
-fof(ssymmetry, axiom, (! [VR] : ((relation(VR)) => ((symmetric(VR)) <=> (! [Vx] : (! [Vy] : ((((element(Vx)) & (element(Vy))) & (relapp(VR,Vx,Vy))) => (relapp(VR,Vy,Vx))))))))).
-fof(sempty, axiom, (! [VR] : ((relation(VR)) => ((empty(VR)) <=> (~(nonempty(VR))))))).
-fof(snonempty, axiom, (! [VR] : ((relation(VR)) => ((nonempty(VR)) <=> (? [Vx] : (? [Vy] : (((element(Vx)) & (element(Vy))) & (relapp(VR,Vx,Vy))))))))).
-fof(scompSet, axiom, (! [VA] : ((set(VA)) => (set(comp(VA)))))).
-fof(scomp, axiom, (! [VA] : ((set(VA)) => (! [Vx] : ((element(Vx)) => ((in(Vx,comp(VA))) <=> (~(in(Vx,VA))))))))).
-fof(sintersectionSet, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => (set(intersection(VA,VB)))))))).
-fof(sintersection, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => (! [Vx] : ((element(Vx)) => ((in(Vx,intersection(VA,VB))) <=> ((in(Vx,VA)) & (in(Vx,VB))))))))))).
-fof(sunionSet, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => (set(union(VA,VB)))))))).
-fof(sunion, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => (! [Vx] : ((element(Vx)) => ((in(Vx,union(VA,VB))) <=> ((in(Vx,VA)) | (in(Vx,VB))))))))))).
+fof(spowersetSet, axiom, (! [VA] : ((set(VA)) => (set(powerset(VA)))))).
 fof(s0, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => ((VA=VB) <=> ((subset(VA,VB)) & (subset(VB,VA))))))))).
 fof(ssubset, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => (! [Vx] : ((element(Vx)) => ((subset(VA,VB)) <=> ((in(Vx,VA)) => (in(Vx,VB))))))))))).
+fof(sempty, axiom, (! [VA] : ((set(VA)) => ((empty(VA)) <=> (~(nonempty(VA))))))).
+fof(snonempty, axiom, (! [VA] : ((set(VA)) => (! [Vx] : ((element(Vx)) => ((nonempty(VA)) <=> (? [Vx] : ((element(Vx)) & (in(Vx,VA)))))))))).
 fof(sequality, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => (! [Vx] : ((element(Vx)) => ((VA=VB) <=> ((in(Vx,VA)) <=> (in(Vx,VB))))))))))).
-fof(s6, axiom, (bijective(cf))).
-fof(s5, axiom, ((set(cA)) & ((set(cB)) & ((set(cI)) & ((function(ci,cI,cI)) & (function(cf,cA,cB))))))).
-fof(s17, conjecture, ((! [Vx] : ((in(Vx,cA)) => (relapp(composition(inverse(cf),cf),Vx,Vx)))) => (identity(composition(inverse(cf),cf))))).
+fof(s6, axiom, ((set(cA)) & (element(cx)))).
+fof(s7, axiom, (? [Vf] : ((function(cf,cA,powerset(cA))) & (surjective(cf))))).
+fof(s32, axiom, (nonempty(cA))).
+fof(s15, axiom, (function(cf,cA,powerset(cA)))).
+fof(s14, axiom, (surjective(cf))).
+fof(s16, conjecture, (! [Vd] : ((in(Vd,powerset(cA))) => (? [Vc] : ((in(Vc,cA)) & (relapp(cf,Vc,Vd))))))).

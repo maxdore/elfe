@@ -49,8 +49,6 @@ qed.`,
                 $('.linewrapper').css('top', 42 - o);
             },
             submit: function(){
-                console.log("called now");
-                this.output = "Loading...";
                 this.loading = true;
                 this.$http.get('/api', {params: {problem: this.input}}).then(response => {
                         this.result = response.body.contents;
@@ -79,7 +77,7 @@ qed.`,
                 });
             },
             findResultToPos: function(){
-                if (this.result.length > 0) {
+                if (this.result instanceof Array) {
                     this.result.map(this.objectInPos);
                 }
             },
@@ -102,7 +100,7 @@ qed.`,
                         }
                     }
                 }
-                if (obj.children.length > 0) {
+                if (obj.children instanceof Array) {
                     obj.children.map(this.objectInPos);
                 }
             },
@@ -152,7 +150,8 @@ $(document).delegate('.input', 'keydown', function(e) {
     $(this).get(0).selectionStart =
     $(this).get(0).selectionEnd = start + 4;
   }
-  if (keyCode == 13 && e.ctrlKey) {
+  if ((keyCode == 13 && e.ctrlKey) || (keyCode == 83 && e.ctrlKey)) {
+    e.preventDefault();
     $('#verifyButton').click();
   }
 

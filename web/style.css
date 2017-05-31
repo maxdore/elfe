@@ -77,6 +77,12 @@
     position: relative;
 }
 
+.loading {
+    position: relative;
+    left: 50%;
+    margin-left: -81px;
+}
+
 .pos {
     position: absolute;
     right: 10px;

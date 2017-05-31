@@ -543,16 +543,41 @@ bot =
 
 atom :: PS Formula
 atom = do
-  --seeNext 10
-  (name,terms) <- try functionIs <|> try (function False)
+  try verboseAtom <|> try rawAtom
+
+
+
+verboseAtom :: PS Formula
+verboseAtom = do
+  try atomIsNot <|> try atomIs
+
+atomIs :: PS Formula
+atomIs = do 
+  t <- term False
+  spaces
+  reserved "is"
+  n <- eid
+  return $ Atom n [t]
+
+atomIsNot :: PS Formula
+atomIsNot = do 
+  t <- term False
+  spaces
+  reserved "is not"
+  n <- eid
+  return $ Not $ Atom n [t]
+
+
+
+rawAtom :: PS Formula
+rawAtom = do
+  (name,terms) <- try (function False)
   return $ Atom name terms
 
 function :: Bool -> PS (String, [Term])
 function False = do
-    --traceM ("Trying function, wrapped sugar is false")
     try functionSugared <|> try functionRaw
 function True = do
-    --traceM ("Trying function, wrapped sugar is true")
     try functionWrapSugared <|> try functionRaw
 
 functionRaw  :: PS (String, [Term])
@@ -563,15 +588,6 @@ functionRaw =
      terms <- (term False) `sepBy` (do {char ','; spaces})
      reserved ")"
      return (name,terms)
-
--- TODO limit to meaningful terms
-functionIs :: PS (String, [Term])
-functionIs = 
-  do term <- term False
-     spaces
-     reserved "is"
-     name <- many alphaNum
-     return (name, [term])
 
 term :: Bool -> PS Term
 term sugarWrap = try (cons sugarWrap) <|> var 

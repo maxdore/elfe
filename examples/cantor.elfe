@@ -1,14 +1,21 @@
 Include functions.
 
 Let A be set.
+Let x be element.
 
-Lemma: for all f. f: A -> (A℘) implies not f is surjective.
+Lemma: for all f. f: A -> (A℘) implies f is not surjective.
 Proof: 
-    Fix A.
-    Assume A is set.
     Assume exists f. f: A -> (A℘) and f is surjective.
-    Then in(,A℘)
-    Then exists x ∈ A. f{x} = B.
+    Case A is nonempty:
+        Take M such that M is set and (for all x. x ∈ M iff (x ∈ A and (for all y. f[x,y] implies not x ∈ y))).
+        Then M ⊆ A.
+        Then M ∈ (A℘).
+        Take a such that a ∈ A and f[a,M].
+        Then a ∈ M.
+        Then not a ∈ M.
+    qed.
+    Case A is empty: qed.
     Hence contradiction.
-    Hence not exists f. f: A -> (A℘) and f is surjective.
 qed.
+
+

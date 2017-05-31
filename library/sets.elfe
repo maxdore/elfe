@@ -5,6 +5,9 @@ Notation in: a ∈ A.
 
 Definition equality: A = B iff for all x. x ∈ A iff x ∈ B. 
 
+Definition nonempty: A is nonempty iff exists element(x). x ∈ A.
+Definition empty: A is empty iff A is not nonempty.
+
 Notation subset: A ⊆ B.
 Definition subset: A ⊆ B iff for all x ∈ A. x ∈ B. 
 
@@ -25,3 +28,4 @@ Proposition compSet: Aᑦ is set.
 Notation powerset: A℘.
 Definition powerset: B ∈ (A℘) iff B ⊆ A.
 Proposition powersetSet: A℘ is set.
+
