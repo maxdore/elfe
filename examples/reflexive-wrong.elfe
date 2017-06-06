@@ -1,6 +1,6 @@
 Include relations.
 
-Let R be a relations.
+Let R be a relation.
 
 Lemma: transitive(R) and symmetric(R) implies R is reflexive.
 Proof:

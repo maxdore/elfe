@@ -28,9 +28,9 @@ data Countermodler = Countermodler { cName :: String
                                    , clauseMarker :: String
                                    }
 
-eprover = Prover "E Prover" "../prover/E/PROVER/eprover" ["--cpu-limit=5", "-s", "--auto-schedule"] ["# SZS status Theorem"] ["# SZS status CounterSatisfiable"] ["uns"]
-z3 = Prover "Z3" "../prover/Z3/build/z3_tptp" ["-t:5"] ["% SZS status Theorem"] ["% SZS status CounterSatisfiable"] ["% SZS status GaveUp"]
-spass = Prover "SPASS" "../prover/SPASS/SPASS" ["-TPTP", "-TimeLimit=5"] ["SPASS beiseite: Proof found."] ["SPASS beiseite: Completion found."] ["SPASS beiseite: Ran out of time."]
+eprover = Prover "E Prover" "../prover/E/PROVER/eprover" ["--cpu-limit=30", "-s", "--auto-schedule"] ["# SZS status Theorem"] ["# SZS status CounterSatisfiable"] ["uns"]
+z3 = Prover "Z3" "../prover/Z3/build/z3_tptp" ["-t:30"] ["% SZS status Theorem"] ["% SZS status CounterSatisfiable"] ["% SZS status GaveUp"]
+spass = Prover "SPASS" "../prover/SPASS/SPASS" ["-TPTP", "-TimeLimit=30"] ["SPASS beiseite: Proof found."] ["SPASS beiseite: Completion found."] ["SPASS beiseite: Ran out of time."]
 beagle = Countermodler "BEAGLE" "../prover/beagle/beagle.sh" [] "Saturated clause set:"
 
 provers = [z3, eprover, spass]
@@ -72,8 +72,8 @@ runProver chan task (Prover name command args provedMsg disprovedMsg unknownMsg)
     if pos
       then trace ("PROVED by " ++ name) writeChan chan (Correct (ProverName name "")) >> putMVar done True
     else if neg
-      then trace ("DISPROVED by " ++ name) return () -- writeChan chan (Incorrect (ProverName name "")) >> putMVar done True
-    else trace ("UNKNOWN by " ++ name ++ "\n" ++ ofl ++ command ++ " " ++   show (args++[tptpFile])) return ()
+      then trace ("DISPROVED by " ++ name) writeChan chan (Incorrect (ProverName name "")) >> putMVar done True
+    else trace ("UNKNOWN by " ++ name ++ "\n" ++ task ++ command ++ " " ++   show (args++[tptpFile])) return ()
 
 
 runCountermodler :: Chan ProofStatus -> String -> Countermodler -> MVar Bool -> IO ()
@@ -101,6 +101,6 @@ retrieveClauses (s:rs) = if s == ""
 
 timeout :: String -> Chan ProofStatus -> MVar Bool -> IO ()
 timeout task chan done = do
-  threadDelay $ 5*1000000
+  threadDelay $ 30*1000000
   trace ("TIMEOUT\n" ++ task) writeChan chan Unknown >> putMVar done True
   

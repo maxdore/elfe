@@ -1,0 +1,52 @@
+Include functions.
+
+Let S,T,U be set.
+Let x,y,z,u,v be element.
+
+Notation leq: x <= y.
+
+Proposition: x <= x.
+Proposition: x <= y and y <= x implies x = y.
+Proposition: x <= y and y <= z implies x <= z.
+
+
+Definition DefLB: S ⊆ T implies (lowerBound(u,S,T) iff u ∈ T and (for all w ∈ S. u <= w)).
+Definition DefUB: S ⊆ T implies (upperBound(u,S,T) iff u ∈ T and (for all w ∈ S. w <= z)).
+Definition DefInf: S ⊆ T implies (infimum(u,S,T) iff u ∈ T and lowerBound(u,S,T) and (for all lowerBound(v,S,T). v <= u)). # check if v correct
+Definition DefSup: S ⊆ T implies (supremum(u,S,T) iff u ∈ T and lowerBound(u,S,T) and (for all lowerBound(v,S,T). u <= v)). # check if v correct
+
+Proposition InfUn: S ⊆ T and infimum(u,S,T) and infimum(v,S,T) implies u = v.
+Proposition SupUn: S ⊆ T and supremum(u,S,T) and supremum(v,S,T) implies u = v.
+
+Definition DefCLat: T is completeLattice iff for all S ⊆ T. exists u. infimum(u,S,T) and (exists v. supremum(v,S,T)).
+
+Let f: A -> U.
+
+Definition DefFix: for all x ∈ A. fixPoint(x,f) iff f[x,x].
+Definition DefMonot: f is monotone iff for all x ∈ A. for all y ∈ A. x <= y implies (f{x}) <= (f{y}).
+
+
+Lemma Tarski:
+    completeLattice(U) and f: A -> U and f is monotone and (for all fixPoint(x,f). x ∈ S) implies completeLattice(S).
+Proof:
+    Fix A.
+    Fix U.
+    Assume U is set and completeLattice(U) and f: A -> U and f is monotone and (for all fixPoint(x,f). x ∈ S).
+    Assume T ⊆ S.
+    Proof exists u. supremum(u,T,S):
+        Take P such that P is set and x ∈ P iff x ∈ U and (f{x}) <= x and upperBound(x,T,U).
+        Take p such that infimum(p,P,U).
+        Then lowerBound(f{p},P,U) and upperBound(f{p},T,U).
+        Then fixPoint(p,f) and supremum(p,T,S).
+        Then exists u. supremum(u,T,S).
+    qed.
+    Proof exists v. infimum(v,T,S):
+        Take Q such that Q is set and x ∈ Q iff x ∈ U and x <= (f{x}) and lowerBound(x,T,U).
+        Take q such that supremum(q,Q,U).
+        Then upperBound(f{q},Q,U) and lowerBound(f{q},T,U).
+        Then fixPoint(q,f) and supremum(q,T,S).
+        Then exists v. supremum(v,T,S).
+    qed.
+    Hence exists u. infimum(u,S,T) and (exists v. supremum(v,S,T)).
+    Hence completeLattice(S).
+qed.

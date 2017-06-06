@@ -342,6 +342,7 @@ unfold _ _ = fail "No proving method given"
 enfold :: Formula -> [String] -> PS [Statement]
 enfold oldGoal bvs = 
   do newGoal <- lookAhead $ enfoldGoal bvs
+     pos <- getPos
      let newVars =  nub (getVarsOfFormula newGoal) \\ strings2Vars bvs
      derivation <- derive newGoal (bvs ++ (vars2Strings newVars))
      oldId <- newId
@@ -349,7 +350,7 @@ enfold oldGoal bvs =
      newId <- newId
      trace ("Found enfold " ++ show newGoal ++ " | " ++ (show $ newVars)) return [Statement oldId (bindVars oldGoal bvs)  
           (BySplit [
-              (Statement soundnessId (bindVars (universallyQuantify newVars newGoal `Impl` oldGoal) bvs) ByContext None),
+              (Statement soundnessId (bindVars (universallyQuantify newVars newGoal `Impl` oldGoal) bvs) ByContext pos),
               (Statement newId (bindVars newGoal (bvs++(vars2Strings newVars))) (BySequence derivation) None)
           ]) None
         ]

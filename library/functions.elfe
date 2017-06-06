@@ -1,31 +1,28 @@
 Include sets.
 Include relations.
 
+# Let A,B,C be set.
+# Let c,d,e,x,y,z be element.
+
 Notation function: f: A -> B.
 
 Definition function: for all f. for all A. for all B. 
-    f: A -> B iff for all x ∈ A. exists y. y ∈ B and 
+    f: A -> B iff for all x ∈ A. exists y ∈ B. 
         relapp(f,x,y) and 
         (for all y2 ∈ B. y = y2 or not relapp(f,x,y2)).
 
 Let f: A -> B.
 
-Notation funApp: f{x}.
-
-Proposition funEquality: for all x. for all y. (f{x}) = (f{y}) iff exists z. (f[x,z] and f[y,z]).
-
-
 Definition injective: f is injective iff
-    for all x1. for all x2. for all y. f[x1,y] and f[x2,y] implies x1 = x2.
+    for all x1 ∈ A. for all x2 ∈ A. for all y ∈ B. f[x1,y] and f[x2,y] implies x1 = x2.
 
 Definition surjective: f is surjective iff
-    for all y ∈ B. exists x. x ∈ A and f[x,y].
+    for all y ∈ B. exists x ∈ A. f[x,y].
 
 Definition bijective: f is bijective iff f is injective and f is surjective.
 
 
 Let g: B -> C.
-
 
 Notation composition: g∘f.
 Definition composition: for all x. for all y. for all z. x ∈ A and y ∈ B and z ∈ C implies
@@ -33,10 +30,12 @@ Definition composition: for all x. for all y. for all z. x ∈ A and y ∈ B and
         ((f[x,y] and g[y,z]) implies (g∘f)[x,z]).
 
 Proposition functionClosure:
-    for all x ∈ A. for all y ∈ A. x = y implies exists z. z ∈ B and f[x,z] and f[y,z].
+    for all x ∈ A. for all y ∈ A. x = y implies exists z ∈ B. f[x,z] and f[y,z].
 
-Proposition compositionClosure: for all c. for all d. for all e. f[c,e] and f[d,e] implies 
-            exists m. (g∘f)[c,m] and (g∘f)[d,m].
+Proposition compositionClosure: for all c ∈ A. for all d ∈ A. for all e ∈ B. f[c,e] and f[d,e] implies 
+            exists m ∈ C. (g∘f)[c,m] and (g∘f)[d,m].
 
 
+Notation funApp: f{x}.
 
+Proposition funEquality: for all x1 ∈ A. for all x2 ∈ A. (f{x1}) = (f{x2}) iff exists y ∈ B. (f[x1,y] and f[x2,y]).

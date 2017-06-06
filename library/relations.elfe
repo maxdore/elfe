@@ -2,6 +2,32 @@ Notation relapp: R[x,y].
 
 Let R,S be relation.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Definition nonempty: R is nonempty iff exists element(x). exists element(y). R[x,y].
 Definition empty: R is empty iff not R is nonempty.
 Definition symmetry: R is symmetric iff for all x. for all y. element(x) and element(y) and R[x,y] implies R[y,x].

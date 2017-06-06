@@ -1,3 +1,16 @@
+
+
+
+Lemma DefInf: x implies for all y. asd(x,y)
+Proof: qed.
+
+
+
+
+
+aksdhalkjds
+
+
 Notation comp: Aᑦ.
 Definition: ((Aᑦ)ᑦ) = A.
 

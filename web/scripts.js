@@ -2,19 +2,29 @@ window.onload = function () {
     var v = new Vue({
         el: '.prover',
         data: {
-            input: `Notation relapp: R[x,y].
+            input: `Include sets.
 
-Let relation(R).
+Let A be set.
+Let x be element.
 
-Lemma: transitive(R) and symmetric(R) implies R is reflexive.
+Lemma: ((Aᑦ)ᑦ) = A.
 Proof:
-    Assume transitive(R) and symmetric(R) and bound(R).
-    Assume x is element.
-    Take y such that element(y) and R[x,y] by boundness.
-    Then R[y,x] by symmetry.
-    Hence R[x,x] .
-    Hence R is reflexive.
-qed.`,
+    Proof ((Aᑦ)ᑦ) ⊆ A:
+        Assume x ∈ ((Aᑦ)ᑦ).
+        Then not x ∈ (Aᑦ).
+        Hence x ∈ A.
+    qed.
+    Proof A ⊆ ((Aᑦ)ᑦ): 
+
+
+    qed.
+qed.
+
+
+
+
+
+`,
             output: "",
             result: {},
             autoSubmit: false,
@@ -30,7 +40,6 @@ qed.`,
                     $('.linewrapper').append('<div class="line" id="line' + i + '"><div class="number">' + i + '</div></div>');
                 }
             },
-
             submit: function(){
                 this.loading = true;
                 this.$http.get('/api', {params: {problem: this.input}}).then(response => {
@@ -58,6 +67,7 @@ qed.`,
                 });
             },
             findResultToPos: function(){
+                this.output = "";
                 if (this.result instanceof Array) {
                     this.result.map(this.objectInPos);
                 }
@@ -68,16 +78,18 @@ qed.`,
                     var col = obj.opos.contents[1];
                     if (row == this.row) {
                         console.log(obj);
+                        this.output += "Raw: " + obj.sformula;
                         if (obj.status.tag == "Correct") {
-                            this.output = "Raw: " + obj.sformula;
                         }
                         else if (obj.status.tag == "Incorrect") {
-                            this.output = "Disproved by " 
-                                            + obj.status.contents.contents[0]
+                            this.output += "\n\nDisproved";
+                            try {
+                            this.output += " by " + obj.status.contents.contents[0]
                                             + ".\nCountermodel: \n"
                                             + obj.status.contents.contents[1];
-                            this.output += "\nRaw formula: " + obj.sformula;
+                                        } catch (e) {}
                         }
+                        this.output += "\n\n";
                     }
                 }
                 if (obj.children instanceof Array) {
@@ -90,7 +102,7 @@ qed.`,
                     var col = obj.opos.contents[1];
                     if (obj.status.tag == "Correct") {
                     }
-                    else if (obj.status.tag == "Incorrect") {
+                    else if (obj.status.tag == "Incorrect" || obj.status.tag == "Unknown") {
                         this.errorLines.push(row);
                     }
                 }
@@ -99,6 +111,9 @@ qed.`,
                 }
             },
             renderLines: function(){
+                if ($.isEmptyObject(this.result)) {
+                    return;
+                }
                 numRows = this.input.split("\n").length;
                 $('.linewrapper').html('');
                 for (var i = 1; i <= numRows; i++) {
