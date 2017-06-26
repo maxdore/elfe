@@ -167,7 +167,7 @@ letRaw =
 
 
 letBe =
-  do vars <- var `sepBy` char ','
+  do vars <- var `sepBy` (char ',' >> spaces)
      try spaces
      try (string "be an") <|> try (string "be a") <|> try (string "be")
      try spaces
@@ -207,7 +207,7 @@ lemma =
      -- let managment
      cgoal <- letify goal
      lets <- lets <$> getState
-     let bvs = map show $ concat $ map getVarsOfFormula lets
+     let bvs = map show $ concat $ map freeVariables lets
      assumeId <- newId
      let assumeLets = Statement assumeId (bindVars (formulas2Conj lets) bvs) Assumed None
      -- end
@@ -243,12 +243,12 @@ subProof bvs =
   do pos <- getPos
      reserved "Proof"
      goal <- fof
-     --traceM ("proof" ++ (show goal)) 
+     let newVars = nub (freeVariables goal) \\ strings2Vars bvs
      reserved ":"
      derivation <- derive goal bvs
      qed
      id <- newId
-     return $ Statement id (bindVars goal bvs) (BySequence derivation) pos
+     return $ Statement id (bindVars (universallyQuantify newVars goal) bvs) (BySequence derivation) pos
 
 splitGoal :: Formula -> [String] -> PS [Statement]
 splitGoal goal bvs = 
@@ -343,7 +343,7 @@ enfold :: Formula -> [String] -> PS [Statement]
 enfold oldGoal bvs = 
   do newGoal <- lookAhead $ enfoldGoal bvs
      pos <- getPos
-     let newVars =  nub (getVarsOfFormula newGoal) \\ strings2Vars bvs
+     let newVars =  nub (freeVariables newGoal) \\ strings2Vars bvs
      derivation <- derive newGoal (bvs ++ (vars2Strings newVars))
      oldId <- newId
      soundnessId <- newId
@@ -409,7 +409,7 @@ take' :: [String] -> PS (Statement, [String])
 take' bvs = 
   do pos <- getPos
      reserved "Take"
-     vars <- var `sepBy` char ',' -- TODO bind them to bvs as well (only in conjecture, not in proof)
+     vars <- var `sepBy` (char ',' >> spaces)
      spaces
      reserved "such that"
      f <- fof
@@ -419,17 +419,17 @@ take' bvs =
      proofId <- newId
      case by of
         Nothing  -> return ((Statement id (bindVars f (bvs++vars2Strings vars)) (BySequence [
-                              (Statement proofId (enfoldExists vars (bindVars f (bvs))) ByContext pos)
+                              (Statement proofId (existentiallyQuantify vars (bindVars f (bvs))) ByContext pos)
                             ]) None), bvs ++ vars2Strings vars)
         Just ids -> return ((Statement id (bindVars f (bvs++vars2Strings vars)) (BySequence [
-                              (Statement proofId (enfoldExists vars (bindVars f (bvs))) (BySubcontext ids) pos)
+                              (Statement proofId (existentiallyQuantify vars (bindVars f (bvs))) (BySubcontext ids) pos)
                             ]) None), bvs ++ vars2Strings vars)
 
-
+subContext :: PS [String]
 subContext = 
   do reserved "by"
-     id <- many alphaNum -- TODO intersperced id's
-     return [id]
+     ids <- eid `sepBy` (char ',' >> spaces)
+     return ids
 
 
 -- FORMULA
@@ -470,7 +470,15 @@ iff =
 forall :: PS Formula
 forall =
   do reserved "for all"
-     try forallRaw <|> forallAtom
+     try forallMultiple <|> try forallRaw <|> forallAtom
+
+forallMultiple :: PS Formula
+forallMultiple =
+  do vars <- eid `sepBy` (char ',' >> spaces)
+     spaces
+     reserved "."
+     f <- fof
+     return $ universallyQuantify (strings2Vars vars) f
 
 forallRaw :: PS Formula
 forallRaw = 
@@ -486,12 +494,20 @@ forallAtom =
      spaces
      reserved "."
      f <- fof
-     return $ universallyQuantify (getVarsOfFormula atom) (atom `Impl` f) 
+     return $ universallyQuantify (freeVariables atom) (atom `Impl` f) 
 
 exists :: PS Formula
 exists =
   do reserved "exists"
-     try existsRaw <|> existsAtom
+     try existsMultiple <|> try existsRaw <|> existsAtom
+
+existsMultiple :: PS Formula
+existsMultiple =
+  do vars <- eid `sepBy` (char ',' >> spaces)
+     spaces
+     reserved "."
+     f <- fof
+     return $ existentiallyQuantify (strings2Vars vars) f
 
 existsRaw :: PS Formula
 existsRaw =
@@ -507,7 +523,7 @@ existsAtom =
      spaces
      reserved "."
      f <- fof
-     return $ enfoldExists (getVarsOfFormula atom) (atom `And` f) 
+     return $ existentiallyQuantify (freeVariables atom) (atom `And` f) 
 
 implies :: PS (Formula -> Formula -> Formula)
 implies =
@@ -587,7 +603,7 @@ functionRaw =
   do name <- try $ many1 alphaNum
      reservedOp "("
      --traceM ("found raw function with name '" ++ name ++ "'")
-     terms <- (term False) `sepBy` (do {char ','; spaces})
+     terms <- (term False) `sepBy` (char ',' >> spaces)
      reserved ")"
      return (name,terms)
 

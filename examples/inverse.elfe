@@ -1,27 +1,15 @@
 Include functions.
 
-Let A,B,I be set.
-Let i: I -> I.
+Let A,B be set.
 Let f: A -> B.
-
-Definition identity: i is identity iff for all x ∈ I. i[x,x].
-
-Notation inverse: f⁻¹.
-Definition inverse: (f⁻¹): B -> A and (for all x ∈ A. f[x,y] implies (f⁻¹)[y,x]).
-
-Lemma: (for all x ∈ A. ((f⁻¹)∘f)[x,x]) implies (f⁻¹)∘f is identity.
-Proof: qed.
-
 
 Lemma: f is bijective implies (f⁻¹)∘f is identity.
 Proof: 
     Assume f is bijective.
     Assume x ∈ A.
-    Take y such that y ∈ B and f[x,y].
-    Then (f⁻¹)[y,x].
+    Take y such that y ∈ B and f[x,y] by function.
+    Then (f⁻¹)[y,x] by inverse.
+    Then ((f⁻¹)∘f)[x,x] by inverse, composition.
     Hence ((f⁻¹)∘f)[x,x].
     Hence (f⁻¹)∘f is identity.
 qed.
-
-
-

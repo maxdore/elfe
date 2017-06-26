@@ -44,10 +44,9 @@ qed.
                 this.loading = true;
                 this.$http.get('/api', {params: {problem: this.input}}).then(response => {
                         this.result = response.body.contents;
-                        console.log(this.result);
                         this.errorLines = [];
-
                         if (response.body.tag == "NotParsed") {
+                        console.log(this.result);
                             this.output = "Parsing error:\n" + this.result;
                             if (/^\d+$/.test(this.result.substr(6,2))) {
                                 var line = this.result.substr(6,2);

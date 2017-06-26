@@ -2,26 +2,28 @@ Include functions.
 
 Let A be set.
 
-Proposition: for all f. f: A -> (A℘) implies exists M. M is set and M ⊆ A and (for all x ∈ A. x ∈ M iff (for all y ∈ (A℘). f[x,y] implies not x ∈ y)).
+Definition: for all f. f: A -> (A℘) implies diagonalized(A) is set and (for all x. 
+    x ∈ diagonalized(A) iff (x ∈ A and (for all y ∈ (A℘). f[x,y] implies not x ∈ y))). 
 
 Lemma: for all f. f: A -> (A℘) implies f is not surjective.
 Proof: 
     Assume exists f. f: A -> (A℘) and f is surjective.
+    Case A is empty: 
+        Then A℘ is nonempty.
+        Then contradiction.
+    qed.
     Case A is nonempty:
-        Take M such that M is set and M ⊆ A and (for all x ∈ A. x ∈ M iff (for all y ∈ (A℘). f[x,y] implies not x ∈ y)).
-        Then M ⊆ A.
+        Take M such that M = diagonalized(A).
         Then M ∈ (A℘).
-        Take a such that a is element and a ∈ A and f[a,M].
+        Take a such that a ∈ A and f[a,M].
         Case a ∈ M:
             Then not a ∈ M.
             Then contradiction. 
         qed.
-        Case not a ∈ M: 
+        Case not a ∈ M:
             Then a ∈ M.
             Then contradiction. 
         qed.
     qed.
-    Case A is empty: qed.
     Hence contradiction.
 qed.
-

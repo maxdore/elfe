@@ -1,12 +1,14 @@
 Include functions.
 
+Let A,B,C be set.
+
 Let f: A -> B.
 Let g: B -> C.
 
 Lemma: g∘f is surjective implies g is surjective.
 Proof:
     Assume g∘f is surjective.
-    Assume (f{x1}) = (f{x2}).
+    Assume x1 ∈ A and x2 ∈ A and (f{x1}) = (f{x2}).
     Then ((g∘f){x1}) = ((g∘f){x2}).
     Hence x1 = x2.
     Hence g is surjective.

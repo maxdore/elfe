@@ -1,24 +1,15 @@
 BUGS
 - formula Eq not working properly
-
-PARSER
-- Q a,b,c. instead of Q a. Q b. Q c.
+- sub proofs new variables
+- not with strongest precedence!
+- check beagle!
+- quantors least precedence
 - R is transitive, reflexive, ...
-- comments not correctly, top level errors do not lead to parsing errors
-- by also in hence
-
-FRONTEND
+- top level errors do not lead to parsing errors
 - post request for /api
-- shortcuts for special chars
 - include found proofs
-- print formulas like beagle
-
-SANITY
+- RESULT in cli
 - no double includes of same library
-- case insensitive for markers, e.g., QED
-- check variables only quantified once
 - no free variables!
 - allow eid with alphanum and ' and only lower alpha as first character
-
-IMPLEMENT VAMPIRE
 

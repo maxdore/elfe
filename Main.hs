@@ -1,4 +1,5 @@
 import System.Environment (getArgs)
+import Criterion.Measurement (getTime, secs)
 
 import Elfe
 
@@ -14,10 +15,20 @@ main = do
 
 check :: String -> IO ()
 check raw = do
-    let included = includeLibraries raw
     putStrLn "\n--------------------------PARSING--------------------------"
+    startParsing <- getTime
+    let included = includeLibraries raw
     sequ <- parseString included
+    endParsing <- getTime
     putStrLn $ concat $ map (prettyStatement 0) sequ
     putStrLn "-------------------------VERIFYING-------------------------" 
+    startVerifying <- getTime
     res <- verify sequ
-    putStrLn "--------------------------FINISHED-------------------------" 
+    endVerifying <- getTime
+    putStrLn "---------------------------RESULT--------------------------" 
+    -- TODO
+    putStrLn "-------------------------STATISTICS------------------------" 
+    putStrLn $ "Parsing time: " ++ (secs $ endParsing - startParsing)
+    putStrLn $ "Verifying time: " ++ (secs $ endVerifying - startVerifying)
+    putStrLn $ "Total: " ++ (secs $ endParsing - startParsing + endVerifying - startVerifying)
+

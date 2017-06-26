@@ -1,37 +1,22 @@
 Let A,B be set.
-Let x be element.
+
+
+
+
+
+
+
+
+
+
+
+
 
 Notation in: a ∈ A.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Definition equality: A = B iff for all x. x ∈ A iff x ∈ B. 
 
-Definition nonempty: A is nonempty iff exists element(x). x ∈ A.
+Definition nonempty: A is nonempty iff exists x. x ∈ A.
 Definition empty: A is empty iff A is not nonempty.
 
 Notation subset: A ⊆ B.
@@ -40,15 +25,15 @@ Definition subset: A ⊆ B iff for all x ∈ A. x ∈ B.
 Proposition: A = B iff A ⊆ B and B ⊆ A.
 
 Notation union: A ∪ B.
-Definition union: x ∈ (A ∪ B) iff x ∈ A or x ∈ B.
+Definition union: for all x. x ∈ (A ∪ B) iff x ∈ A or x ∈ B.
 Proposition unionSet: A ∪ B is set.
 
 Notation intersection: A ∩ B.
-Definition intersection: x ∈ (A ∩ B) iff x ∈ A and x ∈ B.
+Definition intersection: for all x. x ∈ (A ∩ B) iff x ∈ A and x ∈ B.
 Proposition intersectionSet: A ∩ B is set.
 
 Notation comp: Aᑦ.
-Definition comp: x ∈ (Aᑦ) iff not x ∈ A.
+Definition comp: for all x. x ∈ (Aᑦ) iff not x ∈ A.
 Proposition compSet: Aᑦ is set.
 
 Notation powerset: A℘.

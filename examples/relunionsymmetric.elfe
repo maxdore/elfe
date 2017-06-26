@@ -1,11 +1,16 @@
 Include relations.
 
 Let R be relation.
-Let x,y be element.
 
 Lemma: R ∪ (R⁻¹) is symmetric.
 Proof:
-    Assume R[x,y].
-    Hence R[y,x].
+    Assume (R ∪ (R⁻¹))[x,y].
+    Then R[x,y] or (R⁻¹)[x,y].
+    Case R[x,y]:
+        Then (R⁻¹)[y,x].
+    qed.
+    Case (R⁻¹)[x,y]:
+        Then R[y,x].
+    qed.
+    Hence (R ∪ (R⁻¹))[y,x].
 qed.
-

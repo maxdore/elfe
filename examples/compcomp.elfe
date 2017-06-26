@@ -1,7 +1,6 @@
 Include sets.
 
 Let A be set.
-Let x be element.
 
 Lemma: ((Aᑦ)ᑦ) = A.
 Proof:

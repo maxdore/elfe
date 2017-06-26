@@ -1,7 +1,6 @@
 Include sets.
 
 Let A,B,C be set.
-Let x be an element.
 
 Lemma: (A ∩ (B ∪ C)) = ((A ∩ B) ∪ (A ∩ C)).
 Proof:

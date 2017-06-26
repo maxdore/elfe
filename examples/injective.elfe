@@ -1,7 +1,6 @@
 Include functions.
 
-# Let A,B,C be set.
-# Let x1,x2 be element.
+Let A,B,C be set.
 
 Let f: A -> B.
 Let g: B -> C.
@@ -14,5 +13,3 @@ Proof:
     Hence x1 = x2.
     Hence f is injective.
 qed.
-
-

@@ -132,23 +132,23 @@ replaceVar' ((Cons s t):ts) old new = (Cons s (replaceVar' t old new)) : (replac
 
 -- Collection of sanity criteria for a formula
 cleanFormula :: Formula -> Formula
-cleanFormula f = cleanQuantifier f [] []
+cleanFormula f = cleanQuantifier f []
 
 -- Remove multiple quantified variables
-cleanQuantifier :: Formula -> [String] -> [String] -> Formula
-cleanQuantifier (Forall s f)   a e = if s `elem` a then (cleanQuantifier f a e) else (Forall s (cleanQuantifier f (s:a) e))
-cleanQuantifier (Exists s f)   a e = if s `elem` e then (cleanQuantifier f a e) else (Exists s (cleanQuantifier f a (s:e)))
-cleanQuantifier (Impl l r)     a e = Impl (cleanQuantifier l a e) (cleanQuantifier r a e)
-cleanQuantifier (Iff l r)      a e = Iff (cleanQuantifier l a e) (cleanQuantifier r a e)
-cleanQuantifier (Or l r)       a e = Or (cleanQuantifier l a e) (cleanQuantifier r a e)
-cleanQuantifier (And l r)      a e = And (cleanQuantifier l a e) (cleanQuantifier r a e)
-cleanQuantifier (Not f)        a e = Not $ cleanQuantifier f a e
-cleanQuantifier f              _ _ = f 
+cleanQuantifier :: Formula -> [String] -> Formula
+cleanQuantifier (Forall v f)   q = if v `elem` q then (cleanQuantifier f q) else (Forall v (cleanQuantifier f (v:q)))
+cleanQuantifier (Exists v f)   q = if v `elem` q then (cleanQuantifier f q) else (Exists v (cleanQuantifier f (v:q)))
+cleanQuantifier (Impl l r)     q = Impl (cleanQuantifier l q) (cleanQuantifier r q)
+cleanQuantifier (Iff l r)      q = Iff (cleanQuantifier l q) (cleanQuantifier r q)
+cleanQuantifier (Or l r)       q = Or (cleanQuantifier l q) (cleanQuantifier r q)
+cleanQuantifier (And l r)      q = And (cleanQuantifier l q) (cleanQuantifier r q)
+cleanQuantifier (Not f)        q = Not $ cleanQuantifier f q
+cleanQuantifier f              _ = f 
 
 
 
 contains :: Formula -> [Term] -> Bool
-contains (Atom _ fvs) vs = foldl (\a x -> x `elem` vs || a) False (concat $ map getVarsOfTerm fvs)
+contains (Atom _ fvs) vs = foldl (\a x -> x `elem` vs || a) False (concat $ map (getVarsOfTerm []) fvs)
 contains (Impl l r) vs = l `contains` vs || r `contains` vs
 contains (Iff l r) vs = l `contains` vs || r `contains` vs
 contains (Or l r) vs = l `contains` vs || r `contains` vs
@@ -163,25 +163,28 @@ universallyQuantify :: [Term] -> Formula -> Formula
 universallyQuantify [] f = f 
 universallyQuantify ((Var s):vs) f = Forall s $ universallyQuantify vs f
 
-enfoldExists :: [Term] -> Formula -> Formula
-enfoldExists [] f = f
-enfoldExists ((Var v):vs) f = Exists v (enfoldExists vs f)
+existentiallyQuantify :: [Term] -> Formula -> Formula
+existentiallyQuantify [] f = f
+existentiallyQuantify ((Var v):vs) f = Exists v (existentiallyQuantify vs f)
 
 
-getVarsOfFormula :: Formula -> [Term]
-getVarsOfFormula (Atom s ts)  = nub $ concat $ map getVarsOfTerm ts
-getVarsOfFormula (Impl l r)   = nub $ getVarsOfFormula l ++ getVarsOfFormula r  
-getVarsOfFormula (Iff l r)    = nub $ getVarsOfFormula l ++ getVarsOfFormula r  
-getVarsOfFormula (Or l r)     = nub $ getVarsOfFormula l ++ getVarsOfFormula r  
-getVarsOfFormula (And l r)    = nub $ getVarsOfFormula l ++ getVarsOfFormula r  
-getVarsOfFormula (Not f)      = nub $ getVarsOfFormula f  
-getVarsOfFormula (Exists s f) = nub $ getVarsOfFormula f  
-getVarsOfFormula (Forall s f) = nub $ getVarsOfFormula f  
-getVarsOfFormula _            = []             
+freeVariables :: Formula -> [Term]
+freeVariables f = nub $ getVarsOfFormula f []
 
-getVarsOfTerm :: Term -> [Term]
-getVarsOfTerm (Var s) = [(Var s)]
-getVarsOfTerm (Cons _ ts) = concat $ map getVarsOfTerm ts
+getVarsOfFormula :: Formula -> [Term] -> [Term]
+getVarsOfFormula (Exists s f) bvs = getVarsOfFormula f ((Var s):bvs)
+getVarsOfFormula (Forall s f) bvs = getVarsOfFormula f ((Var s):bvs)
+getVarsOfFormula (Atom s ts)  bvs = concat $ map (getVarsOfTerm bvs) ts
+getVarsOfFormula (Impl l r)   bvs = getVarsOfFormula l bvs ++ getVarsOfFormula r bvs  
+getVarsOfFormula (Iff l r)    bvs = getVarsOfFormula l bvs ++ getVarsOfFormula r bvs  
+getVarsOfFormula (Or l r)     bvs = getVarsOfFormula l bvs ++ getVarsOfFormula r bvs  
+getVarsOfFormula (And l r)    bvs = getVarsOfFormula l bvs ++ getVarsOfFormula r bvs  
+getVarsOfFormula (Not f)      bvs = getVarsOfFormula f bvs 
+getVarsOfFormula _            _   = []             
+
+getVarsOfTerm :: [Term] -> Term -> [Term]
+getVarsOfTerm bvs (Var s)     = if (Var s) `elem` bvs then [] else [(Var s)]
+getVarsOfTerm bvs (Cons _ ts) = concat $ map (getVarsOfTerm bvs) ts 
 
 insertLets :: Formula -> [Formula] -> Formula
 insertLets f [] = f
@@ -189,7 +192,7 @@ insertLets f ((Atom s ts):as) =
   if f `contains` vars
     then universallyQuantify vars ((Atom s ts) `Impl` (insertLets f as))
     else insertLets f as
-      where vars = concat $ map getVarsOfTerm ts
+      where vars = concat $ map (getVarsOfTerm []) ts
 
 
 
@@ -230,3 +233,9 @@ prettyProof l (BySubcontext ids) = "BySubcontext: " ++  (intercalate "," ids) ++
 prettyProof l (BySequence hs) = "Prove by sequence:\n" ++ (concat $ map (prettyStatement (l+1)) hs)
 prettyProof l (BySplit cs) = "Prove by split:\n" ++ (concat $ map (prettyStatement (l+1)) cs)
 
+
+strcontains::Eq a => [a]->[a]->Bool
+strcontains l s = strcontains' l s True where
+    strcontains' _ [] h          = True
+    strcontains' [] _ h          = False
+    strcontains' (x:xs) (y:ys) h = (y == x && strcontains' xs ys False) || (h && strcontains' xs (y:ys) h)

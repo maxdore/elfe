@@ -1,52 +1,53 @@
 Include functions.
 
 Let S,T,U be set.
-Let x,y,z,u,v be element.
 
 Notation leq: x <= y.
-
 Proposition: x <= x.
 Proposition: x <= y and y <= x implies x = y.
 Proposition: x <= y and y <= z implies x <= z.
 
+Definition DefLB: for all u. lowerBound(u,S,T) iff S ⊆ T and u ∈ T and (for all v ∈ S. u <= v).
+Definition DefUB: for all u. upperBound(u,S,T) iff S ⊆ T and u ∈ T and (for all v ∈ S. v <= u).
+Definition infimum: for all u. infimum(u,S,T) iff S ⊆ T and u ∈ T and lowerBound(u,S,T) and (for all lowerBound(v,S,T). v <= u). 
+Definition DefSup: for all u. supremum(u,S,T) iff S ⊆ T and u ∈ T and lowerBound(u,S,T) and (for all lowerBound(v,S,T). u <= v). 
 
-Definition DefLB: S ⊆ T implies (lowerBound(u,S,T) iff u ∈ T and (for all w ∈ S. u <= w)).
-Definition DefUB: S ⊆ T implies (upperBound(u,S,T) iff u ∈ T and (for all w ∈ S. w <= z)).
-Definition DefInf: S ⊆ T implies (infimum(u,S,T) iff u ∈ T and lowerBound(u,S,T) and (for all lowerBound(v,S,T). v <= u)). # check if v correct
-Definition DefSup: S ⊆ T implies (supremum(u,S,T) iff u ∈ T and lowerBound(u,S,T) and (for all lowerBound(v,S,T). u <= v)). # check if v correct
+Proposition InfUnique: S ⊆ T and infimum(u,S,T) and infimum(v,S,T) implies u = v.
+Proposition SupUnique: S ⊆ T and supremum(u,S,T) and supremum(v,S,T) implies u = v.
 
-Proposition InfUn: S ⊆ T and infimum(u,S,T) and infimum(v,S,T) implies u = v.
-Proposition SupUn: S ⊆ T and supremum(u,S,T) and supremum(v,S,T) implies u = v.
+Definition DefCLat: T is completeLattice iff for all S ⊆ T. (exists u. infimum(u,S,T)) and (exists v. supremum(v,S,T)).
 
-Definition DefCLat: T is completeLattice iff for all S ⊆ T. exists u. infimum(u,S,T) and (exists v. supremum(v,S,T)).
+Let f: U -> U.
 
-Let f: A -> U.
+Definition SetFix: fixPoints(T) is set and (for all x ∈ T. x ∈ fixPoints(T) iff f[x,x]).
+Definition DefMonot: f is monotone iff for all x1 ∈ T. for all x2 ∈ T. x1 <= x2 implies (for all y1 ∈ U. for all y2 ∈ U. f[x1,y1] and f[x2,y2] implies y2 <= y2).
 
-Definition DefFix: for all x ∈ A. fixPoint(x,f) iff f[x,x].
-Definition DefMonot: f is monotone iff for all x ∈ A. for all y ∈ A. x <= y implies (f{x}) <= (f{y}).
-
+Definition upperBounds: f is monotone implies upperBounds(U) is set and (for all x. x ∈ upperBounds(U) iff x ∈ U and upperBound(x,T,U) and (for all y. f[x,y] implies y <= x)).
+Definition lowerBounds: f is monotone implies lowerBounds(U) is set and (for all x. x ∈ lowerBounds(U) iff x ∈ U and lowerBound(x,T,U) and (for all y. f[x,y] implies x <= y)).
 
 Lemma Tarski:
-    completeLattice(U) and f: A -> U and f is monotone and (for all fixPoint(x,f). x ∈ S) implies completeLattice(S).
+    U is completeLattice and f is monotone implies fixPoints(U) is completeLattice.
 Proof:
-    Fix A.
-    Fix U.
-    Assume U is set and completeLattice(U) and f: A -> U and f is monotone and (for all fixPoint(x,f). x ∈ S).
-    Assume T ⊆ S.
-    Proof exists u. supremum(u,T,S):
-        Take P such that P is set and x ∈ P iff x ∈ U and (f{x}) <= x and upperBound(x,T,U).
+    Assume U is completeLattice and f is monotone.
+    Assume M is set and M ⊆ fixPoints(U).
+
+    Proof exists u. supremum(u,M,fixPoints(U)):
+        Take P such that P = upperBounds(U).
         Take p such that infimum(p,P,U).
-        Then lowerBound(f{p},P,U) and upperBound(f{p},T,U).
-        Then fixPoint(p,f) and supremum(p,T,S).
-        Then exists u. supremum(u,T,S).
+        Take y such that f[p,y].
+        Then lowerBound(y,P,U) and upperBound(y,M,U).
+        Then p = y and supremum(p,M,fixPoints(U)).
     qed.
-    Proof exists v. infimum(v,T,S):
-        Take Q such that Q is set and x ∈ Q iff x ∈ U and x <= (f{x}) and lowerBound(x,T,U).
+
+    Proof exists v. infimum(v,M,fixPoints(U)):
+        Take Q such that Q = lowerBounds(U).
         Take q such that supremum(q,Q,U).
-        Then upperBound(f{q},Q,U) and lowerBound(f{q},T,U).
-        Then fixPoint(q,f) and supremum(q,T,S).
-        Then exists v. supremum(v,T,S).
+        Take y such that f[p,y].
+        Then upperBound(y,Q,U) and lowerBound(y,M,U).
+        Then q = y and infimum(q,M,fixPoints(U)).
     qed.
-    Hence exists u. infimum(u,S,T) and (exists v. supremum(v,S,T)).
-    Hence completeLattice(S).
+
+    Hence exists u. infimum(u,M,fixPoints(U)) and (exists v. supremum(v,M,fixPoints(U))).
+    Hence fixPoints(U) is completeLattice.
 qed.
+

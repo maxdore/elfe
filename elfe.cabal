@@ -1,5 +1,5 @@
 name:                elfe
-version:             0.0.1
+version:             1.0.0
 synopsis:            Interactive theorem proving for students
 homepage:            https://elfe-prover.org
 license:             MIT
@@ -23,3 +23,4 @@ executable elfe
                      , wai-middleware-static
                      , wai-extra
                      , time
+                     , criterion

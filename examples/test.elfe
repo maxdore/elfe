@@ -1,14 +1,20 @@
-
-
-
-Lemma DefInf: x implies for all y. asd(x,y)
-Proof: qed.
-
-
+Definition: not blub(A) or blub(B).
+Definition: blub(A) or not blub(B).
 
 
 
 aksdhalkjds
+
+
+Notation in: a ∈ A.
+
+Let A be set.
+
+Proposition: sM is set and (for all x. x ∈ sM iff x ∈ A and askjdh(ds)). 
+
+Lemma: contradiction. Proof: qed.
+
+
 
 
 Notation comp: Aᑦ.

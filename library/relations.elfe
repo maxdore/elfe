@@ -1,60 +1,45 @@
 Notation relapp: R[x,y].
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 Let R,S be relation.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Definition nonempty: R is nonempty iff exists element(x). exists element(y). R[x,y].
+Definition nonempty: R is nonempty iff exists x,y. R[x,y].
 Definition empty: R is empty iff not R is nonempty.
-Definition symmetry: R is symmetric iff for all x. for all y. element(x) and element(y) and R[x,y] implies R[y,x].
-Definition boundness: R is bound iff for all x. element(x) implies exists element(y). R[x,y].
-Definition transitivity: R is transitive iff for all x. for all y. for all z. element(x) and element(y) and element(z) and R[x,y] and R[y,z] implies R[x,z].
-Definition reflexivity: R is reflexive iff for all element(x). R[x,x].
+Definition symmetry: R is symmetric iff for all x,y. R[x,y] implies R[y,x].
+Definition total: R is total iff for all x,y. R[x,y] or R[y,x].
+Definition boundness: R is bound iff for all x. exists y. R[x,y].
+Definition transitivity: R is transitive iff for all x,y,z. R[x,y] and R[y,z] implies R[x,z].
+Definition reflexivity: R is reflexive iff for all x. R[x,x].
 
-Let x,y be element.
-
-Definition equality: R = S iff (R[x,y] iff S[x,y]). 
+Definition equality: R = S iff (for all x,y. R[x,y] iff S[x,y]). 
 
 Notation subrelation: R ⊆ S.
-Definition relationSub: R ⊆ S iff R[x,y] implies S[x,y].
+Definition subrelation: R ⊆ S iff for all x,y. R[x,y] implies S[x,y].
 
 Notation inverse: R⁻¹.
-Definition relationInverse: (R⁻¹)[y,x] iff R[x,y].
-Proposition: R⁻¹ is relation.
+Definition relationInverse: R⁻¹ is relation and (for all x,y. (R⁻¹)[y,x] iff R[x,y]).
 
 Notation comp: Rᑦ.
-Definition relationComplement: (Rᑦ)[x,y] iff not R[x,y].
+Definition relationComplement: for all x,y. (Rᑦ)[x,y] iff not R[x,y].
 Proposition: Rᑦ is relation.
 
 Notation relunion: R ∪ S.
-Definition relationUnion: (R ∪ S)[x,y] iff R[x,y] or S[x,y].
+Definition relationUnion: for all x,y. (R ∪ S)[x,y] iff R[x,y] or S[x,y].
 Proposition: R ∪ S is relation.
 
 Notation reint: R ∩ S.
-Definition relationIntersection: (R ∩ S)[x,y] iff R[x,y] and S[x,y].
+Definition relationIntersection: for all x,y. (R ∩ S)[x,y] iff R[x,y] and S[x,y].
 Proposition: R ∩ S is relation.
 

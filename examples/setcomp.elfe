@@ -1,7 +1,6 @@
 Include sets.
 
 Let A,B be set.
-Let x be an element.
 
 Lemma: ((A ∪ B)ᑦ) = ((Aᑦ) ∩ (Bᑦ)).
 Proof:
