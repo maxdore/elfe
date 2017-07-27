@@ -13,6 +13,9 @@ Notation relapp: R[x,y].
 
 
 
+
+
+
 Let R,S be relation.
 
 Definition nonempty: R is nonempty iff exists x,y. R[x,y].

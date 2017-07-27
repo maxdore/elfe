@@ -6,7 +6,7 @@ Lemma: R ⊆ S and S is symmetric implies (R ∪ (R⁻¹)) ⊆ S.
 Proof:
     Assume R ⊆ S and S is symmetric.
     Assume (R ∪ (R⁻¹))[x,y].
-    Then R[x,y] by relationUnion.
+    Then R[x,y] by relationUnion, relationInverse.
     Hence S[x,y].
     Hence (R ∪ (R⁻¹)) ⊆ S.
 qed.

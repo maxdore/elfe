@@ -21,7 +21,7 @@ check raw = do
     sequ <- parseString included
     endParsing <- getTime
     putStrLn $ concat $ map (prettyStatement 0) sequ
-    putStrLn "-------------------------VERIFYING-------------------------" 
+    putStrLn "-------------------------VERIFYING--------------------------" 
     startVerifying <- getTime
     res <- verify sequ
     endVerifying <- getTime

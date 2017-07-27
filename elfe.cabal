@@ -1,5 +1,5 @@
 name:                elfe
-version:             1.0.0
+version:             0.1.0
 synopsis:            Interactive theorem proving for students
 homepage:            https://elfe-prover.org
 license:             MIT
@@ -10,7 +10,11 @@ cabal-version:       >=1.8
 
 executable elfe
   main-is:             Main.hs
-  build-depends:       base ==4.6.*
+  hs-source-dirs:      src
+  exposed-modules:     Elfe
+  extensions:          OverloadedStrings
+                     , DeriveGeneric
+  build-depends:       base
                      , wai
                      , warp
                      , http-types
@@ -24,3 +28,10 @@ executable elfe
                      , wai-extra
                      , time
                      , criterion
+                     , lifted-base
+                     , cryptonite
+                     , vector
+                     , mtl
+                     , parsec
+                     , process
+                     , directory

@@ -141,8 +141,8 @@
     background-color: #bfb;
 }
 .line.error {
-    background-color: #fee;
+    background-color: #fbb;
 }
 .line.active.error {
-    background-color: #fbb;
+    background-color: #f99;
 }

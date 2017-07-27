@@ -1,7 +1,7 @@
 module Elfe.Prover where
 
 import Data.List
-import Data.String.Utils (replace)
+--import Data.String.Utils (replace)
 import System.Process
 import System.Exit
 import System.IO
@@ -70,11 +70,9 @@ runProver chan task (Prover name command args provedMsg disprovedMsg unknownMsg)
 
     hClose eh ; waitForProcess ph
 
-    if pos
-      then trace ("PROVED by " ++ name) writeChan chan (Correct (ProverName name "")) >> putMVar done True
-    else if neg
-      then trace ("DISPROVED by " ++ name ++ "\n" ++ task) return () -- writeChan chan (Incorrect (ProverName name "")) >> putMVar done True
-    else trace ("UNKNOWN by " ++ name ++ "\n" ++ task ++ command ++ " " ++   show (args++[tptpFile])) return ()
+    when (pos) (trace ("PROVED by " ++ name) writeChan chan (Correct (ProverName name "")) >> putMVar done True)
+    --when (neg) (("DISPROVED by " ++ name ++ "\n" ++ task) (return ())) -- writeChan chan (Incorrect (ProverName name "")) >> putMVar done True
+    --when (not pos && not neg) (("UNKNOWN by " ++ name ++ "\n") (return ()))
 
 
 runCountermodler :: Chan ProofStatus -> String -> Countermodler -> MVar Bool -> IO ()
@@ -99,7 +97,7 @@ retrieveClauses (s:rs) = if s == ""
                             then ""
                             else cleaned ++ retrieveClauses rs
                               where cleaned = if s `strcontains` ", c" || s `strcontains` "(c"
-                                                then replace "(c" "(" (replace ", c" ", " s) ++ "\n" 
+                                                then s -- replace "(c" "(" (replace ", c" ", " s) ++ "\n" 
                                                 else []
 
 

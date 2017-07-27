@@ -32,6 +32,7 @@ qed.
             unchangedSince: new Date(),
             row: 0,
             col: 0,
+            blockOutput: false,
             errorLines: [],
         },
         methods: {
@@ -41,6 +42,7 @@ qed.
                 }
             },
             submit: function(){
+                this.blockOutput = false;
                 this.loading = true;
                 this.$http.get('/api', {params: {problem: this.input}}).then(response => {
                         this.result = response.body.contents;
@@ -54,6 +56,7 @@ qed.
                                 var line = this.result.substr(6,1);
                             }
                             this.errorLines.push(line);
+                            this.blockOutput = true;
                         } else {
                             this.result.map(this.updateLines);
                         }
@@ -66,6 +69,10 @@ qed.
                 });
             },
             findResultToPos: function(){
+                if (this.blockOutput) {
+                    return;
+                }
+
                 this.output = "";
                 if (this.result instanceof Array) {
                     this.result.map(this.objectInPos);
@@ -79,9 +86,12 @@ qed.
                         console.log(obj);
                         this.output += "Raw: " + obj.sformula;
                         if (obj.status.tag == "Correct") {
+                            try {
+                                this.output += "\n\nProved by " + obj.status.contents.contents[0]
+                            } catch(e) {}
                         }
                         else if (obj.status.tag == "Incorrect") {
-                            this.output += "\n\nDisproved";
+                            this.output += "\nDisproved";
                             try {
                             this.output += " by " + obj.status.contents.contents[0]
                                             + ".\nCountermodel: \n"
