@@ -12,13 +12,26 @@
     <link href="normalize.css" rel="stylesheet" type="text/css" />
     <link href="skeleton.css" rel="stylesheet" type="text/css" />
     <link href="https://fonts.googleapis.com/css?family=Droid+Sans+Mono" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
     <link href="style.css" rel="stylesheet" type="text/css" />
+    <link href="prover.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
 
     <div class="container">
-        <!-- <h2>ELFE Prover</h2> -->
-<br>
+        <div class="header">
+            <img src="logo.png" class="logo" />
+
+            <div class="nav">
+                <a href="/" class="active">Home</a>
+                <a href="/tutorial">Tutorial</a>
+                <a href="/examples">Examples</a>
+                <a href="/about">About</a>
+                <a href="//github.com/maxdore/elfe">Source</a>
+            </div>
+        </div>
+
+
         <div class="prover">
             <div class="bar">
                 <a class="specialKey" @click="insertKey('∈')">∈</a>

@@ -1,28 +1,12 @@
-Let A,B be set.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Let A be set.
 
 Notation in: a ∈ A.
-
-Definition equality: A = B iff for all x. x ∈ A iff x ∈ B. 
-
 Definition nonempty: A is nonempty iff exists x. x ∈ A.
 Definition empty: A is empty iff A is not nonempty.
+
+Let B be set.
+
+Definition equality: A = B iff for all x. x ∈ A iff x ∈ B. 
 
 Notation subset: A ⊆ B.
 Definition subset: A ⊆ B iff for all x ∈ A. x ∈ B. 

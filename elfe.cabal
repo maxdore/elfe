@@ -35,3 +35,32 @@ executable elfe
                      , parsec
                      , process
                      , directory
+
+executable elfe-server
+  main-is:             Server.hs
+  hs-source-dirs:      src
+  exposed-modules:     Elfe
+  extensions:          OverloadedStrings
+                     , DeriveGeneric
+  build-depends:       base
+                     , wai
+                     , warp
+                     , http-types
+                     , resourcet
+                     , scotty
+                     , text
+                     , bytestring
+                     , blaze-html
+                     , transformers
+                     , wai-middleware-static
+                     , wai-extra
+                     , time
+                     , criterion
+                     , lifted-base
+                     , cryptonite
+                     , vector
+                     , mtl
+                     , parsec
+                     , process
+                     , directory
+                     , aeson

@@ -34,7 +34,7 @@ Definition subrelation: R ⊆ S iff for all x,y. R[x,y] implies S[x,y].
 Notation inverse: R⁻¹.
 Definition relationInverse: R⁻¹ is relation and (for all x,y. (R⁻¹)[y,x] iff R[x,y]).
 
-Notation comp: Rᑦ.
+Notation relcomp: Rᑦ.
 Definition relationComplement: for all x,y. (Rᑦ)[x,y] iff not R[x,y].
 Proposition: Rᑦ is relation.
 

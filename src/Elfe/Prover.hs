@@ -34,7 +34,9 @@ z3 = Prover "Z3" "../prover/Z3/build/z3_tptp" ["-t:20"] ["% SZS status Theorem"]
 spass = Prover "SPASS" "../prover/SPASS/SPASS" ["-TPTP", "-TimeLimit=20"] ["SPASS beiseite: Proof found."] ["SPASS beiseite: Completion found."] ["SPASS beiseite: Ran out of time."]
 beagle = Countermodler "BEAGLE" "../prover/beagle/beagle.sh" [] "Saturated clause set:"
 
-provers = [z3, eprover, spass]
+vampire = Prover "Vampire" "online-atps" ["--atp=vampire", "--only-check"] ["Theorem"] ["No theorem"] ["uns"]
+
+provers = [eprover, z3, spass, vampire]
 countermodler = [beagle]
 
 --tptpFile = "temp/wrong.tptp"
