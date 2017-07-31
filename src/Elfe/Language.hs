@@ -239,3 +239,21 @@ strcontains l s = strcontains' l s True where
     strcontains' _ [] h          = True
     strcontains' [] _ h          = False
     strcontains' (x:xs) (y:ys) h = (y == x && strcontains' xs ys False) || (h && strcontains' xs (y:ys) h)
+
+
+data Prover = Prover { pName :: String
+                     , pCommand :: String
+                     , pArgs :: [String]
+                     , provedMsg :: [String]
+                     , disprovedMsg :: [String]
+                     , unknownMsg :: [String]
+                     }
+
+data Countermodler = Countermodler { cName :: String
+                                   , cCommand :: String
+                                   , cArgs :: [String]
+                                   , clauseMarker :: String
+                                   }
+
+
+                                   

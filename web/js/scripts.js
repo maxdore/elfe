@@ -2,29 +2,7 @@ window.onload = function () {
     var v = new Vue({
         el: '.prover',
         data: {
-            input: `Include sets.
-
-Let A be set.
-Let x be element.
-
-Lemma: ((Aᑦ)ᑦ) = A.
-Proof:
-    Proof ((Aᑦ)ᑦ) ⊆ A:
-        Assume x ∈ ((Aᑦ)ᑦ).
-        Then not x ∈ (Aᑦ).
-        Hence x ∈ A.
-    qed.
-    Proof A ⊆ ((Aᑦ)ᑦ): 
-
-
-    qed.
-qed.
-
-
-
-
-
-`,
+            input: ``,
             output: "",
             result: {},
             autoSubmit: false,

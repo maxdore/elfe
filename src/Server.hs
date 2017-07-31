@@ -6,7 +6,7 @@ import Network.Wai.Middleware.Static
 import Text.ParserCombinators.Parsec.Prim (runParser)
 import Text.ParserCombinators.Parsec.Error
 import GHC.Generics (Generic)
-
+import Settings (port)
 
 import Elfe
 
@@ -25,7 +25,7 @@ instance ToJSON ProblemStatus
 instance ToJSON ParseError where
     toJSON e = toJSON $ show e
 
-main = scotty 8000 $ do
+main = scotty port $ do
   middleware $ staticPolicy (noDots >-> addBase "web")
   get "/api" $ do 
     raw <- param "problem"
@@ -36,5 +36,5 @@ main = scotty 8000 $ do
             res <- verify r
             return $ Verified res
     json status
-
+ 
   get "/" $ file "./web/index.html" 

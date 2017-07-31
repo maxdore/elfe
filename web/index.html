@@ -2,25 +2,27 @@
 <html lang="en">
 <head>
     <title>ELFE Prover</title>
+    <meta charset="utf-8">  
     <script src="https://unpkg.com/vue"></script>
     <script src="https://cdn.jsdelivr.net/vue.resource/1.2.1/vue-resource.min.js"></script>
     <script
   src="https://code.jquery.com/jquery-3.2.1.min.js"
   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
   crossorigin="anonymous"></script>
-    <script src="scripts.js"></script>
-    <link href="normalize.css" rel="stylesheet" type="text/css" />
-    <link href="skeleton.css" rel="stylesheet" type="text/css" />
+    <script src="js/scripts.js"></script>
+    <link href="css/normalize.css" rel="stylesheet" type="text/css" />
+    <link href="css/skeleton.css" rel="stylesheet" type="text/css" />
     <link href="https://fonts.googleapis.com/css?family=Droid+Sans+Mono" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
-    <link href="style.css" rel="stylesheet" type="text/css" />
-    <link href="prover.css" rel="stylesheet" type="text/css" />
+    <link href="css/style.css" rel="stylesheet" type="text/css" />
+    <link href="css/prover.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
 
     <div class="container">
         <div class="header">
-            <img src="logo.png" class="logo" />
+            <a href="/"><img src="images/logo.png" class="logo" /></a>
+            
 
             <div class="nav">
                 <a href="/" class="active">Home</a>
@@ -30,7 +32,6 @@
                 <a href="//github.com/maxdore/elfe">Source</a>
             </div>
         </div>
-
 
         <div class="prover">
             <div class="bar">
@@ -51,7 +52,7 @@
             </div>
             <textarea class="input" id="input" v-model="input" @keyup="renderLines" @click="renderLines" @scroll="renderLinesPos" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
             <div class="output">
-                <img v-show="loading" class="loading" src="loading.gif" >
+                <img v-show="loading" class="loading" src="images/loading.gif" >
                 <span v-show="!loading">{{ output }}</span>
             </div>
             <div class="pos">Line {{ row }}, Col {{ col }}</div>

@@ -1,12 +1,10 @@
 .header {
-    padding: 20px 0 5px;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #DB7D1E;
+    padding: 20px 0 0;
 }
 
 .nav {
     float: right;
-    padding-top: 20px;
+    padding-top: 24px;
 }
 
 .nav a {
