@@ -64,3 +64,4 @@ executable elfe-server
                      , process
                      , directory
                      , aeson
+                     , blaze-html

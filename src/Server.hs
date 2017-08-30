@@ -1,13 +1,19 @@
 import Network.HTTP.Types
 import Web.Scotty
+import qualified Web.Scotty as S
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
+import Text.Blaze.Html.Renderer.Text
+
 import Data.Aeson (ToJSON, toJSON)
 import Control.Monad.Trans (lift)
 import Network.Wai.Middleware.Static
 import Text.ParserCombinators.Parsec.Prim (runParser)
 import Text.ParserCombinators.Parsec.Error
 import GHC.Generics (Generic)
-import Settings (port)
 
+
+import Settings (port)
 import Elfe
 
 data ProblemStatus = NotParsed ParseError | Verified [StatementStatus]
@@ -28,7 +34,7 @@ instance ToJSON ParseError where
 main = scotty port $ do
   middleware $ staticPolicy (noDots >-> addBase "web")
   get "/api" $ do 
-    raw <- param "problem"
+    raw <- S.param "problem"
     let included = includeLibraries raw
     status <- lift $ case (runParser elfeParser initParseState "" included) of
         Left e  -> return $ NotParsed e
@@ -36,5 +42,10 @@ main = scotty port $ do
             res <- verify r
             return $ Verified res
     json status
+
+  get "/examples" $ do 
+    S.html . renderHtml $ do
+      H.text "<a>"
+      H.h1 "My todo list"
  
   get "/" $ file "./web/index.html" 

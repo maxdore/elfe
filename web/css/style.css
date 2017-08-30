@@ -20,3 +20,12 @@
 .nav a.active {
     border-bottom: 5px solid #DB7D1E;
 }
+
+h1 {
+    
+}
+
+.footer {
+    text-align: right;
+    color: #777;
+}

@@ -4,16 +4,13 @@
     <title>ELFE Prover</title>
     <meta charset="utf-8">  
     <script src="https://unpkg.com/vue"></script>
-    <script src="https://cdn.jsdelivr.net/vue.resource/1.2.1/vue-resource.min.js"></script>
-    <script
-  src="https://code.jquery.com/jquery-3.2.1.min.js"
-  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-  crossorigin="anonymous"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/vue.resource/1.2.1/vue-resource.min.js"></script> -->
+    <!-- <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script> -->
     <script src="js/scripts.js"></script>
     <link href="css/normalize.css" rel="stylesheet" type="text/css" />
     <link href="css/skeleton.css" rel="stylesheet" type="text/css" />
-    <link href="https://fonts.googleapis.com/css?family=Droid+Sans+Mono" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+    <!-- <link href="https://fonts.googleapis.com/css?family=Droid+Sans+Mono" rel="stylesheet"> -->
+    <!-- <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet"> -->
     <link href="css/style.css" rel="stylesheet" type="text/css" />
     <link href="css/prover.css" rel="stylesheet" type="text/css" />
 </head>
@@ -26,9 +23,8 @@
 
             <div class="nav">
                 <a href="/" class="active">Home</a>
-                <a href="/tutorial">Tutorial</a>
+                <a href="/downloads/tutorial.pdf">Tutorial</a>
                 <a href="/examples">Examples</a>
-                <a href="/about">About</a>
                 <a href="//github.com/maxdore/elfe">Source</a>
             </div>
         </div>
@@ -59,7 +55,26 @@
 
             <div class="linewrapper"></div>
         </div>
-    </div>
 
+        <h1>Interactive Theorem Proving for Students</h1>
+
+        <p>This tool is meant for students to practice writing mathematical proofs. Several background libraries for sets, relations and functions have been implemented such that you can directly start writing a proof.</p>
+
+        <p>To get started, you best take a look at the <a href="/downloads/tutorial.pdf">tutorial</a> and the <a href="/examples">examples</a></p>
+
+        <h2>How does it work?</h2>
+
+        <p>Internally, the mathematical text is transformed into a sequence of first-order formulas. This representation implies certain proof obligations which are checked by Automated Theorem Provers. The technique is described <a href="/downloads/thesis.pdf">here</a>.</p>
+
+        <p>The tool itself is written in Haskell. If you want to learn more about the implementation, simply have a look at the <a href="//github.com/maxdore/elfe">source</a>.</p>
+
+        <h2>Get involved</h2>
+
+        <p>You want to improve Elfe or implement new background libraries? You can get in touch via <a href="//github.com/maxdore/elfe">GitHub</a>. If you want to do a larger project with Elfe, e.g., work on it with your bachelor thesis, you best get in touch with us at dev@elfe-prover.org.</p>
+
+
+        <div class="footer">Impress: Maximilian Doré, Overbeckstrasse 52, 50823 Köln.<br />Contact: dev@elfe-prover.org</div>
+
+    </div>
 </body>
 </html>
