@@ -1,3 +1,4 @@
 .cabal-sandbox
 dist
 Settings.py
+.idea

@@ -2,7 +2,7 @@ window.onload = function () {
     var v = new Vue({
         el: '.prover',
         data: {
-            input: ``,
+            input: "",
             output: "",
             result: {},
             autoSubmit: false,
@@ -15,6 +15,7 @@ window.onload = function () {
         },
         methods: {
             initEditor: function(){
+                this.input = window.content;
                 for (var i = 1; i <= 20; i++) {
                     $('.linewrapper').append('<div class="line" id="line' + i + '"><div class="number">' + i + '</div></div>');
                 }

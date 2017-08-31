@@ -14,6 +14,7 @@ executable elfe
   exposed-modules:     Elfe
   extensions:          OverloadedStrings
                      , DeriveGeneric
+                     , DeriveDataTypeable
   build-depends:       base
                      , wai
                      , warp
@@ -42,6 +43,7 @@ executable elfe-server
   exposed-modules:     Elfe
   extensions:          OverloadedStrings
                      , DeriveGeneric
+                     , DeriveDataTypeable
   build-depends:       base
                      , wai
                      , warp
@@ -64,4 +66,4 @@ executable elfe-server
                      , process
                      , directory
                      , aeson
-                     , blaze-html
+                     , hastache

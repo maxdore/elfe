@@ -1,17 +1,21 @@
 import Network.HTTP.Types
 import Web.Scotty
-import qualified Web.Scotty as S
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A
-import Text.Blaze.Html.Renderer.Text
+import Text.Hastache 
+import Text.Hastache.Context
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.IO as TL
 
+import Data.Data
 import Data.Aeson (ToJSON, toJSON)
+import Data.Monoid
 import Control.Monad.Trans (lift)
+import Control.Monad.IO.Class (liftIO)
 import Network.Wai.Middleware.Static
 import Text.ParserCombinators.Parsec.Prim (runParser)
 import Text.ParserCombinators.Parsec.Error
 import GHC.Generics (Generic)
 
+import System.Directory (getDirectoryContents)
 
 import Settings (port)
 import Elfe
@@ -31,10 +35,23 @@ instance ToJSON ProblemStatus
 instance ToJSON ParseError where
     toJSON e = toJSON $ show e
 
+
+data TemplateCtx = TemplateCtx
+  { body :: TL.Text
+  , title :: TL.Text
+  } deriving (Data, Typeable)
+
+data Example = Example { name :: String, content :: String } deriving (Data, Typeable)
+data Examples = Examples { examples :: [Example] } deriving (Data, Typeable)
+
+
+--let ctx = TemplateCtx { body = "Hello", title = "Haskell" }
+--output <- template "templates/home.html" (mkGenericContext ctx)
+
 main = scotty port $ do
   middleware $ staticPolicy (noDots >-> addBase "web")
   get "/api" $ do 
-    raw <- S.param "problem"
+    raw <- param "problem"
     let included = includeLibraries raw
     status <- lift $ case (runParser elfeParser initParseState "" included) of
         Left e  -> return $ NotParsed e
@@ -44,8 +61,24 @@ main = scotty port $ do
     json status
 
   get "/examples" $ do 
-    S.html . renderHtml $ do
-      H.text "<a>"
-      H.h1 "My todo list"
+    examples <- liftIO $ getDirectoryContents "./examples"
+    content <- hastacheFile defaultConfig "./web/templates/examples.html" (mkGenericContext $ Examples $ map (\e -> Example e "content") examples)
+    compiled <- compile content
+    html compiled 
  
-  get "/" $ file "./web/index.html" 
+  get "/" $ do
+    example <- (param "example") `rescue` (\msg -> return msg)
+    content <- liftIO $ readFile ("./examples/" ++ (TL.unpack example)) -- todo escape file paths
+    content <- hastacheFile defaultConfig "./web/templates/index.html" (mkGenericContext $ Example (show example) content)
+    compiled <- compile content
+    html compiled 
+
+compile template = do
+  header <- hastacheFile defaultConfig "./web/templates/header.html" (mkGenericContext ())
+  footer <- hastacheFile defaultConfig "./web/templates/footer.html" (mkGenericContext ()) 
+  return $ header <> template <> footer
+
+  
+temp :: String
+temp = "Hello, !\n\nYou have {{unread}} unread messages." 
+context "unread" = MuVariable (100 :: Int)
