@@ -2,9 +2,9 @@ Include relations.
 
 Let R be relation.
 
-Lemma: transitive(R) and symmetric(R) and bound(R) implies R is reflexive.
+Lemma: R is transitive, symmetric, bound implies R is reflexive.
 Proof:
-    Assume transitive(R) and symmetric(R) and bound(R).
+    Assume R is transitive, symmetric, bound.
     Proof for all x. R[x,x]:
         Fix x.
         Take y such that R[x,y] by boundness.

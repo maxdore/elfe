@@ -567,7 +567,7 @@ atom = do
 
 verboseAtom :: PS Formula
 verboseAtom = do
-  try atomIsNot <|> try atomIs
+  try atomIsNot <|> atomIsMultiple <|> try atomIs
 
 atomIs :: PS Formula
 atomIs = do 
@@ -576,6 +576,15 @@ atomIs = do
   reserved "is"
   n <- eid
   return $ Atom n [t]
+
+atomIsMultiple :: PS Formula
+atomIsMultiple = do
+  t <- term False
+  spaces
+  reserved "is"
+  ps <- eid `sepBy` (char ',' >> spaces)
+  let atoms = map (\p -> Atom p [t]) ps
+  return $ foldl And (head atoms) (tail atoms)
 
 atomIsNot :: PS Formula
 atomIsNot = do 

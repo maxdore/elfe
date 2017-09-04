@@ -14,8 +14,8 @@ import Network.Wai.Middleware.Static
 import Text.ParserCombinators.Parsec.Prim (runParser)
 import Text.ParserCombinators.Parsec.Error
 import GHC.Generics (Generic)
-
-import System.Directory (getDirectoryContents)
+import Control.Exception (catch)
+import System.Directory
 
 import Settings (port)
 import Elfe
@@ -61,17 +61,27 @@ main = scotty port $ do
     json status
 
   get "/examples" $ do 
-    examples <- liftIO $ getDirectoryContents "./examples"
+    dircontent <- liftIO $ getDirectoryContents "./examples"
+    let examples = filter (\x -> x `notElem` [".", ".."]) dircontent
     content <- hastacheFile defaultConfig "./web/templates/examples.html" (mkGenericContext $ Examples $ map (\e -> Example e "content") examples)
     compiled <- compile content
     html compiled 
  
   get "/" $ do
     example <- (param "example") `rescue` (\msg -> return msg)
-    content <- liftIO $ readFile ("./examples/" ++ (TL.unpack example)) -- todo escape file paths
-    content <- hastacheFile defaultConfig "./web/templates/index.html" (mkGenericContext $ Example (show example) content)
-    compiled <- compile content
-    html compiled 
+    let filePath = "./examples/" ++ filter (\x -> x `notElem` ['/']) (TL.unpack example)
+    exampleExists <- liftIO $ doesFileExist filePath
+    if exampleExists
+      then do
+        content <- liftIO $ readFile filePath
+        content <- hastacheFile defaultConfig "./web/templates/index.html" (mkGenericContext $ Example (show example) content)
+        compiled <- compile content
+        html compiled
+      else do
+        content <- liftIO $ readFile "./examples/reflexive.elfe"
+        content <- hastacheFile defaultConfig "./web/templates/index.html" (mkGenericContext $ Example (show example) content)
+        compiled <- compile content
+        html compiled
 
 compile template = do
   header <- hastacheFile defaultConfig "./web/templates/header.html" (mkGenericContext ())

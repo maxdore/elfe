@@ -1,3 +1,8 @@
+body {
+    font-family: 'Lato', Arial;
+    color: #555;
+}
+
 .header {
     padding: 20px 0 0;
 }
@@ -8,7 +13,6 @@
 }
 
 .nav a {
-    font-family: 'Lato', Arial;
     text-decoration: none;
     display: inline-block;
     margin-left: 20px;
@@ -22,10 +26,19 @@
 }
 
 h1 {
-    
+    font-size: 30px;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+h2 {
+    font-size: 25px;
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
 }
 
 .footer {
     text-align: right;
     color: #777;
+    margin: 20px 0;
 }
