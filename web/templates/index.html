@@ -18,14 +18,14 @@
         <a class="specialKey" @click="insertKey('{')">{</a>
         <a class="specialKey" @click="insertKey('}')">}</a>
 
-        <button id="verifyButton" class="verify" @click="submit" :disabled="loading">{{"{{"}} loading ? 'Loading...' : 'Verify (ctrl+Enter)' {{"}}"}}</button>
+        <button id="verifyButton" class="verify" @click="submit" :disabled="loading" v-html="loading ? 'Loading...' : 'Verify (ctrl+Enter)'"></button>
     </div>
     <textarea class="input" id="input" v-model="input" @keyup="renderLines" @click="renderLines" @scroll="renderLinesPos" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
     <div class="output">
         <img v-show="loading" class="loading" src="images/loading.gif" >
-        <span v-show="!loading">{{ output }}</span>
+        <span v-show="!loading" v-html="output"></span>
     </div>
-    <div class="pos">Line {{{"{{"}}} row }}, Col {{ col }}</div>
+    <div class="pos">Line <span v-html="row"></span>, Col <span v-html="col"></span></div>
 
     <div class="linewrapper"></div>
 </div>
