@@ -1,4 +1,4 @@
 .cabal-sandbox
 dist
-Settings.py
+Settings.hs
 .idea
