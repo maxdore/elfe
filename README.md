@@ -2,13 +2,13 @@
 
 This tool is meant for students to practice writing mathematical proofs. Several background libraries for sets, relations and functions have been implemented such that you can directly start writing a proof.
 
-To get started, you best take a look at the tutorial in the directory web/downloads and the examples directory.
+To get started, you best take a look at the [tutorial](https://elfe-prover.org/downloads/tutorial.pdf)  in the directory web/downloads and the examples directory.
 
 ## How does it work?
 
 Internally, the mathematical text is transformed into a sequence of first-order formulas. This representation implies certain proof obligations which are checked by Automated Theorem Provers.
  
- The technique is described in the thesis in the directory web/downloads.
+The technique is described [here](https://elfe-prover.org/downloads/thesis.pdf).
 
 ## Get involved
 
