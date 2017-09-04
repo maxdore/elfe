@@ -1,9 +1,0 @@
-fof(sinfimum, axiom, (! [VS] : ((set(VS)) => (! [VT] : ((set(VT)) => ((infimum(u,VS,VT)) <=> ((((subset(VS,VT)) & (in(u,VT))) & (lowerBound(u,VS,VT))) & (! [Vv] : ((lowerBound(Vv,VS,VT)) => (leq(Vv,u))))))))))).
-fof(sfunction, axiom, (! [VA] : ((set(VA)) => (! [VB] : ((set(VB)) => (! [Vf] : ((function(Vf,VA,VB)) <=> (! [Vx] : ((in(Vx,VA)) => (? [Vy] : ((in(Vy,VB)) & ((relapp(Vf,Vx,Vy)) & (! [Vy2] : ((in(Vy2,VB)) => ((Vy=Vy2) | (~(relapp(Vf,Vx,Vy2)))))))))))))))))).
-fof(s9, axiom, ((completeLattice(cU)) & (monotone(cf)))).
-fof(s8, axiom, ((set(cS)) & ((set(cT)) & ((set(cU)) & (function(cf,cU,cU)))))).
-fof(s10, axiom, ((set(cM)) & (subset(cM,fixPoints(cU))))).
-fof(s13, axiom, (cP=upperBounds(cU))).
-fof(s15, axiom, (infimum(cp,cP,cU))).
-fof(skjasd, axiom, (set(cp,cP))).
-fof(s1123, conjecture, (in(cp,cU))).

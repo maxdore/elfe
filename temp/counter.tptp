@@ -1,5 +1,0 @@
-fof(ssymmetry, axiom, (! [VR] : ((relation(VR)) => ((symmetric(VR)) <=> (! [VX] : (! [VY] : ((((element(VX)) & (element(VY))) & (relapp(VR,VX,VY))) => (relapp(VR,VY,VX))))))))).
-fof(s10, axiom, (((transitive(bR)) & (symmetric(bR))) & (bound(bR)))).
-fof(s1, axiom, (relation(bR))).
-fof(s5, axiom, (element(bx))).
-fof(s3, conjecture, (? [Vy] : ((element(Vy)) & (relapp(bR,bx,Vy))))).

@@ -1,6 +1,0 @@
-fof(sirrational, axiom, ((irrational(x)) <=> (~(rational(x))))).
-fof(srational, axiom, ((rational(x)) <=> (? [Va] : (? [Vb] : (((integer(Va)) & (integer(Vb))) & (x=$quotient(Va,Vb))))))).
-fof(sinteger, axiom, ((integer(x)) <=> (? [Va] : ((natural(Va)) & ((x=Va) | (x=minus(Va))))))).
-fof(s0, axiom, (minus(minus(x))=x)).
-fof(s2, axiom, ($true)).
-fof(s3, conjecture, ($quotient(8,2)=4)).

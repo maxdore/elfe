@@ -1,5 +1,5 @@
 <script>
-    window.content = `{{content}}`;
+    window.content = `{{{content}}}`;
 </script>
 
 
@@ -25,7 +25,7 @@
         <img v-show="loading" class="loading" src="images/loading.gif" >
         <span v-show="!loading">{{ output }}</span>
     </div>
-    <div class="pos">Line {{ row }}, Col {{ col }}</div>
+    <div class="pos">Line {{{"{{"}}} row }}, Col {{ col }}</div>
 
     <div class="linewrapper"></div>
 </div>

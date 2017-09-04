@@ -62,14 +62,14 @@ main = scotty port $ do
 
   get "/examples" $ do 
     dircontent <- liftIO $ getDirectoryContents "./examples"
-    let examples = filter (\x -> x `notElem` [".", ".."]) dircontent
+    let examples = map (reverse . drop 5 . reverse ) (filter (\x -> x `notElem` [".", ".."]) dircontent)
     content <- hastacheFile defaultConfig "./web/templates/examples.html" (mkGenericContext $ Examples $ map (\e -> Example e "content") examples)
     compiled <- compile content
     html compiled 
  
   get "/" $ do
     example <- (param "example") `rescue` (\msg -> return msg)
-    let filePath = "./examples/" ++ filter (\x -> x `notElem` ['/']) (TL.unpack example)
+    let filePath = "./examples/" ++ filter (\x -> x `notElem` ['/']) (TL.unpack example) ++ ".elfe"
     exampleExists <- liftIO $ doesFileExist filePath
     if exampleExists
       then do
@@ -78,7 +78,7 @@ main = scotty port $ do
         compiled <- compile content
         html compiled
       else do
-        content <- liftIO $ readFile "./examples/reflexive.elfe"
+        content <- liftIO $ readFile "./examples/Symmetric and transitive relations are reflexive.elfe"
         content <- hastacheFile defaultConfig "./web/templates/index.html" (mkGenericContext $ Example (show example) content)
         compiled <- compile content
         html compiled

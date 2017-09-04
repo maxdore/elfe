@@ -37,6 +37,11 @@ h2 {
     border-bottom: 1px solid #eee;
 }
 
+h3 {
+    font-size: 20px;
+    padding: 3px 0;
+}
+
 .footer {
     text-align: right;
     color: #777;

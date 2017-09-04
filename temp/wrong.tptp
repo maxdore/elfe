@@ -1,3 +1,0 @@
-fof(s1, axiom, (relation(cR))).
-fof(s5, axiom, (element(cx))).
-fof(s3, conjecture, (? [Vy] : ((element(Vy)) & (relapp(cR,cx,Vy))))).
