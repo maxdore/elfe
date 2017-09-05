@@ -9,7 +9,7 @@ Proof:
         Fix x.
         Take y such that R[x,y] by boundness.
         Then R[y,x] by symmetry.
-        Then R[x,x].
+        Then R[x,x] by transitivity.
     qed.
     Hence R is reflexive.
 qed.
