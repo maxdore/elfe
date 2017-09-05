@@ -1,5 +1,22 @@
 Let A be set.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Notation in: a ∈ A.
 Definition nonempty: A is nonempty iff exists x. x ∈ A.
 Definition empty: A is empty iff A is not nonempty.
