@@ -47,3 +47,45 @@ h3 {
     color: #777;
     margin: 20px 0;
 }
+
+
+.button {
+    background: #7bc4eb;
+    display: inline-block;
+    background-image: -webkit-linear-gradient(top, #7bc4eb, #2980b9);
+    background-image: -moz-linear-gradient(top, #7bc4eb, #2980b9);
+    background-image: -ms-linear-gradient(top, #7bc4eb, #2980b9);
+    background-image: -o-linear-gradient(top, #7bc4eb, #2980b9);
+    background-image: linear-gradient(to bottom, #7bc4eb, #2980b9);
+    -webkit-border-radius: 7px;
+    -moz-border-radius: 7px;
+    border-radius: 7px;
+    color: #eee;
+    padding: 0px 20px 10px 20px;
+    text-decoration: none;
+}
+
+.button:hover {
+    background: #3cb0fd;
+    background-image: -webkit-linear-gradient(top, #3cb0fd, #3498db);
+    background-image: -moz-linear-gradient(top, #3cb0fd, #3498db);
+    background-image: -ms-linear-gradient(top, #3cb0fd, #3498db);
+    background-image: -o-linear-gradient(top, #3cb0fd, #3498db);
+    background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
+    text-decoration: none;
+    color: #fff;
+}
+
+.etext {
+    font-family: 'Droid Sans Mono', monospace;
+    background-color: #eee;
+    border: 1px solid #ccc;
+    color: #555;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px;
+    padding: 5px;
+    white-space: pre;
+    margin: 10px;
+    width: 400px;
+}

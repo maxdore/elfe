@@ -80,7 +80,7 @@
 .output {
     white-space: pre;
     padding: 12px;
-    height: 274px;
+    height: 74px;
     background-color: #f7f7f7;
     border: 1px solid #d1d1d1;
     border-top: 0;
@@ -99,7 +99,7 @@
 .pos {
     position: absolute;
     right: 25px;
-    bottom: 305px;
+    bottom: 105px;
     color: #bbb;
     z-index: 2;
 }
