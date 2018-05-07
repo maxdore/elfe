@@ -65,7 +65,17 @@ main = scotty port $ do
     let examples = map (reverse . drop 5 . reverse ) (filter (\x -> x `notElem` [".", ".."]) dircontent)
     content <- hastacheFile defaultConfig "./web/templates/examples.html" (mkGenericContext $ Examples $ map (\e -> Example e "content") examples)
     compiled <- compile content
-    html compiled 
+    html compiled
+
+  get "/tutorial" $ do
+    redirect "/training?exercise=0"
+
+  get "/training" $ do
+    exercise <- (param "exercise")
+    header <- hastacheFile defaultConfig "./web/templates/training/header.html" (mkGenericContext ())
+    content <- hastacheFile defaultConfig ("./web/templates/training/" ++ (TL.unpack exercise) ++ ".html") (mkGenericContext ())
+    footer <- hastacheFile defaultConfig "./web/templates/footer.html" (mkGenericContext ())
+    html $ header <> content <> footer
  
   get "/" $ do
     example <- (param "example") `rescue` (\msg -> return msg)
@@ -89,6 +99,3 @@ compile template = do
   return $ header <> template <> footer
 
   
-temp :: String
-temp = "Hello, !\n\nYou have {{unread}} unread messages." 
-context "unread" = MuVariable (100 :: Int)

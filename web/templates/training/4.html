@@ -1,0 +1,71 @@
+<script>
+    window.content = `Include relations.
+
+Let R,S be relation.
+
+Lemma: R ⊆ S and S is symmetric implies (R ∪ (R⁻¹)) ⊆ S.
+Proof:
+    
+qed.`;
+</script>
+
+<h1>Exercise 4</h1>
+
+<p>You can now try to write your own proof! It is a quite difficult one, so do not despair if you do not solve it right away.</p>
+
+<p>You will need to use all constructs that you got to know in the previous tasks. You can look at the solutions of the previous tasks below the prover.</p>
+
+
+<div class="prover">
+    <div class="bar">
+        <a class="specialKey" @click="insertKey('∈')">∈</a>
+        <a class="specialKey" @click="insertKey('∩')">∩</a>
+        <a class="specialKey" @click="insertKey('∪')">∪</a>
+        <a class="specialKey" @click="insertKey('⊆')">⊆</a>
+        <a class="specialKey" @click="insertKey('ᑦ')">ᑦ</a>
+        <a class="specialKey" @click="insertKey('->')">-></a>
+        <a class="specialKey" @click="insertKey('∘')">∘</a>
+        <a class="specialKey" @click="insertKey('⁻¹')">⁻¹</a>
+        <a class="specialKey" @click="insertKey('[')">[</a>
+        <a class="specialKey" @click="insertKey(']')">]</a>
+        <a class="specialKey" @click="insertKey('{')">{</a>
+        <a class="specialKey" @click="insertKey('}')">}</a>
+
+        <button id="verifyButton" class="verify" @click="submit" :disabled="loading" v-html="loading ? 'Loading...' : 'Verify (ctrl+Enter)'"></button>
+    </div>
+    <textarea class="input" id="input" v-model="input" @keyup="renderLines" @click="renderLines" @scroll="renderLinesPos" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+    <div class="output">
+        <img v-show="loading" class="loading" src="images/loading.gif" >
+        <span v-show="!loading" v-html="output"></span>
+    </div>
+    <div class="pos">Line <span v-html="row"></span>, Col <span v-html="col"></span></div>
+
+    <div class="linewrapper"></div>
+</div>
+
+
+<div class="etext">Lemma: R ⊆ S and S ⊆ T implies S ⊆ T.
+Proof: 
+    Assume R ⊆ S and S ⊆ T.
+    Assume R[x,y].
+    Then S[x,y].
+    Hence T[x,y].
+    Hence S ⊆ T.
+qed.</div>
+
+<div class="etext">Lemma: R ∪ (R⁻¹) is symmetric.
+Proof:
+    Assume (R ∪ (R⁻¹))[x,y].
+    Then R[x,y] or (R⁻¹)[x,y].
+    Case R[x,y]:
+        Then (R⁻¹)[y,x].
+    qed.
+    Case (R⁻¹)[x,y]:
+        Then R[y,x].
+    qed.
+    Hence (R ∪ (R⁻¹))[y,x].
+qed.</div>
+
+
+
+<br /><a href="/training?exercise=5" class="button">Finish the training</a>

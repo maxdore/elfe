@@ -1,0 +1,60 @@
+<script>
+    window.content = `Include relations.
+
+Let R,S,T be relation.
+
+Lemma: R ⊆ S and S ⊆ T implies S ⊆ T.
+Proof: 
+    Assume R ⊆ S and S ⊆ T.
+    Assume R[x,y].
+    Then {INSERT-SOLUTION-HERE}.
+    Hence T[x,y].
+    Hence S ⊆ T.
+qed.`;
+</script>
+
+<h1>Exercise 2</h1>
+
+<p>You will now complete your own first proof about subrelations. </p>
+
+<p>"R ⊆ S" means that R is a subrelation of S. That means if R[x,y] holds, then also S[x,y].</p>
+
+<p>The lemma proves that if R is a subrelation of S and S is a subrelation of T, then R must be a subrelation of T as well.</p>
+
+<p>Try to complete the proof by inserting something for "{INSERT-SOLUTION-HERE}"!</p>
+
+<p>Note that the proof markers "Assume", "Then" and "Hence" have different meanings:</p>
+
+<ul>
+    <li>"Assume" opens an assumption in a proof. This assumption needs to be closed by "Hence".</li>
+    <li>"Then" makes an additional derivation in a proof.</li>
+</ul>
+
+<div class="prover">
+    <div class="bar">
+        <a class="specialKey" @click="insertKey('∈')">∈</a>
+        <a class="specialKey" @click="insertKey('∩')">∩</a>
+        <a class="specialKey" @click="insertKey('∪')">∪</a>
+        <a class="specialKey" @click="insertKey('⊆')">⊆</a>
+        <a class="specialKey" @click="insertKey('ᑦ')">ᑦ</a>
+        <a class="specialKey" @click="insertKey('->')">-></a>
+        <a class="specialKey" @click="insertKey('∘')">∘</a>
+        <a class="specialKey" @click="insertKey('⁻¹')">⁻¹</a>
+        <a class="specialKey" @click="insertKey('[')">[</a>
+        <a class="specialKey" @click="insertKey(']')">]</a>
+        <a class="specialKey" @click="insertKey('{')">{</a>
+        <a class="specialKey" @click="insertKey('}')">}</a>
+
+        <button id="verifyButton" class="verify" @click="submit" :disabled="loading" v-html="loading ? 'Loading...' : 'Verify (ctrl+Enter)'"></button>
+    </div>
+    <textarea class="input" id="input" v-model="input" @keyup="renderLines" @click="renderLines" @scroll="renderLinesPos" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+    <div class="output">
+        <img v-show="loading" class="loading" src="images/loading.gif" >
+        <span v-show="!loading" v-html="output"></span>
+    </div>
+    <div class="pos">Line <span v-html="row"></span>, Col <span v-html="col"></span></div>
+
+    <div class="linewrapper"></div>
+</div>
+
+<br /><a href="/training?exercise=3" class="button">Go to next exercise</a>
