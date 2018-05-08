@@ -1,10 +1,14 @@
 <script>
-    window.content = `Let A,B,C be element.
+    window.content = `Include relations.
 
-Lemma: A = B and B = C implies A = C.
+Let R be a relation.
+
+Lemma: R is empty implies R is symmetric.
 Proof:
-    Assume A = B and B = C.
-    Hence A = C.
+    Assume R is empty. 
+    Then for all x,y. not R[x,y].
+    Then for all x,y. R[x,y] implies R[y,x]. 
+    Hence R is symmetric.
 qed.`;
 </script>
 
@@ -12,7 +16,7 @@ qed.`;
 
 <p>At first, we will get to know the system.</p>
 
-<p>Below you find the user interface of Elfe. Inside is a basic proof which proves: If A is equal to B and B is equal to C, then A is equal to C.</p>
+<p>Below you find the user interface of Elfe. Inside is a proof about relations: If a relation is empty, than it is especially symmetric. Take a look at the proof – you do not need to understand it completely yet, as we will dive deeper into the Elfe language in the next exercises.</p>
 
 <p>In order to check the proof, you can click "Verify" in the upper right corner. If the proof is correct, all lines will appear green. You then can inspect the lines of the proofs.</p>
 

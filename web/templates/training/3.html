@@ -21,16 +21,17 @@ qed.`;
 
 <p>We will now learn more about relations and do our first proof by cases.</p>
 
-<p>R⁻¹ stands for the inverse of the relation R. That means if R[x,y], than R[y,x].</p>
+<p>R⁻¹ stands for the inverse of the relation R. That means if R[x,y], then (R⁻¹)[y,x]. The converse also holds, that means (R⁻¹)[x,y] implies R[y,x].</p>
 
-<p>R ∪ S stands for the union of two relations R and S – that means it contains all tuples that R and S contained. </p>
+<p>R ∪ S stands for the union of two relations R and S – that means it contains all tuples that R and S contained.</p>
 
 <p>A relation is said to be symmetric if it always goes both ways: If R[x,y], then also R[y,x].</p>
 
 <p>Try to complete the proof by inserting something for "{INSERT-SOLUTION-HERE}"!</p>
 
-<p>Note that we do a case analysis in the proof: Since we do not know if R[x,y] or (R⁻¹)[x,y] holds, we proof both cases.</p>
+<p>Note that we do a case analysis in the proof: Since we do not know if R[x,y] or (R⁻¹)[x,y] holds, we proof both cases. Every proof of a case needs to be closed by "qed.".</p>
 
+<p>Take care to always use parentheses around special notations: You need to write (R⁻¹)[x,y] instead of R⁻¹[x,y].</p>
 
 <div class="prover">
     <div class="bar">
