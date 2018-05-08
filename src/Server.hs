@@ -16,6 +16,7 @@ import Text.ParserCombinators.Parsec.Error
 import GHC.Generics (Generic)
 import Control.Exception (catch)
 import System.Directory
+import Data.Time.Clock (getCurrentTime)
 
 import Settings (port)
 import Elfe
@@ -58,6 +59,8 @@ main = scotty port $ do
         Right r -> do
             res <- verify r
             return $ Verified res
+    time <- lift getCurrentTime
+    lift $ appendFile "./web/logs/problems" (show time ++ "\n" ++ show status ++ "\nINPUT\n" ++ raw ++ "\n\n")
     json status
 
   get "/examples" $ do 
