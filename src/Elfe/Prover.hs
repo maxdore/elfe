@@ -7,6 +7,7 @@ import System.Exit
 import System.IO
 import System.IO.Error
 import System.Directory (removeFile)
+import System.Random
 import Control.Concurrent
 import Control.Concurrent.Chan
 import Control.Monad
@@ -16,15 +17,20 @@ import Debug.Trace
 import Elfe.Language
 import Settings (provers, countermodler, atpTimeout)
 
-tptpFile = "task.tptp"
+fileGenerator :: IO String
+fileGenerator = do
+  g <- newStdGen
+  let rnd = take 12 $ randomRs ('a','z') g
+  return $ rnd ++ ".tptp"
 
 prove :: String -> IO ProofStatus
 prove task = do
+    tptpFile <- fileGenerator
     writeFile tptpFile task
     done <- newEmptyMVar
     chan <- newChan
-    pThreads <- mapM (\p -> forkIO $ runProver chan task p done) provers
-    cThreads <- mapM (\p -> forkIO $ runCountermodler chan task p done) countermodler
+    pThreads <- mapM (\p -> forkIO $ runProver chan task p done tptpFile) provers
+    cThreads <- mapM (\p -> forkIO $ runCountermodler chan task p done tptpFile) countermodler
     timeoutThread <- forkIO $ timeout task chan done
     readMVar done
     result <- readChan chan
@@ -32,8 +38,8 @@ prove task = do
     removeFile tptpFile
     return result
 
-runProver :: Chan ProofStatus -> String -> Prover -> MVar Bool -> IO ()
-runProver chan task (Prover name command args provedMsg disprovedMsg unknownMsg) done = do
+runProver :: Chan ProofStatus -> String -> Prover -> MVar Bool -> String -> IO ()
+runProver chan task (Prover name command args provedMsg disprovedMsg unknownMsg) done tptpFile = do
   let run = runInteractiveProcess command (tptpFile:args) Nothing Nothing
   do 
     (wh,rh,eh,ph) <- run
@@ -53,8 +59,8 @@ runProver chan task (Prover name command args provedMsg disprovedMsg unknownMsg)
     --when (not pos && not neg) (("UNKNOWN by " ++ name ++ "\n") (return ()))
 
 
-runCountermodler :: Chan ProofStatus -> String -> Countermodler -> MVar Bool -> IO ()
-runCountermodler chan task (Countermodler name command args clauseMarker) done = do
+runCountermodler :: Chan ProofStatus -> String -> Countermodler -> MVar Bool -> String -> IO ()
+runCountermodler chan task (Countermodler name command args clauseMarker) done tptpFile = do
   let run = runInteractiveProcess command (tptpFile:args) Nothing Nothing
   do 
     (wh,rh,eh,ph) <- run
