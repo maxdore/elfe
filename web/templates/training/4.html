@@ -15,6 +15,14 @@ qed.`;
 
 <p>You will need to use all constructs that you got to know in the previous tasks. You can look at the solutions of the previous tasks below the prover.</p>
 
+<p>Remember the following peculiarities of the Elfe language:</p>
+
+<ul>
+    <li>Every assumption needs to be closed with a conclusion: If you open a proof with "Assume ...", later on you will have to close it with "Hence ...".</li>
+    <li>"Then" can be used to make additional derivations.</li>
+    <li>You can introduce a case distinction with "Case ...:". Remember to close the proof of the case with "qed."</li>
+    <li>Take care to always use parentheses around special notations: You need to write "(R ∪ (R⁻¹))[x,y]" instead of R ∪ R⁻¹[x,y].</li>
+</ul>
 
 <div class="prover">
     <div class="bar">

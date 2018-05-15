@@ -14,7 +14,7 @@ import Control.Monad
 import Debug.Trace
 
 import Elfe.Language
-import Settings (provers, countermodler)
+import Settings (provers, countermodler, atpTimeout)
 
 tptpFile = "task.tptp"
 
@@ -81,6 +81,6 @@ retrieveClauses (s:rs) = if s == ""
 
 timeout :: String -> Chan ProofStatus -> MVar Bool -> IO ()
 timeout task chan done = do
-  threadDelay $ 20*1000000
+  threadDelay $ atpTimeout*1000000
   trace ("TIMEOUT\n" ++ task) writeChan chan Unknown >> putMVar done True
   
