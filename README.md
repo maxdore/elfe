@@ -2,7 +2,7 @@
 
 This tool is meant for students to practice writing mathematical proofs. Several background libraries for sets, relations and functions have been implemented such that you can directly start writing a proof.
 
-To get started, you best take a look at the [tutorial](https://elfe-prover.org/downloads/tutorial.pdf)  in the directory web/downloads and the examples directory.
+To get started, you best take a look at the [tutorial](https://elfe-prover.org/tutorial) and the examples directory.
 
 ## How does it work?
 
