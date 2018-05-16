@@ -3,16 +3,15 @@ Include geometry.
 Lemma BetwEquality: for all a,b,c. a-b-c and b-a-c implies a = b.
 Proof: 
     Assume a-b-c and b-a-c.
-    Then a-b-a by .
+    Then a-b-a. # by .
     Hence a = b.
 qed.
 
-akjsdkajhd
 
 
-Lemma ThreeCong: for all a,b,c,a1,b1,c1. a-b-c and a-b ≡ a1-b1 and a-c ≡ a1-c1 and b-c ≡ b1-c1 implies a1-b1-c1.
+Lemma ThreeCong: for all a,b,c,a',b',c'. a-b-c and a-b ≡ a'-b' and a-c ≡ a'-c' and b-c ≡ b'-c' implies a'-b'-c'.
 Proof: 
-    Assume exists a,b,c,a1,b1,c1. a-b-c and a-b ≡ a1-b1 and a-c ≡ a1-c1 and b-c ≡ b1-c1 and not a1-b1-c1. 
+    Assume exists a,b,c,a',b',c'. a-b-c and a-b ≡ a'-b' and a-c ≡ a'-c' and b-c ≡ b'-c' and not a'-b'-c'. 
     Hence contradiction.
 qed.
 
