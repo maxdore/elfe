@@ -1,0 +1,21 @@
+Notation edge: u-v.
+Notation isomorphic: G ≅ H.
+
+Let G, H be graph.
+
+G = (V, E)
+
+Definition: G ≅ H iff for all u # ACCESS VERTICES OF G!
+
+Definition: G is undirected iff for all u, v. u-v implies v-u.
+Definition: G is acyclic iff for all u. not u-u.
+ 
+Definition: G is bound iff for all u. exists v. u-v.
+
+
+
+# Definition: vertices, edges, graphs, degree = 2 * edges, loops
+
+# isomorphism
+
+# Euler's theorem p. 51 first slides from Krysia

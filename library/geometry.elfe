@@ -1,0 +1,47 @@
+Notation between: a-b-c.
+Notation equidistant: a-b ≡ c-d.
+
+Definition CongrSymm: for all a,b. a-b ≡ b-a. 
+Definition CongrIdent: for all a,b,c. a-b ≡ c-c implies a = b. 
+Definition CongrTrans: for all a,b,p,q,r,s. a-b ≡ p-q and a-b ≡ r-s implies p-q ≡ r-s. 
+
+Definition SegmentConstr: for all a,b,c,d. exists e. b-e ≡ c-d and a-b-e. 
+Definition FiveSegment: for all a,b,c,d,a1,b1,c1,d1.
+   (a-b-c and a1-b1-c1 and a-b ≡ a1-b1 and b-c ≡ b1-c1 and a-d ≡ a1-d1 and b-d ≡ b1-d1 and not a = b)
+   implies c-d ≡ c1-d1.
+
+Definition BetwIdent: for all a,b. a-b-a implies a = b.
+Definition Pasch: for all a,b,c,p,q. a-p-c and b-q-c implies exists x. p-x-b and q-x-a.
+
+Definition LowerDim: exists a,b,c. not a-b-c and not b-c-a and not c-a-b.
+
+Definition UpperDim: for all a,b,c,p,q. 
+    (a-p ≡ a-q and b-p ≡ b-q and c-p ≡ c-q and not p = q)
+    implies (a-b-c or b-c-a or c-a-b).
+
+Definition Euclid: for all a,b,c,d,t. exists x,y. 
+    (a-d-t and b-d-c and not a = d)
+    implies (a-b-x and a-c-y and x-t-y).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Lemma: for all a,b,c. a-b-c implies a-c-b. Proof: qed.
+
+# Lemma: for all a,b,c,d,e. a-b ≡ c-d and e-a-b and (not a = e) and (not b = e) implies not (a-e ≡ c-d).
+# Proof: 
+#     Assume a-b ≡ c-d and e-a-b and (not a = e) and (not b = e).
+#     Hence not (a-e ≡ c-d).
+# qed.
+
+

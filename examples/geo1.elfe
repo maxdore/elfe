@@ -1,0 +1,12 @@
+Include geometry.
+
+Lemma betweenCong: for all a,b,c. a-b-c and a-c ≡ a-b implies c = b.
+Proof: 
+    Assume exists b,c. for all a. a-c-b and a-c ≡ a-b and not c = b.
+    Take x such that x-c-b and not x = b and not x = c.
+    Then x-c ≡ x-b.
+    Take y such that y-x-c and not x = y.
+    Then y-c-b and not y-c ≡ y-b. 
+    Hence contradiction.
+qed.
+

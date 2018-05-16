@@ -1,0 +1,26 @@
+Include geometry.
+
+Lemma BetwEquality: for all a,b,c. a-b-c and b-a-c implies a = b.
+Proof: 
+    Assume a-b-c and b-a-c.
+    Then a-b-a by .
+    Hence a = b.
+qed.
+
+akjsdkajhd
+
+
+Lemma ThreeCong: for all a,b,c,a1,b1,c1. a-b-c and a-b ≡ a1-b1 and a-c ≡ a1-c1 and b-c ≡ b1-c1 implies a1-b1-c1.
+Proof: 
+    Assume exists a,b,c,a1,b1,c1. a-b-c and a-b ≡ a1-b1 and a-c ≡ a1-c1 and b-c ≡ b1-c1 and not a1-b1-c1. 
+    Hence contradiction.
+qed.
+
+Lemma BetweenCong: for all a,b,c. a-b-c and a-c ≡ a-b implies c = b.
+Proof:
+    Assume a-b-c and a-c ≡ a-b.
+    Then a-b ≡ a-c and (b-c ≡ c-b) by CongrSymm, CongrTrans.
+    Then (a-c-b) by ThreeCong.
+    Then (c = b) by BetwEquality, BetwIdent.
+    Hence c = b.
+qed.
