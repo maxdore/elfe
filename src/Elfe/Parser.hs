@@ -118,6 +118,7 @@ elfeParser = do
                <|> notation
                <|> assign
                <|> definition
+               <|> axiom
                <|> lemma
                <|> proposition
                <|> fail "No section could be applied"
@@ -187,6 +188,16 @@ definition =
      pos <- getPos
      return [(Statement id cf Assumed pos)]
 
+axiom :: PS [Statement]
+axiom =
+  do reserved "Axiom"
+     id <- givenOrNewId
+     f  <- fof
+     cf <- letify f
+     reserved "."
+     pos <- getPos
+     return [(Statement id cf Assumed pos)]
+
 proposition :: PS [Statement]
 proposition = 
   do reserved "Proposition"
@@ -227,8 +238,7 @@ derive goal bvs =     try (splitGoal goal bvs)
                   <|> try (extendContext goal bvs)
                   <|> finalProof goal bvs
 
-qed = do
-  reserved "qed." <|> reserved "Qed."
+qed = reserved "qed." <|> reserved "Qed."
 
 
 finalProof goal bvs = 
@@ -325,6 +335,7 @@ unfold (Impl l r) bvs =
          rPos <- getPos
          reserved "Hence"
          r' <- fof
+         by <- optionMaybe subContext
          reserved "."
          nId <- newId
          rId <- newId
@@ -386,7 +397,7 @@ extendContext goal bvs =
   do (derivedStatement,nbvs) <- then' bvs <|> take' bvs
      actualDerivation <- derive goal nbvs
      id <- newId
-     return [(Statement id (bindVars goal nbvs) (BySequence (derivedStatement:actualDerivation)) None)]
+     return [Statement id (bindVars goal nbvs) (BySequence (derivedStatement:actualDerivation)) None]
 
 
 
@@ -552,6 +563,7 @@ not' =
      f <- fof
      return (Not f)
 
+
 bot = 
   do string "contradiction" <|> string "⊥"
      return Bot
@@ -560,14 +572,12 @@ bot =
 -- ATOM PARSING
 
 atom :: PS Formula
-atom = do
-  try verboseAtom <|> try rawAtom
+atom = try verboseAtom <|> try rawAtom
 
 
 
 verboseAtom :: PS Formula
-verboseAtom = do
-  try atomIsNot <|> atomIsMultiple <|> try atomIs
+verboseAtom = try atomIsNot <|> atomIsMultiple <|> try atomIs
 
 atomIs :: PS Formula
 atomIs = do 
@@ -602,17 +612,15 @@ rawAtom = do
   return $ Atom name terms
 
 function :: Bool -> PS (String, [Term])
-function False = do
-    try functionSugared <|> try functionRaw
-function True = do
-    try functionWrapSugared <|> try functionRaw
+function False = try functionSugared <|> try functionRaw
+function True = try functionWrapSugared <|> try functionRaw
 
 functionRaw  :: PS (String, [Term])
 functionRaw =
   do name <- try $ many1 alphaNum
      reservedOp "("
      --traceM ("found raw function with name '" ++ name ++ "'")
-     terms <- (term False) `sepBy` (char ',' >> spaces)
+     terms <- term False `sepBy` (char ',' >> spaces)
      reserved ")"
      return (name,terms)
 
