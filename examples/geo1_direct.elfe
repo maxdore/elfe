@@ -3,11 +3,11 @@ Include geometry.
 Lemma BetwEquality: for all a,b,c. a-b-c and b-a-c implies a = b.
 Proof: 
     Assume a-b-c and b-a-c.
-    Then a-b-a. # by .
+    Then (a-b-a) by BetwIdent, Pasch.
     Hence a = b.
 qed.
 
-
+asdahsgdkjh
 
 Lemma ThreeCong: for all a,b,c,a',b',c'. a-b-c and a-b ≡ a'-b' and a-c ≡ a'-c' and b-c ≡ b'-c' implies a'-b'-c'.
 Proof: 
@@ -18,7 +18,7 @@ qed.
 Lemma BetweenCong: for all a,b,c. a-b-c and a-c ≡ a-b implies c = b.
 Proof:
     Assume a-b-c and a-c ≡ a-b.
-    Then a-b ≡ a-c and (b-c ≡ c-b) by CongrSymm, CongrTrans.
+    Then a-b ≡ a-c and (b-c ≡ c-b) by CongrRefl, CongrTrans.
     Then (a-c-b) by ThreeCong.
     Then (c = b) by BetwEquality, BetwIdent.
     Hence c = b.
