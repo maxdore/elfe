@@ -1,0 +1,18 @@
+Include geometry.
+
+Lemma 211: a-b-c and a'-b'-c' and a-b ≡ a'-b' and b-c ≡ b'-c' implies a-c ≡ a'-c'.
+Proof: qed.
+
+Lemma Gupta: for all a,b,c,d. (not a = b) and a-b-c and a-b-d implies a-c-d or a-d-c.
+Proof: 
+    Take c', d' such that a-d-c' and d-c' ≡ c-d and a-c-d' and c-d' ≡ c-d.
+    Take b', b'' such that a-c'-b' and c'-b' ≡ c-b and a-d'-b'' and d'-b'' ≡ d-b.
+    Then b-c' ≡ b''-c and b-b' ≡ b''-b.
+    Then b'' = b'.
+    Then c'-d' ≡ c-d.
+    Take e such that c-e-c' and d-e-d'.
+    Then e-c ≡ e-c' and e-d ≡ e-d'.
+    Then c = c' or d = d'.
+qed.
+
+
