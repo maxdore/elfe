@@ -90,6 +90,13 @@ data StatementStatus = StatementStatus { sid :: String
                                        }
   deriving (Eq, Show, Generic)
 
+filterSs :: [StatementStatus] -> ProofStatus -> [StatementStatus]
+filterSs [] _ = []
+filterSs (StatementStatus i f s cs p:ss) ps = if s == ps
+                                                  then StatementStatus i f s (filterSs cs ps) p : filterSs ss ps
+                                                  else filterSs ss ps
+
+
 
 quantifiedPrefix = "V"
 boundPrefix = "c"

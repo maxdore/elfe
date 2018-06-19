@@ -26,9 +26,13 @@ check raw = do
     res <- verify sequ
     endVerifying <- getTime
     putStrLn "---------------------------RESULT--------------------------" 
-    -- TODO
+    printRes res
     putStrLn "-------------------------STATISTICS------------------------" 
     putStrLn $ "Parsing time: " ++ (secs $ endParsing - startParsing)
     putStrLn $ "Verifying time: " ++ (secs $ endVerifying - startVerifying)
     putStrLn $ "Total: " ++ (secs $ endParsing - startParsing + endVerifying - startVerifying)
 
+
+printRes ss = if null (filterSs ss Unknown)
+                 then putStrLn "Everything correct"
+                 else putStrLn "Nope"
