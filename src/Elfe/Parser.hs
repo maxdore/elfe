@@ -90,7 +90,7 @@ type PS = ParsecT String ParserState Identity
 
 eid =
   do s <- many1 (satisfy (`elem` '\'' : ['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9']) <?> "letter or digit")
-     return $ map (\c -> if c=='\'' then 'p'; else c) s
+     return $ map (\c -> if c=='\'' then 'p' else c) s
 
 givenOrNewId = undefId <|> defId
 

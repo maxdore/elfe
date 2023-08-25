@@ -8,10 +8,21 @@ maintainer:          maximilian.dore@rwth-aachen.de
 build-type:          Simple
 cabal-version:       >=1.8
 
+library
+  exposed-modules:
+      Elfe
+      Elfe.Language
+      Elfe.Preprocessor
+      Elfe.Parser
+      Elfe.Verifier
+      Elfe.Prover
+      Settings
+  hs-source-dirs:
+      src, .
+
 executable elfe
   main-is:             Main.hs
   hs-source-dirs:      src, .
-  exposed-modules:     Elfe
   extensions:          OverloadedStrings
                      , DeriveGeneric
                      , DeriveDataTypeable
@@ -36,11 +47,12 @@ executable elfe
                      , parsec
                      , process
                      , directory
+                     , random
+                     , criterion-measurement
 
 executable elfe-server
   main-is:             Server.hs
   hs-source-dirs:      src, .
-  exposed-modules:     Elfe
   extensions:          OverloadedStrings
                      , DeriveGeneric
                      , DeriveDataTypeable
@@ -67,3 +79,5 @@ executable elfe-server
                      , directory
                      , aeson
                      , hastache
+                     , random
+                     , criterion-measurement

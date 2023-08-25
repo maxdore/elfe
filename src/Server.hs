@@ -1,9 +1,12 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 import Network.HTTP.Types
 import Web.Scotty
 import Text.Hastache 
 import Text.Hastache.Context
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TL
+import Data.Text.Lazy.Encoding
 
 import Data.Data
 import Data.Aeson (ToJSON, toJSON)
@@ -68,7 +71,7 @@ main = scotty port $ do
     let examples = map (reverse . drop 5 . reverse ) (filter (\x -> x `notElem` [".", ".."]) dircontent)
     content <- hastacheFile defaultConfig "./web/templates/examples.html" (mkGenericContext $ Examples $ map (\e -> Example e "content") examples)
     compiled <- compile content
-    html compiled
+    html (decodeLatin1 compiled)
 
   get "/tutorial" $ do
     redirect "/training?exercise=0"
@@ -78,7 +81,7 @@ main = scotty port $ do
     header <- hastacheFile defaultConfig "./web/templates/training/header.html" (mkGenericContext ())
     content <- hastacheFile defaultConfig ("./web/templates/training/" ++ (TL.unpack exercise) ++ ".html") (mkGenericContext ())
     footer <- hastacheFile defaultConfig "./web/templates/footer.html" (mkGenericContext ())
-    html $ header <> content <> footer
+    html $ (decodeLatin1 header) <> (decodeLatin1 content) <> (decodeLatin1 footer)
  
   get "/" $ do
     example <- (param "example") `rescue` (\msg -> return msg)
@@ -89,12 +92,12 @@ main = scotty port $ do
         content <- liftIO $ readFile filePath
         content <- hastacheFile defaultConfig "./web/templates/index.html" (mkGenericContext $ Example (show example) content)
         compiled <- compile content
-        html compiled
+        html (decodeLatin1 compiled)
       else do
         content <- liftIO $ readFile "./examples/Symmetric and transitive relations are reflexive.elfe"
         content <- hastacheFile defaultConfig "./web/templates/index.html" (mkGenericContext $ Example (show example) content)
         compiled <- compile content
-        html compiled
+        html (decodeLatin1 compiled)
 
 compile template = do
   header <- hastacheFile defaultConfig "./web/templates/header.html" (mkGenericContext ())
