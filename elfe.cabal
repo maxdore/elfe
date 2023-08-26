@@ -23,6 +23,14 @@ library
 executable elfe
   main-is:             Main.hs
   hs-source-dirs:      src, .
+  other-modules:
+      Elfe
+      Elfe.Language
+      Elfe.Preprocessor
+      Elfe.Parser
+      Elfe.Verifier
+      Elfe.Prover
+      Settings
   extensions:          OverloadedStrings
                      , DeriveGeneric
                      , DeriveDataTypeable
@@ -53,6 +61,14 @@ executable elfe
 executable elfe-server
   main-is:             Server.hs
   hs-source-dirs:      src, .
+  other-modules:
+      Elfe
+      Elfe.Language
+      Elfe.Preprocessor
+      Elfe.Parser
+      Elfe.Verifier
+      Elfe.Prover
+      Settings
   extensions:          OverloadedStrings
                      , DeriveGeneric
                      , DeriveDataTypeable
